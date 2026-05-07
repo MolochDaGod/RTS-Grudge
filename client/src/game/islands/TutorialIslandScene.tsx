@@ -13,6 +13,8 @@ import { useAsset } from "../hooks/useAsset";
 import { AssetLoaderInit } from "../systems/AssetLoaderInit";
 import { isAssetCached, subscribeAssetProgress } from "../systems/AssetLoader";
 import Player from "../components/Player";
+import WorldNetBridge from "../networking/WorldNetBridge";
+import RemotePlayers from "../networking/RemotePlayers";
 import Camera, { resetCamera, clearPendingCameraReset } from "../components/Camera";
 import HUD from "../components/HUD";
 import { LocationDiscovery } from "../components/WorldMap";
@@ -2091,6 +2093,12 @@ function TutorialIslandSceneContents({
         />
         <PlayerBubbleTrail playerPosRef={playerPosRef} />
         <Camera playerPosition={playerPosRef.current} />
+        {/* Authoritative MMO bridge: subscribes the Zustand mirror, joins
+            the zone, and broadcasts the local player's pos/rot/anim to
+            the Railway /world server at 10 Hz. RemotePlayers renders
+            every other player in the zone next to <Player>. */}
+        <WorldNetBridge zone="tutorial" rate={10} spawn={spawnPosition} />
+        <RemotePlayers />
       </LightmapIgnore>
 
       {/* Shore foam ring around the island. Uses the world bake's

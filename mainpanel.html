@@ -1,0 +1,2481 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Grudge Warlords • Main Panel</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;700&display=swap"
+    rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0705;
+      --panel: #1a120c;
+      --panel2: #221710;
+      --panel3: #2e1f14;
+      --border: #c9950a;
+      --border2: #7a5c1e;
+      --border-dim: #3a2a1a;
+      --text: #f5e2c1;
+      --muted: #9b7d52;
+      --dim: #6b5535;
+      --gold: #d4a400;
+      --gold-glow: rgba(212, 164, 0, .25);
+      --green: #6ec96e;
+      --red: #d45050;
+      --blue: #5a9ad8;
+      --purple: #a87ddb;
+      --orange: #d89040;
+      --cyan: #50b8c0;
+      --slot: #1e140e;
+      --slot-b: #3a2a1a;
+      --shadow: 0 6px 24px rgba(0, 0, 0, .6);
+      --font-display: 'Cinzel', serif;
+      --font-body: 'Crimson Text', Georgia, serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow: hidden
+    }
+
+    body {
+      font-family: var(--font-body);
+      color: var(--text);
+      background:
+        radial-gradient(ellipse 900px 400px at 10% 0%, rgba(212, 164, 0, .06), transparent),
+        radial-gradient(ellipse 700px 500px at 90% 100%, rgba(140, 40, 20, .06), transparent),
+        linear-gradient(170deg, #120c06 0%, #0a0705 40%, #080604 100%);
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #3a2a1a;
+      border-radius: 9px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent
+    }
+
+    /* ═══ LAYOUT ═══ */
+    .app {
+      display: flex;
+      height: 100vh;
+      flex-direction: column
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: linear-gradient(90deg, #1a100a, #221710, #1a100a);
+      border-bottom: 2px solid var(--border);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, .5);
+      flex-shrink: 0;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px
+    }
+
+    .logo h1 {
+      font-family: var(--font-display);
+      font-size: 15px;
+      color: var(--gold);
+      letter-spacing: 2px;
+      text-transform: uppercase
+    }
+
+    .logo .sub {
+      font-size: 11px;
+      color: var(--muted)
+    }
+
+    .player-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 12px
+    }
+
+    .player-info .name {
+      color: var(--gold);
+      font-family: var(--font-display);
+      font-weight: 700
+    }
+
+    .player-info .lvl {
+      color: var(--muted);
+      font-size: 11px
+    }
+
+    .resource-bars {
+      display: flex;
+      gap: 8px
+    }
+
+    .res-bar {
+      width: 120px;
+      height: 14px;
+      background: #1a0f08;
+      border: 1px solid var(--border-dim);
+      border-radius: 3px;
+      overflow: hidden;
+      position: relative
+    }
+
+    .res-bar .fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width .4s
+    }
+
+    .res-bar .fill.hp {
+      background: linear-gradient(90deg, #8b2020, #d44040);
+      width: 78%
+    }
+
+    .res-bar .fill.mp {
+      background: linear-gradient(90deg, #1a3a6a, #3a7ad8);
+      width: 62%
+    }
+
+    .res-bar .fill.sp {
+      background: linear-gradient(90deg, #5a6a1a, #9ab830);
+      width: 91%
+    }
+
+    .res-bar .lbl {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 9px;
+      font-family: var(--font-mono);
+      line-height: 14px;
+      color: #fff;
+      text-shadow: 0 1px 2px #000
+    }
+
+    .main-body {
+      display: flex;
+      flex: 1;
+      min-height: 0
+    }
+
+    /* ═══ LEFT: STATS + CHAR ═══ */
+    .left-col {
+      width: 260px;
+      flex-shrink: 0;
+      background: linear-gradient(180deg, #1a120c, #140e08);
+      border-right: 2px solid var(--border-dim);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .char-preview {
+      height: 200px;
+      background: radial-gradient(circle at 50% 60%, rgba(212, 164, 0, .08), transparent 70%),
+        linear-gradient(180deg, #0f0a06, #1a120c);
+      border-bottom: 1px solid var(--border-dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .char-silhouette {
+      width: 120px;
+      height: 170px;
+      background: radial-gradient(ellipse at 50% 40%, rgba(200, 160, 80, .12), transparent 60%);
+      border: 2px dashed var(--border-dim);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--dim);
+      font-size: 11px;
+      font-family: var(--font-display);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .stat-section {
+      padding: 10px 12px
+    }
+
+    .stat-section h3 {
+      font-family: var(--font-display);
+      font-size: 11px;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      border-bottom: 1px solid var(--gold-glow);
+      padding-bottom: 4px;
+      margin-bottom: 6px;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      font-size: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, .03)
+    }
+
+    .stat-row .k {
+      color: var(--muted);
+      font-weight: 600
+    }
+
+    .stat-row .v {
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 11px
+    }
+
+    .stat-row .v.green {
+      color: var(--green)
+    }
+
+    /* ═══ CENTER: TABS + CONTENT ═══ */
+    .center-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0
+    }
+
+    .tab-strip {
+      display: flex;
+      gap: 0;
+      background: linear-gradient(90deg, #14100a, #1e150e, #14100a);
+      border-bottom: 2px solid var(--border);
+      flex-shrink: 0;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 10px 14px;
+      font-family: var(--font-display);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 700;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      transition: .15s;
+    }
+
+    .tab-btn:hover {
+      color: var(--text);
+      background: rgba(212, 164, 0, .05)
+    }
+
+    .tab-btn.active {
+      color: var(--gold);
+      border-bottom-color: var(--gold);
+      background: rgba(212, 164, 0, .08)
+    }
+
+    .content-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px
+    }
+
+    .tab-panel {
+      display: none
+    }
+
+    .tab-panel.active {
+      display: block
+    }
+
+    /* ═══ RIGHT: INVENTORY ═══ */
+    .right-col {
+      width: 280px;
+      flex-shrink: 0;
+      background: linear-gradient(180deg, #1a120c, #140e08);
+      border-left: 2px solid var(--border-dim);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .inv-header {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-dim);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .inv-header h3 {
+      font-family: var(--font-display);
+      font-size: 12px;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 1px
+    }
+
+    .inv-header .gold-display {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #ffd56a
+    }
+
+    .inv-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 4px;
+      padding: 8px;
+      flex: 1;
+      overflow-y: auto;
+      align-content: start;
+    }
+
+    .inv-cell {
+      aspect-ratio: 1;
+      border: 2px solid var(--border-dim);
+      border-radius: 6px;
+      background: linear-gradient(135deg, #221710, #1a0f08);
+      cursor: pointer;
+      transition: .15s;
+      position: relative;
+    }
+
+    .inv-cell:hover {
+      border-color: var(--gold);
+      box-shadow: 0 0 8px var(--gold-glow)
+    }
+
+    .inv-cell.filled {
+      border-color: #5a4020
+    }
+
+    .inv-cell .item-icon {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 4px
+    }
+
+    .inv-cell .qty {
+      position: absolute;
+      bottom: 1px;
+      right: 3px;
+      font-size: 9px;
+      font-family: var(--font-mono);
+      color: var(--gold)
+    }
+
+    .trash-zone {
+      padding: 8px 12px;
+      border-top: 1px solid var(--border-dim);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .trash-slot {
+      width: 40px;
+      height: 40px;
+      border: 2px dashed var(--red);
+      border-radius: 6px;
+      background: rgba(200, 40, 40, .08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: var(--red);
+    }
+
+    .trash-zone span {
+      font-size: 11px;
+      color: var(--muted)
+    }
+
+    /* ═══ BOTTOM BAR ═══ */
+    .bottom-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 6px 16px;
+      background: linear-gradient(90deg, #120c06, #1a120c, #120c06);
+      border-top: 2px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .hotbar {
+      display: flex;
+      gap: 4px
+    }
+
+    .hb-slot {
+      width: 44px;
+      height: 44px;
+      border: 2px solid var(--border-dim);
+      border-radius: 6px;
+      background: linear-gradient(135deg, #2a1e14, #1a0f08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      color: var(--dim);
+      font-family: var(--font-mono);
+      cursor: pointer;
+      transition: .15s;
+      position: relative;
+    }
+
+    .hb-slot:hover {
+      border-color: var(--gold)
+    }
+
+    .hb-slot .key {
+      position: absolute;
+      top: 2px;
+      left: 4px;
+      font-size: 8px;
+      color: var(--muted)
+    }
+
+    /* ═══ SHARED COMPONENTS ═══ */
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-display);
+      font-size: 12px;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 16px 0 10px;
+    }
+
+    .section-title::before {
+      content: '';
+      width: 3px;
+      height: 14px;
+      background: var(--gold);
+      border-radius: 3px
+    }
+
+    .card {
+      background: linear-gradient(135deg, #221710, #1a0f08);
+      border: 1px solid var(--border-dim);
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: var(--shadow);
+      transition: .15s;
+    }
+
+    .card:hover {
+      border-color: var(--border2);
+      transform: translateY(-1px)
+    }
+
+    /* Equipment Panel */
+    .equip-layout {
+      display: grid;
+      grid-template-columns: 80px 1fr 80px;
+      gap: 16px;
+      align-items: center;
+      max-width: 500px;
+      margin: 0 auto
+    }
+
+    .equip-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center
+    }
+
+    .eq-slot {
+      width: 72px;
+      height: 72px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: linear-gradient(135deg, #2e1f14, #1a0f08);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: .15s;
+    }
+
+    .eq-slot:hover {
+      border-color: var(--gold);
+      box-shadow: 0 0 12px var(--gold-glow)
+    }
+
+    .eq-slot .cat {
+      font-size: 8px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      font-family: var(--font-display)
+    }
+
+    .eq-center {
+      width: 140px;
+      height: 140px;
+      border: 3px solid var(--border);
+      border-radius: 12px;
+      background: radial-gradient(circle, rgba(212, 164, 0, .08), transparent 70%), linear-gradient(135deg, #2e1f14, #1a0f08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+      font-family: var(--font-display);
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    /* Attributes Panel */
+    .attr-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px
+    }
+
+    .attr-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px;
+      background: linear-gradient(135deg, #1e1510, #160e08);
+      border: 1px solid var(--border-dim);
+      border-radius: 8px;
+    }
+
+    .attr-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: radial-gradient(circle, rgba(212, 164, 0, .15), transparent);
+      border: 1px solid var(--border2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .attr-info .name {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text)
+    }
+
+    .attr-info .val {
+      font-size: 18px;
+      font-family: var(--font-mono);
+      color: var(--gold);
+      font-weight: 700
+    }
+
+    .attr-info .desc {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 2px
+    }
+
+    .attr-btn {
+      margin-left: auto;
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      border: 1px solid var(--green);
+      background: rgba(110, 200, 110, .1);
+      color: var(--green);
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .attr-btn:hover {
+      background: rgba(110, 200, 110, .25)
+    }
+
+    /* Skill Trees */
+    .tree-selector {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+      flex-wrap: wrap
+    }
+
+    .tree-btn {
+      padding: 6px 12px;
+      border: 1px solid var(--border-dim);
+      border-radius: 6px;
+      background: var(--panel);
+      color: var(--muted);
+      cursor: pointer;
+      font-family: var(--font-display);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      transition: .15s;
+    }
+
+    .tree-btn:hover {
+      border-color: var(--border2);
+      color: var(--text)
+    }
+
+    .tree-btn.active {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: rgba(212, 164, 0, .1)
+    }
+
+    .skill-tier {
+      margin-bottom: 16px
+    }
+
+    .tier-label {
+      font-size: 10px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      font-family: var(--font-display)
+    }
+
+    .skill-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 8px
+    }
+
+    .skill-node {
+      display: flex;
+      gap: 8px;
+      padding: 10px;
+      background: linear-gradient(135deg, #1e1710, #160f08);
+      border: 1px solid var(--border-dim);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: .15s;
+    }
+
+    .skill-node:hover {
+      border-color: var(--border2);
+      transform: translateY(-1px)
+    }
+
+    .skill-node.unlocked {
+      border-color: #4a7a30;
+      background: linear-gradient(135deg, #1a2810, #142008)
+    }
+
+    .skill-node.locked {
+      opacity: .5
+    }
+
+    .skill-node .sk-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      flex-shrink: 0;
+      background: radial-gradient(circle, rgba(212, 164, 0, .12), transparent);
+      border: 1px solid var(--border-dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .skill-node .sk-name {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text)
+    }
+
+    .skill-node .sk-desc {
+      font-size: 10px;
+      color: var(--muted);
+      line-height: 1.3;
+      margin-top: 2px
+    }
+
+    .skill-node .sk-meta {
+      display: flex;
+      gap: 4px;
+      margin-top: 5px;
+      flex-wrap: wrap
+    }
+
+    .chip {
+      font-size: 8px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      border: 1px solid;
+      border-radius: 99px;
+      padding: 1px 6px;
+    }
+
+    .chip.dmg {
+      color: #ff8b95;
+      border-color: #ff8b9540;
+      background: #ff8b9510
+    }
+
+    .chip.cd {
+      color: #84b2ff;
+      border-color: #84b2ff40;
+      background: #84b2ff10
+    }
+
+    .chip.heal {
+      color: #6ec96e;
+      border-color: #6ec96e40;
+      background: #6ec96e10
+    }
+
+    .chip.buff {
+      color: #ffd56a;
+      border-color: #ffd56a40;
+      background: #ffd56a10
+    }
+
+    .chip.cc {
+      color: #a87ddb;
+      border-color: #a87ddb40;
+      background: #a87ddb10
+    }
+
+    .chip.ult {
+      color: #ff9d4d;
+      border-color: #ff9d4d40;
+      background: #ff9d4d10
+    }
+
+    /* Class badges */
+    .class-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 99px;
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      border: 1px solid;
+    }
+
+    .class-badge.warrior {
+      color: #ff7d87;
+      border-color: #ff7d8740;
+      background: #ff7d8712
+    }
+
+    .class-badge.mage {
+      color: #bb95ff;
+      border-color: #bb95ff40;
+      background: #bb95ff12
+    }
+
+    .class-badge.ranger {
+      color: #49de95;
+      border-color: #49de9540;
+      background: #49de9512
+    }
+
+    .class-badge.worge {
+      color: #ffb16d;
+      border-color: #ffb16d40;
+      background: #ffb16d12
+    }
+
+    /* Crafting */
+    .craft-layout {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 16px;
+      align-items: start;
+      max-width: 600px;
+      margin: 0 auto
+    }
+
+    .craft-slots {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px
+    }
+
+    .craft-slot {
+      width: 64px;
+      height: 64px;
+      border: 2px solid var(--border-dim);
+      border-radius: 8px;
+      background: linear-gradient(135deg, #221710, #1a0f08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      color: var(--dim);
+      cursor: pointer;
+    }
+
+    .craft-arrow {
+      font-size: 28px;
+      color: var(--gold);
+      align-self: center
+    }
+
+    .craft-result {
+      width: 80px;
+      height: 80px;
+      border: 3px solid var(--border);
+      border-radius: 10px;
+      background: radial-gradient(circle, rgba(212, 164, 0, .1), transparent), linear-gradient(135deg, #2e1f14, #1a0f08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .craft-btn {
+      grid-column: 1/-1;
+      margin: 12px auto 0;
+      padding: 10px 28px;
+      border: 2px solid var(--gold);
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(212, 164, 0, .2), rgba(212, 164, 0, .05));
+      color: var(--gold);
+      font-family: var(--font-display);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: .15s;
+    }
+
+    .craft-btn:hover {
+      background: linear-gradient(180deg, rgba(212, 164, 0, .35), rgba(212, 164, 0, .1));
+      box-shadow: 0 0 16px var(--gold-glow)
+    }
+
+    /* Guild */
+    .guild-header {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      padding: 14px;
+      background: linear-gradient(135deg, #221710, #1a0f08);
+      border: 1px solid var(--border-dim);
+      border-radius: 10px;
+      margin-bottom: 14px;
+    }
+
+    .guild-crest {
+      width: 64px;
+      height: 64px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: radial-gradient(circle, rgba(212, 164, 0, .15), transparent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+
+    .guild-info .gname {
+      font-family: var(--font-display);
+      font-size: 18px;
+      color: var(--gold)
+    }
+
+    .guild-info .gmaster {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px
+    }
+
+    .guild-info .gcap {
+      font-size: 11px;
+      color: var(--dim);
+      margin-top: 2px;
+      font-family: var(--font-mono)
+    }
+
+    .member-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px
+    }
+
+    .member-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      background: linear-gradient(135deg, #1e1510, #160e08);
+      border: 1px solid var(--border-dim);
+      border-radius: 8px;
+    }
+
+    .member-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0
+    }
+
+    .member-dot.online {
+      background: var(--green);
+      box-shadow: 0 0 6px rgba(110, 200, 110, .4)
+    }
+
+    .member-dot.offline {
+      background: #555
+    }
+
+    .member-name {
+      flex: 1;
+      font-size: 12px
+    }
+
+    .member-lvl {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--font-mono)
+    }
+
+    .member-rank {
+      font-size: 10px;
+      color: var(--gold);
+      font-family: var(--font-display);
+      text-transform: uppercase
+    }
+
+    /* Quest Panel */
+    .quest-card {
+      padding: 12px;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #1e1510, #160e08);
+      border: 1px solid var(--border-dim);
+      border-radius: 10px;
+      border-left: 3px solid var(--gold);
+    }
+
+    .quest-card .q-title {
+      font-family: var(--font-display);
+      font-size: 13px;
+      color: var(--text)
+    }
+
+    .quest-card .q-desc {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+      line-height: 1.4
+    }
+
+    .quest-card .q-progress {
+      margin-top: 8px;
+      height: 6px;
+      background: #1a0f08;
+      border-radius: 3px;
+      overflow: hidden;
+      border: 1px solid var(--border-dim);
+    }
+
+    .quest-card .q-progress .q-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), #ffd56a);
+      border-radius: 2px
+    }
+
+    .quest-card .q-reward {
+      font-size: 10px;
+      color: var(--gold);
+      margin-top: 6px;
+      font-family: var(--font-mono)
+    }
+
+    /* Upgrade Panel */
+    .upgrade-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px
+    }
+
+    .upgrade-card {
+      padding: 12px;
+      background: linear-gradient(135deg, #1e1710, #160f08);
+      border: 1px solid var(--border-dim);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: .15s;
+    }
+
+    .upgrade-card:hover {
+      border-color: var(--border2)
+    }
+
+    .upgrade-card .u-name {
+      font-family: var(--font-display);
+      font-size: 12px;
+      color: var(--text)
+    }
+
+    .upgrade-card .u-level {
+      font-size: 11px;
+      color: var(--gold);
+      margin-top: 2px;
+      font-family: var(--font-mono)
+    }
+
+    .upgrade-card .u-desc {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 4px;
+      line-height: 1.3
+    }
+
+    .upgrade-card .u-cost {
+      margin-top: 8px;
+      font-size: 10px;
+      color: var(--orange);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Tooltip */
+    .tooltip {
+      position: fixed;
+      z-index: 9999;
+      pointer-events: none;
+      display: none;
+      width: 260px;
+      max-width: calc(100vw - 20px);
+      background: linear-gradient(135deg, #221710, #1a0f08);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, .6);
+    }
+
+    .tooltip.show {
+      display: block
+    }
+
+    .tooltip .tt-name {
+      font-family: var(--font-display);
+      font-size: 13px;
+      color: var(--gold)
+    }
+
+    .tooltip .tt-type {
+      font-size: 9px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      margin-top: 2px
+    }
+
+    .tooltip .tt-desc {
+      font-size: 11px;
+      color: var(--text);
+      line-height: 1.4;
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px solid var(--border-dim)
+    }
+
+    /* Responsive */
+    @media(max-width:1100px) {
+      .left-col {
+        display: none
+      }
+
+      .right-col {
+        display: none
+      }
+    }
+
+    @media(max-width:700px) {
+      .tab-btn {
+        padding: 8px 8px;
+        font-size: 8px;
+        letter-spacing: 0
+      }
+    }
+
+    /* ═══ ENTITY SYSTEM ═══ */
+    .entity-selector-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 16px;
+      background: linear-gradient(90deg, #0f0905, #160f08, #0f0905);
+      border-bottom: 1px solid var(--border-dim);
+      flex-shrink: 0;
+      overflow-x: auto;
+    }
+
+    .entity-selector-bar .es-label {
+      font-size: 9px;
+      color: var(--dim);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-family: var(--font-display);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .entity-chip {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border: 1px solid var(--border-dim);
+      border-radius: 6px;
+      background: linear-gradient(135deg, #1e140e, #140c06);
+      cursor: pointer;
+      transition: .15s;
+      flex-shrink: 0;
+      font-size: 11px;
+    }
+
+    .entity-chip:hover {
+      border-color: var(--border2)
+    }
+
+    .entity-chip.active {
+      border-color: var(--gold);
+      background: rgba(212, 164, 0, .08)
+    }
+
+    .entity-chip .ec-emoji {
+      font-size: 15px
+    }
+
+    .entity-chip .ec-name {
+      font-family: var(--font-display);
+      font-size: 10px;
+      color: var(--text);
+      font-weight: 700
+    }
+
+    .entity-chip .ec-lvl {
+      font-size: 9px;
+      color: var(--muted)
+    }
+
+    .entity-chip .ec-type {
+      font-size: 8px;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: 99px;
+      border: 1px solid;
+      text-transform: uppercase;
+      letter-spacing: .3px;
+    }
+
+    .ec-type.player {
+      color: #6ec96e;
+      border-color: #6ec96e50;
+      background: #6ec96e12
+    }
+
+    .ec-type.ally {
+      color: #5a9ad8;
+      border-color: #5a9ad850;
+      background: #5a9ad812
+    }
+
+    .ec-type.enemy {
+      color: #d45050;
+      border-color: #d4505050;
+      background: #d4505012
+    }
+
+    /* Right col mode switcher */
+    .rcol-mode-bar {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border-dim);
+      flex-shrink: 0;
+    }
+
+    .rcol-mode-btn {
+      flex: 1;
+      padding: 7px 4px;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: var(--font-display);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      border-bottom: 2px solid transparent;
+      transition: .15s;
+    }
+
+    .rcol-mode-btn:hover {
+      color: var(--text)
+    }
+
+    .rcol-mode-btn.active {
+      color: var(--gold);
+      border-bottom-color: var(--gold);
+      background: rgba(212, 164, 0, .05)
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+
+    <!-- TOP BAR -->
+    <header class="top-bar">
+      <div class="logo">
+        <h1>⚔ Grudge Warlords</h1>
+        <span class="sub" id="topbar-sub">Main Panel</span>
+      </div>
+      <div class="player-info">
+        <div class="resource-bars">
+          <div class="res-bar">
+            <div class="fill hp" id="tb-hp"></div><span class="lbl" id="tb-hp-lbl">HP —</span>
+          </div>
+          <div class="res-bar">
+            <div class="fill mp" id="tb-mp"></div><span class="lbl" id="tb-mp-lbl">MP —</span>
+          </div>
+          <div class="res-bar">
+            <div class="fill sp" id="tb-sp"></div><span class="lbl" id="tb-sp-lbl">SP —</span>
+          </div>
+        </div>
+        <span class="name" id="tb-name">—</span>
+        <span class="lvl" id="tb-lvl">Select a unit</span>
+      </div>
+    </header>
+
+    <!-- ENTITY SELECTOR BAR -->
+    <div class="entity-selector-bar" id="entitySelectorBar">
+      <span class="es-label">Viewing:</span>
+    </div>
+
+    <div class="main-body">
+
+      <!-- LEFT: STATS -->
+      <aside class="left-col">
+        <div class="char-preview">
+          <div class="char-preview" id="charPreview">
+            <div class="char-silhouette" id="charSilhouette">Character<br>Preview</div>
+            <div id="charRaceBadge" style="position:absolute;bottom:6px;left:8px;width:36px;height:36px;display:none">
+            </div>
+            <div id="charFactionBadge"
+              style="position:absolute;bottom:6px;right:8px;width:36px;height:36px;display:none"></div>
+          </div>
+          <div class="stat-section" id="sidebarAttrs"></div>
+          <div class="stat-section" id="sidebarCombat"></div>
+          <div class="stat-section" id="sidebarProgression"></div>
+          <div class="stat-section" id="sidebarBuild"></div>
+      </aside>
+
+      <!-- CENTER: TABBED CONTENT -->
+      <main class="center-col">
+        <nav class="tab-strip" id="tabStrip"></nav>
+        <div class="content-area" id="contentArea"></div>
+      </main>
+
+      <!-- RIGHT: INVENTORY / SKILLS -->
+      <aside class="right-col">
+        <div class="rcol-mode-bar">
+          <button class="rcol-mode-btn active" id="rcol-inv-btn" onclick="setRcolMode('inv')">🎒 Inventory</button>
+          <button class="rcol-mode-btn" id="rcol-sk-btn" onclick="setRcolMode('skills')">⚡ Skills</button>
+        </div>
+        <!-- Inventory mode -->
+        <div id="rcol-inv-panel" style="display:flex;flex-direction:column;flex:1;min-height:0;">
+          <div class="inv-header">
+            <h3 id="inv-entity-name">Inventory</h3>
+            <span class="gold-display" id="inv-gold-display">⚜ —</span>
+          </div>
+          <div class="inv-grid" id="invGrid"></div>
+          <div class="trash-zone">
+            <div class="trash-slot">🗑</div>
+            <span>Drop items here to destroy</span>
+          </div>
+        </div>
+        <!-- Skills mode -->
+        <div id="rcol-sk-panel"
+          style="display:none;flex-direction:column;flex:1;min-height:0;overflow-y:auto;padding:10px;">
+          <div
+            style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px;font-family:var(--font-display);margin-bottom:8px;">
+            9 Skill Slots</div>
+          <div id="rcol-skill-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- BOTTOM: HOTBAR -->
+    <footer class="bottom-bar">
+      <div class="hotbar" id="hotbar"></div>
+    </footer>
+  </div>
+
+  <div class="tooltip" id="tooltip"></div>
+
+  <script>
+    /* ═══════════════════════════════════════════════════════════
+       GRUDGE WARLORDS — MAIN PANEL ENGINE (8-attribute stats system)
+       Data source: https://molochdagod.github.io/ObjectStore/
+       ═══════════════════════════════════════════════════════════ */
+
+    const CDN = 'https://molochdagod.github.io/ObjectStore';
+    const ICON = p => CDN + '/' + String(p).replace(/^\//, '');
+
+    // ═══ ARENA ASSETS (grudge-arena public/ served by Vite dev server) ═══
+    const ARENA_BASE = 'http://localhost:5173';
+    const AIMG = name => ARENA_BASE + '/' + encodeURIComponent(name);
+
+    const RACE_IMG = {
+      Human: AIMG('Human Emblem.png'),
+      Elf: AIMG('Elf Emblem.png'),
+      Dwarf: AIMG('Dwarf Emblem.png'),
+      Orc: AIMG('Orc Emblem.png'),
+      Undead: AIMG('Undead Emblem.png'),
+      Worge: AIMG('Worge Emblem.png'),
+    };
+
+    const FACTION_IMG = {
+      Barbarian: AIMG('Barbarian Emblem.png'),
+      Crusade: AIMG('Crusade Emblem.png'),
+      Fabled: AIMG('Fabled Emblem.png'),
+      Legion: AIMG('Legion Emblem.png'),
+    };
+
+    const CLASS_IMG = {
+      Warrior: AIMG('magicstudio-art (10).png'),
+      Ranger: AIMG('magicstudio-art (12).png'),
+      Mage: AIMG('magicstudio-art (14).png'),
+    };
+
+    // ═══ ENTITY DATA SYSTEM ═══
+    const MP_ENTITIES = {
+      player: {
+        id: 'player', name: 'Racalvin', level: 42, class: 'Warrior', race: 'Human', faction: 'Crusade', type: 'player', emoji: '⚔',
+        hp: [780, 1000], mp: [310, 500], sp: [91, 100],
+        attrPoints: { Strength: 28, Intellect: 8, Vitality: 32, Dexterity: 18, Endurance: 24, Wisdom: 10, Agility: 18, Tactics: 22 },
+        skills: [
+          { name: 'Power Strike', icon: '⚔', desc: 'Overhead strike dealing 150% damage.', active: true },
+          { name: 'Shield Bash', icon: '🛡', desc: 'Bash that stuns target for 1.5s.', active: true },
+          { name: 'War Cry', icon: '📯', desc: 'AoE taunt + -15% enemy damage for 4s.', active: true },
+          { name: 'Cleave', icon: '💥', desc: 'Wide arc hitting all nearby enemies.', active: true },
+          { name: 'Berserker', icon: '🔥', desc: '+25% attack speed below 30% HP.', active: false },
+          { name: 'Execute', icon: '💀', desc: '200% damage vs targets below 20% HP.', active: false },
+          { name: 'Parry', icon: '🔄', desc: 'Block + counter for 50% damage.', active: false },
+          { name: 'Rend', icon: '🩸', desc: 'Bleed DoT for 4s on hit.', active: false },
+          { name: 'Unbreakable', icon: '🏰', desc: 'CC immunity for 6s. 45s cooldown.', active: false }
+        ],
+        inventory: [
+          { n: 'Bloodfeud Blade', e: '⚔️', path: 'icons/weapons/Sword_12.png', rarity: 'unique', qty: 1 },
+          { n: 'War Helm', e: '👒', path: 'icons/armor_full/Helmet_02.png', rarity: 'rare', qty: 1 },
+          { n: 'Ashen Cuirass', e: '🥋', path: 'icons/armor_full/Chest_09.png', rarity: 'epic', qty: 1 },
+          { n: 'March Greaves', e: '🥾', path: 'icons/armor_full/Boots_11.png', rarity: 'rare', qty: 1 },
+          { n: 'Bulwark Plate', e: '🛡️', path: 'icons/armor_full/Shield_04.png', rarity: 'epic', qty: 1 },
+          { n: 'Siege Tonic', e: '🧪', path: 'icons/potions/Potion_07.png', rarity: 'common', qty: 12 },
+          { n: 'Field Ration', e: '🍖', path: 'icons/food/Food_03.png', rarity: 'common', qty: 24 },
+          { n: 'Iron Ingot', e: '⛓️', path: 'icons/materials/Ingot_01.png', rarity: 'common', qty: 42 },
+          { n: 'Blood Crystal', e: '💎', path: 'icons/materials/Gem_04.png', rarity: 'rare', qty: 7 },
+          { n: 'Soul Shard', e: '💠', path: 'icons/materials/Gem_12.png', rarity: 'epic', qty: 3 }
+        ],
+        gold: 22578
+      },
+      shadowfang: {
+        id: 'shadowfang', name: 'Shadowfang', level: 38, class: 'Ranger', race: 'Elf', faction: 'Fabled', type: 'ally', emoji: '🏹',
+        hp: [650, 800], mp: [400, 600], sp: [85, 100],
+        attrPoints: { Strength: 12, Intellect: 15, Vitality: 22, Dexterity: 35, Endurance: 18, Wisdom: 20, Agility: 30, Tactics: 8 },
+        skills: [
+          { name: 'Multi-Shot', icon: '🏹', desc: 'Fire 3 arrows in a cone.', active: true },
+          { name: 'Shadow Step', icon: '👤', desc: 'Teleport behind target + 3s stealth.', active: true },
+          { name: 'Poison Arrow', icon: '☠', desc: '30% chance to apply venom DoT for 8s.', active: true },
+          { name: 'Eagle Eye', icon: '👁', desc: '+5% accuracy and +10% crit range.', active: true },
+          { name: 'Rapid Fire', icon: '💨', desc: '+6% attack speed with bows.', active: false },
+          { name: 'Camouflage', icon: '🍃', desc: 'Full stealth for 10s.', active: false },
+          { name: '', icon: '', desc: '', active: false },
+          { name: '', icon: '', desc: '', active: false },
+          { name: 'Deadeye', icon: '👑', desc: '+20% crit damage ascendancy.', active: false }
+        ],
+        inventory: [
+          { n: 'Shadowflight Bow', e: '🏹', path: 'icons/weapons/Bow_08.png', rarity: 'unique', qty: 1 },
+          { n: 'Poison Flask', e: '☠️', path: 'icons/potions/Potion_07.png', rarity: 'uncommon', qty: 8 },
+          { n: 'Smoke Bomb', e: '💨', path: 'icons/items/Flare_01.png', rarity: 'uncommon', qty: 5 },
+          { n: 'Feathered Arrows', e: '🪶', path: 'icons/materials/Ingot_01.png', rarity: 'common', qty: 60 }
+        ],
+        gold: 9120
+      },
+      slime: {
+        id: 'slime', name: 'Greater Slime', level: 28, class: 'Beast', race: 'Slime', type: 'enemy', emoji: '🟢',
+        hp: [450, 450], mp: [0, 0], sp: [60, 100],
+        attrPoints: { Strength: 18, Intellect: 2, Vitality: 40, Dexterity: 5, Endurance: 30, Wisdom: 0, Agility: 8, Tactics: 0 },
+        skills: [
+          { name: 'Acid Spit', icon: '🧪', desc: 'Ranged acid projectile. Applies burn.', active: true },
+          { name: 'Body Slam', icon: '💥', desc: 'Charges and slams. Knocks back targets.', active: true },
+          { name: 'Split', icon: '⚡', desc: 'Splits into 2 smaller slimes at 25% HP.', active: false },
+          { name: '', icon: '', desc: '', active: false }, { name: '', icon: '', desc: '', active: false },
+          { name: '', icon: '', desc: '', active: false }, { name: '', icon: '', desc: '', active: false },
+          { name: '', icon: '', desc: '', active: false }, { name: '', icon: '', desc: '', active: false }
+        ],
+        inventory: [
+          { n: 'Slime Core', e: '💚', path: 'icons/materials/Gem_04.png', rarity: 'uncommon', qty: 1 },
+          { n: 'Acid Vial', e: '🧪', path: 'icons/potions/Potion_07.png', rarity: 'common', qty: 2 }
+        ],
+        gold: 0
+      }
+    };
+
+    const MP_ENTITY_ORDER = ['player', 'shadowfang', 'slime'];
+    let activeEntityId = 'player';
+    function getActiveEntity() { return MP_ENTITIES[activeEntityId]; }
+
+    // Right column mode
+    let rcolMode = 'inv';
+    function setRcolMode(mode) {
+      rcolMode = mode;
+      document.getElementById('rcol-inv-panel').style.display = mode === 'inv' ? 'flex' : 'none';
+      document.getElementById('rcol-sk-panel').style.display = mode === 'skills' ? 'flex' : 'none';
+      document.getElementById('rcol-inv-btn').classList.toggle('active', mode === 'inv');
+      document.getElementById('rcol-sk-btn').classList.toggle('active', mode === 'skills');
+      if (mode === 'skills') _buildRcolSkills();
+    }
+
+    function _buildRcolSkills() {
+      const e = getActiveEntity(); const grid = document.getElementById('rcol-skill-grid'); if (!grid) return;
+      grid.innerHTML = (e.skills || []).map((sk, i) => {
+        const filled = !!sk.name; const act = sk.active;
+        return `<div onclick="_rcolSkillClick(${i},this)" title="${sk.name || 'Empty'}\n${sk.desc || ''}" style="
+      aspect-ratio:1;background:linear-gradient(135deg,${act ? '#1a2808,#122008' : '#1a0f08,#0f0805'});
+      border:2px solid ${act ? '#3a5820' : '#2a1a0a'};border-radius:8px;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      cursor:pointer;transition:.15s;position:relative;overflow:hidden;
+      ${act ? 'box-shadow:0 0 8px rgba(58,88,32,.4);' : ''}">
+      <span style="position:absolute;top:2px;left:4px;font-size:8px;color:#555;font-family:var(--font-mono)">${i + 1}</span>
+      ${filled ? `<span style="font-size:22px;line-height:1">${sk.icon}</span><span style="font-size:7px;color:#888;text-align:center;font-family:var(--font-display);text-transform:uppercase;letter-spacing:.3px;padding:0 3px;line-height:1.2;margin-top:2px">${sk.name}</span>` : ''}
+    </div>`;
+      }).join('');
+    }
+
+    function _rcolSkillClick(i, el) {
+      document.querySelectorAll('#rcol-skill-grid > div').forEach(s => s.style.outline = '');
+      el.style.outline = '2px solid var(--gold)';
+    }
+
+    function selectEntity(id) {
+      if (!MP_ENTITIES[id]) return;
+      activeEntityId = id;
+      const e = getActiveEntity();
+      // Sync attributePoints to selected entity
+      attributePoints = Object.assign({}, e.attrPoints);
+      // Update top bar
+      _updateTopBar();
+      // Update entity selector chips
+      _buildEntitySelector();
+      // Refresh all
+      buildInventory();
+      rebuildSidebar();
+      if (rcolMode === 'skills') _buildRcolSkills();
+      if (activeTab) renderContent();
+    }
+
+    function _updateTopBar() {
+      const e = getActiveEntity();
+      document.getElementById('tb-name').textContent = e.name;
+      document.getElementById('tb-lvl').textContent = `Lv.${e.level} ${e.race} ${e.class}`;
+      document.getElementById('topbar-sub').textContent = `${e.emoji} ${e.type === 'enemy' ? 'Enemy' : 'Unit'} Panel`;
+      const hpP = (e.hp[0] / Math.max(e.hp[1], 1) * 100).toFixed(1);
+      const mpP = (e.mp[0] / Math.max(e.mp[1], 1) * 100).toFixed(1);
+      const spP = (e.sp[0] / Math.max(e.sp[1], 1) * 100).toFixed(1);
+      document.getElementById('tb-hp').style.width = hpP + '%';
+      document.getElementById('tb-mp').style.width = mpP + '%';
+      document.getElementById('tb-sp').style.width = spP + '%';
+      document.getElementById('tb-hp-lbl').textContent = `HP ${e.hp[0]}/${e.hp[1]}`;
+      document.getElementById('tb-mp-lbl').textContent = `MP ${e.mp[0]}/${e.mp[1]}`;
+      document.getElementById('tb-sp-lbl').textContent = `SP ${e.sp[0]}/${e.sp[1]}`;
+    }
+
+    function _buildEntitySelector() {
+      const bar = document.getElementById('entitySelectorBar'); if (!bar) return;
+      bar.innerHTML = `<span class="es-label">Viewing:</span>` +
+        MP_ENTITY_ORDER.map(id => {
+          const e = MP_ENTITIES[id];
+          const raceImgUrl = RACE_IMG[e.race];
+          const raceHtml = raceImgUrl
+            ? `<img src="${raceImgUrl}" alt="${e.race}" style="width:22px;height:22px;object-fit:contain;flex-shrink:0" title="${e.race}" onerror="this.outerHTML='<span class=ec-emoji>${e.emoji}</span>'">`
+            : `<span class="ec-emoji">${e.emoji}</span>`;
+          return `<div class="entity-chip ${id === activeEntityId ? 'active' : ''}" onclick="selectEntity('${id}')">
+      ${raceHtml}
+      <span class="ec-name">${e.name}</span>
+      <span class="ec-lvl">Lv.${e.level}</span>
+      <span class="ec-type ${e.type}">${e.type}</span>
+    </div>`;
+        }).join('');
+    }
+
+    // postMessage API
+    window.addEventListener('message', ev => {
+      const { action, data } = ev.data || {};
+      if (action === 'selectEntity' && data?.id) {
+        if (!MP_ENTITIES[data.id] && typeof data === 'object') MP_ENTITIES[data.id] = data;
+        selectEntity(data.id);
+      }
+    });
+
+    /* Image with emoji fallback */
+    function iconHTML(path, emoji, size) {
+      const s = size || 40;
+      const safe = (emoji || '⬡').replace(/'/g, "\\'");
+      return '<img src="' + ICON(path) + '" alt="" style="width:100%;height:100%;object-fit:contain;padding:4px" onerror="this.outerHTML=\'<span style=&quot;font-size:' + Math.round(s * 0.55) + 'px&quot;>' + safe + '</span>\'"/>';
+    }
+
+    // ── Tab definitions ──
+    const TABS = [
+      { id: 'equipment', label: 'Equipment' },
+      { id: 'attributes', label: 'Attributes' },
+      { id: 'derived', label: 'Derived Stats' },
+      { id: 'classSkill', label: 'Class Skills' },
+      { id: 'skillTree', label: 'Weapon Skills' },
+      { id: 'upgrade', label: 'Upgrades' },
+      { id: 'craft', label: 'Crafting' },
+      { id: 'quest', label: 'Quests' },
+      { id: 'guild', label: 'Guild' }
+    ];
+
+    let activeTab = 'equipment';
+
+    // ── CLASS SKILL TREES ──
+    const CLASS_TREES = {
+      Warrior: {
+        color: '#ff7d87',
+        tiers: [
+          {
+            name: 'Tier 1 — Foundations', skills: [
+              { name: 'Battle Hardened', icon: '⚔', desc: 'Increase max HP by 5% per point. Stacks with armor bonuses.', chips: ['buff'] },
+              { name: 'Iron Stance', icon: '🛡', desc: 'Reduce incoming physical damage by 3%. Passive always active.', chips: ['buff'] },
+              { name: 'War Cry', icon: '📯', desc: 'AoE shout that taunts nearby enemies for 4s and reduces their damage.', chips: ['cc', 'cd'] }
+            ]
+          },
+          {
+            name: 'Tier 2 — Aggression', skills: [
+              { name: 'Berserker Rage', icon: '🔥', desc: 'Below 30% HP, gain 25% attack speed and 15% lifesteal.', chips: ['dmg', 'buff'] },
+              { name: 'Cleaving Strikes', icon: '⚔', desc: 'Melee attacks hit 1 additional nearby target.', chips: ['dmg'] },
+              { name: 'Stunning Blow', icon: '💫', desc: 'Heavy attack that stuns target for 2s. 12s cooldown.', chips: ['cc', 'cd'] }
+            ]
+          },
+          {
+            name: 'Tier 3 — Mastery', skills: [
+              { name: 'Unbreakable', icon: '🏰', desc: 'Activate to become immune to CC for 6s. 45s cooldown.', chips: ['buff', 'cd'] },
+              { name: 'Execute', icon: '💀', desc: 'Massive strike dealing 200% damage to targets below 20% HP.', chips: ['dmg', 'ult'] }
+            ]
+          },
+          {
+            name: 'Tier 4 — Ultimate', skills: [
+              { name: 'Warlord Ascendancy', icon: '👑', desc: 'All warrior abilities enhanced. +10% all stats for 15s.', chips: ['ult', 'buff'] }
+            ]
+          }
+        ]
+      },
+      Mage: {
+        color: '#bb95ff',
+        tiers: [
+          {
+            name: 'Tier 1 — Foundations', skills: [
+              { name: 'Arcane Intellect', icon: '🔮', desc: 'Increase max Mana by 8% per point. Improves spell scaling.', chips: ['buff'] },
+              { name: 'Mana Shield', icon: '🛡', desc: 'Convert 30% of damage taken to mana cost instead.', chips: ['buff'] },
+              { name: 'Elemental Attunement', icon: '✨', desc: 'Gain 5% bonus to your active element damage type.', chips: ['dmg'] }
+            ]
+          },
+          {
+            name: 'Tier 2 — Spellcraft', skills: [
+              { name: 'Spell Weaving', icon: '🌀', desc: 'Cast two spells in rapid succession. Second spell costs 50% mana.', chips: ['dmg', 'buff'] },
+              { name: 'Mana Surge', icon: '⚡', desc: 'Restore 25% max mana instantly. 30s cooldown.', chips: ['heal', 'cd'] },
+              { name: 'Frost Nova', icon: '❄', desc: 'AoE freeze around caster. Roots enemies for 3s.', chips: ['cc', 'cd'] }
+            ]
+          },
+          {
+            name: 'Tier 3 — Mastery', skills: [
+              { name: 'Meteor Strike', icon: '☄', desc: 'Call down a meteor dealing massive AoE fire damage.', chips: ['dmg', 'ult'] },
+              { name: 'Time Warp', icon: '⏳', desc: 'Slow time in area. Enemies move 50% slower for 6s.', chips: ['cc', 'cd'] }
+            ]
+          },
+          {
+            name: 'Tier 4 — Ultimate', skills: [
+              { name: 'Archmage Ascendancy', icon: '👑', desc: 'All spells cost 30% less. +15% spell damage for 20s.', chips: ['ult', 'buff'] }
+            ]
+          }
+        ]
+      },
+      Ranger: {
+        color: '#49de95',
+        tiers: [
+          {
+            name: 'Tier 1 — Foundations', skills: [
+              { name: 'Eagle Eye', icon: '🎯', desc: 'Increase ranged accuracy by 5% and critical range by 10%.', chips: ['buff'] },
+              { name: 'Swift Feet', icon: '💨', desc: 'Increase movement speed by 8%. Bonus when not in combat.', chips: ['buff'] },
+              { name: 'Trap Mastery', icon: '🪤', desc: 'Traps deal 20% more damage and last 50% longer.', chips: ['dmg'] }
+            ]
+          },
+          {
+            name: 'Tier 2 — Precision', skills: [
+              { name: 'Multi-Shot', icon: '🏹', desc: 'Fire 3 arrows in a cone. Each deals 60% weapon damage.', chips: ['dmg', 'cd'] },
+              { name: 'Shadow Step', icon: '👤', desc: 'Teleport behind target and gain 3s stealth.', chips: ['buff', 'cd'] },
+              { name: 'Poison Arrow', icon: '☠', desc: 'Coat arrows in venom. 30% chance to apply DoT for 8s.', chips: ['dmg', 'cc'] }
+            ]
+          },
+          {
+            name: 'Tier 3 — Mastery', skills: [
+              { name: 'Rain of Arrows', icon: '🌧', desc: 'Barrage area with arrows for 4s. Massive sustained AoE.', chips: ['dmg', 'ult'] },
+              { name: 'Camouflage', icon: '🍃', desc: 'Full stealth for 10s. First attack from stealth crits.', chips: ['buff', 'cd'] }
+            ]
+          },
+          {
+            name: 'Tier 4 — Ultimate', skills: [
+              { name: 'Deadeye Ascendancy', icon: '👑', desc: 'All ranged attacks pierce. +20% crit damage for 15s.', chips: ['ult', 'dmg'] }
+            ]
+          }
+        ]
+      },
+      Worge: {
+        color: '#ffb16d',
+        tiers: [
+          {
+            name: 'Tier 1 — Foundations', skills: [
+              { name: 'Beast Form', icon: '🐺', desc: 'Shift between human and beast. Beast gains +15% melee, human +15% magic.', chips: ['buff'] },
+              { name: 'Primal Instinct', icon: '👁', desc: 'Sense nearby enemies. Reveal stealthed targets within 15m.', chips: ['buff'] },
+              { name: 'Pack Bond', icon: '🤝', desc: 'Nearby allies gain 5% damage and 5% defense.', chips: ['heal', 'buff'] }
+            ]
+          },
+          {
+            name: 'Tier 2 — Feral', skills: [
+              { name: 'Savage Leap', icon: '🦁', desc: 'Leap to target dealing AoE damage on landing. Stuns 1s.', chips: ['dmg', 'cc'] },
+              { name: 'Howl of Fury', icon: '🌙', desc: 'Terrify enemies in cone. They flee for 3s.', chips: ['cc', 'cd'] },
+              { name: 'Spirit Link', icon: '🔗', desc: 'Share damage with bonded ally. Both take 40% less.', chips: ['heal', 'buff'] }
+            ]
+          },
+          {
+            name: 'Tier 3 — Mastery', skills: [
+              { name: 'Alpha Strike', icon: '⚡', desc: 'Unleash rapid combo dealing 300% weapon damage total.', chips: ['dmg', 'ult'] },
+              { name: 'Nature Communion', icon: '🌿', desc: 'Channel nature to heal self and allies for 8s.', chips: ['heal', 'cd'] }
+            ]
+          },
+          {
+            name: 'Tier 4 — Ultimate', skills: [
+              { name: 'Apex Predator', icon: '👑', desc: 'Full beast ascension. +20% all stats, fear aura for 20s.', chips: ['ult', 'buff'] }
+            ]
+          }
+        ]
+      }
+    };
+
+    // ── WEAPON SKILL TREES (aligned with ObjectStore skills.json) ──
+    const WEAPON_TREES = {
+      Sword: {
+        icon: '⚔', tiers: [
+          {
+            name: 'Tier 1 — Fundamentals', skills: [
+              { name: 'Slash', icon: '⚔', desc: 'Basic sword slash attack. Restores resources on hit.', chips: ['dmg'] },
+              { name: 'Thrust', icon: '🎯', desc: 'Quick thrusting attack. +10% armor penetration.', chips: ['dmg'] },
+              { name: 'Sidestep', icon: '💨', desc: 'Quick dodge with i-frames. 6s CD.', chips: ['buff', 'cd'] }
+            ]
+          },
+          {
+            name: 'Tier 2 — Combat', skills: [
+              { name: 'Power Strike', icon: '💥', desc: 'Overhead strike dealing 150% damage. 6s CD / 15 mana.', chips: ['dmg', 'cd'] },
+              { name: 'Rend', icon: '🩸', desc: 'Tearing strike causing bleed for 4s. 5s CD.', chips: ['dmg', 'cc'] },
+              { name: 'Parry', icon: '🛡', desc: 'Block incoming attack + counter for 50% damage. 8s CD.', chips: ['buff', 'cd'] }
+            ]
+          },
+          {
+            name: 'Tier 3 — Mastery', skills: [
+              { name: 'Cleave', icon: '⚡', desc: 'Wide arc hitting multiple enemies. 7s CD.', chips: ['dmg', 'cd'] },
+              { name: 'Riposte', icon: '🔄', desc: 'Counter next attack for 200% damage. 10s CD.', chips: ['dmg', 'cd'] }
+            ]
+          },
+          {
+            name: 'Tier 4 — Unique', skills: [
+              { name: "Bloodfeud's Vengeance", icon: '🌶', desc: 'Deal 300% damage to enemies who damaged you. Requires Bloodfeud Blade.', chips: ['ult', 'dmg'] }
+            ]
+          }
+        ]
+      },
+      Axe: {
+        icon: '🪓', tiers: [
+          {
+            name: 'Tier 1', skills: [
+              { name: 'Brutal Force', icon: '🪓', desc: '+6% axe damage per rank.', chips: ['dmg'] },
+              { name: 'Cleave', icon: '💥', desc: 'Hit +1 additional target with axe.', chips: ['dmg'] }
+            ]
+          },
+          {
+            name: 'Tier 2', skills: [
+              { name: 'Rending Cuts', icon: '🩸', desc: '+5% bleed chance on hit.', chips: ['dmg'] },
+              { name: 'Executioner', icon: '💀', desc: '+12% damage vs targets below 25% HP.', chips: ['dmg'] }
+            ]
+          },
+          {
+            name: 'Tier 3', skills: [
+              { name: 'Frenzy', icon: '🔥', desc: '+3% speed per kill for 8s. Stacks 5x.', chips: ['buff'] },
+              { name: 'Armor Break', icon: '🛡', desc: '+8% armor penetration.', chips: ['dmg'] }
+            ]
+          },
+          {
+            name: 'Tier 4', skills: [
+              { name: 'Berserker', icon: '👑', desc: '+8% to ALL axe stats.', chips: ['ult', 'buff'] }
+            ]
+          }
+        ]
+      },
+      Bow: {
+        icon: '🏹', tiers: [
+          {
+            name: 'Tier 1', skills: [
+              { name: 'Keen Eye', icon: '👁', desc: '+5% accuracy with bows.', chips: ['buff'] },
+              { name: 'Strong Draw', icon: '🏹', desc: '+4% charge speed.', chips: ['buff'] },
+              { name: 'Long Shot', icon: '🎯', desc: '+10% effective range.', chips: ['buff'] }
+            ]
+          },
+          {
+            name: 'Tier 2', skills: [
+              { name: 'Deadly Aim', icon: '💀', desc: '+8% critical damage bonus.', chips: ['dmg'] },
+              { name: 'Piercing', icon: '⚡', desc: 'Arrows pierce +1 target.', chips: ['dmg'] }
+            ]
+          },
+          {
+            name: 'Tier 3', skills: [
+              { name: 'Multi-Shot', icon: '🌧', desc: 'Fire +1 extra arrow per volley.', chips: ['dmg'] },
+              { name: 'Rapid Fire', icon: '💨', desc: '+6% attack speed with bows.', chips: ['buff'] }
+            ]
+          },
+          {
+            name: 'Tier 4', skills: [
+              { name: 'Master Archer', icon: '👑', desc: '+8% to ALL bow stats.', chips: ['ult', 'buff'] }
+            ]
+          }
+        ]
+      },
+      Staff: {
+        icon: '🪄', tiers: [
+          {
+            name: 'Tier 1', skills: [
+              { name: 'Arcane Power', icon: '✨', desc: '+5% spell damage with staves.', chips: ['dmg'] },
+              { name: 'Mana Flow', icon: '💧', desc: '+8% mana regeneration.', chips: ['heal'] }
+            ]
+          },
+          {
+            name: 'Tier 2', skills: [
+              { name: 'Spell Critical', icon: '⚡', desc: '+3% spell crit chance.', chips: ['dmg'] },
+              { name: 'Magic Ward', icon: '🛡', desc: '+6% magic defense.', chips: ['buff'] }
+            ]
+          },
+          {
+            name: 'Tier 3', skills: [
+              { name: 'Chain Magic', icon: '🔗', desc: 'Spells chain to +1 target.', chips: ['dmg'] },
+              { name: 'Efficiency', icon: '💎', desc: '-5% mana cost on all spells.', chips: ['buff'] }
+            ]
+          },
+          {
+            name: 'Tier 4', skills: [
+              { name: 'Archmage', icon: '👑', desc: '+8% to ALL staff stats.', chips: ['ult', 'buff'] }
+            ]
+          }
+        ]
+      },
+      Dagger: {
+        icon: '🗡', tiers: [
+          {
+            name: 'Tier 1', skills: [
+              { name: 'Quick Hands', icon: '💨', desc: '+6% dagger attack speed.', chips: ['buff'] },
+              { name: 'Stealth', icon: '👤', desc: '+10% stealth effectiveness.', chips: ['buff'] }
+            ]
+          },
+          {
+            name: 'Tier 2', skills: [
+              { name: 'Vital Strikes', icon: '🎯', desc: '+4% crit chance with daggers.', chips: ['dmg'] },
+              { name: 'Poison Coat', icon: '☠', desc: '+5% poison chance on hit.', chips: ['dmg', 'cc'] }
+            ]
+          },
+          {
+            name: 'Tier 3', skills: [
+              { name: 'Backstab Mastery', icon: '💀', desc: '+15% damage from behind.', chips: ['dmg'] },
+              { name: 'Deadly Wounds', icon: '🩸', desc: '+10% bleed damage.', chips: ['dmg'] }
+            ]
+          },
+          {
+            name: 'Tier 4', skills: [
+              { name: 'Master Assassin', icon: '👑', desc: '+8% to ALL dagger stats.', chips: ['ult', 'buff'] }
+            ]
+          }
+        ]
+      },
+      Hammer: {
+        icon: '🔨', tiers: [
+          {
+            name: 'Tier 1', skills: [
+              { name: 'Heavy Blows', icon: '🔨', desc: '+6% hammer damage.', chips: ['dmg'] },
+              { name: 'Concussive', icon: '💫', desc: '+4% stun chance on hit.', chips: ['cc'] }
+            ]
+          },
+          {
+            name: 'Tier 2', skills: [
+              { name: 'Ground Slam', icon: '💥', desc: '+8% AoE damage bonus.', chips: ['dmg'] },
+              { name: 'Armor Crush', icon: '🛡', desc: '+6% armor penetration.', chips: ['dmg'] }
+            ]
+          },
+          {
+            name: 'Tier 3', skills: [
+              { name: 'Knockback', icon: '💨', desc: '+5% knockback chance.', chips: ['cc'] },
+              { name: 'Shatter', icon: '⚡', desc: '+15% bonus vs stunned targets.', chips: ['dmg'] }
+            ]
+          },
+          {
+            name: 'Tier 4', skills: [
+              { name: 'Titan', icon: '👑', desc: '+8% to ALL hammer stats.', chips: ['ult', 'buff'] }
+            ]
+          }
+        ]
+      },
+      Shield: {
+        icon: '🛡', tiers: [
+          {
+            name: 'Tier 1', skills: [
+              { name: 'Block Mastery', icon: '🛡', desc: '+5% block chance.', chips: ['buff'] },
+              { name: 'Fortify', icon: '🏰', desc: '+4% damage reduction while blocking.', chips: ['buff'] }
+            ]
+          },
+          {
+            name: 'Tier 2', skills: [
+              { name: 'Shield Bash', icon: '💥', desc: '+6% shield bash damage and stun duration.', chips: ['dmg', 'cc'] },
+              { name: 'Threat Gen', icon: '📯', desc: '+8% threat generation.', chips: ['buff'] }
+            ]
+          },
+          {
+            name: 'Tier 3', skills: [
+              { name: 'Reflect', icon: '🔄', desc: 'Reflect 10% of blocked damage.', chips: ['dmg'] },
+              { name: 'Iron Wall', icon: '🏰', desc: '+15% block during active block stance.', chips: ['buff'] }
+            ]
+          },
+          {
+            name: 'Tier 4', skills: [
+              { name: 'Unbreakable', icon: '👑', desc: '+8% to ALL shield stats.', chips: ['ult', 'buff'] }
+            ]
+          }
+        ]
+      },
+      Lance: {
+        icon: '🔱', tiers: [
+          {
+            name: 'Tier 1', skills: [
+              { name: 'Extended Reach', icon: '🔱', desc: '+10% weapon range.', chips: ['buff'] },
+              { name: 'First Strike', icon: '⚡', desc: '+8% opener damage.', chips: ['dmg'] }
+            ]
+          },
+          {
+            name: 'Tier 2', skills: [
+              { name: 'Piercing', icon: '💥', desc: 'Pierce through +1 target.', chips: ['dmg'] },
+              { name: 'Phalanx', icon: '🛡', desc: '+6% block chance.', chips: ['buff'] }
+            ]
+          },
+          {
+            name: 'Tier 3', skills: [
+              { name: 'Charge Bonus', icon: '🐎', desc: '+12% charge attack damage.', chips: ['dmg'] },
+              { name: 'Impale', icon: '☠', desc: '+4% root chance on hit.', chips: ['cc'] }
+            ]
+          },
+          {
+            name: 'Tier 4', skills: [
+              { name: 'Cavalier', icon: '👑', desc: '+8% to ALL lance stats.', chips: ['ult', 'buff'] }
+            ]
+          }
+        ]
+      }
+    };
+
+    // ── Equipment slots ──
+    const EQUIP_LEFT = ['Helmet', 'Chest', 'Legs', 'Boots'];
+    const EQUIP_RIGHT = ['Gloves', 'Belt', 'Ring', 'Amulet'];
+
+    // ── Sample Data ──
+    const SAMPLE_QUESTS = [
+      { title: 'The Iron Grudge', desc: 'Defeat 15 Ironclad Sentinels in the Forgespire Depths.', progress: 60, reward: '1200 EXP, Ironvow Blade' },
+      { title: 'Blood Tribute', desc: 'Collect 8 Blood Crystals from the Crimson Caverns.', progress: 37, reward: '800 EXP, 500 Gold' },
+      { title: 'Warlord\'s Challenge', desc: 'Win 3 PvP arena matches without dying.', progress: 100, reward: '2500 EXP, Title: Grudgebearer' },
+    ];
+
+    const SAMPLE_UPGRADES = [
+      { name: 'Weapon Enhancement +3', level: 'Lv.2 → Lv.3', desc: 'Increase weapon base damage by 12%.', cost: '3 Iron Ingots, 500 Gold' },
+      { name: 'Armor Reinforcement', level: 'Lv.1 → Lv.2', desc: 'Add +8 defense to equipped armor.', cost: '2 Steel Plates, 300 Gold' },
+      { name: 'Socket Gem', level: 'Slot 1 of 3', desc: 'Insert a gem to add bonus stats to equipment.', cost: '1 Ruby, 200 Gold' },
+      { name: 'Enchant: Lifesteal', level: 'Not Applied', desc: 'Add 3% lifesteal to main weapon.', cost: '1 Soul Shard, 800 Gold' },
+    ];
+
+    const GUILD_MEMBERS = [
+      { name: 'Racalvin', level: 42, rank: 'Warlord', online: true },
+      { name: 'Shadowfang', level: 38, rank: 'Officer', online: true },
+      { name: 'Ironmaul', level: 35, rank: 'Veteran', online: false },
+      { name: 'Emberclaw', level: 31, rank: 'Member', online: true },
+      { name: 'Duskwhisper', level: 28, rank: 'Recruit', online: false },
+    ];
+
+    // ═══ 8-ATTRIBUTE SYSTEM (aligned with Ultimate Character Builder) ═══
+    const TOTAL_POINTS = 160;
+    const ATTR_META = [
+      { id: 'Strength', emoji: '💪', color: '#ef4444', desc: 'Melee damage, physical defense, HP, lifesteal, stagger.' },
+      { id: 'Intellect', emoji: '🧠', color: '#8b5cf6', desc: 'Magical damage, mana, cooldown reduction, spell accuracy.' },
+      { id: 'Vitality', emoji: '❤', color: '#22c55e', desc: 'Max HP, health regen, armor rating, bleed resist.' },
+      { id: 'Dexterity', emoji: '🎯', color: '#f59e0b', desc: 'Critical chance, attack speed, accuracy, evasion.' },
+      { id: 'Endurance', emoji: '🛡', color: '#6366f1', desc: 'Stamina, block, CC resist, armor rating.' },
+      { id: 'Wisdom', emoji: '✨', color: '#06b6d4', desc: 'Magic resist, spell block, CDR resist, heal power.' },
+      { id: 'Agility', emoji: '⚡', color: '#10b981', desc: 'Move speed, evasion, dodge CD, crit evasion.' },
+      { id: 'Tactics', emoji: '📜', color: '#f97316', desc: 'Global +0.5%/pt bonus, armor pen, ability cost reduction.' }
+    ];
+
+    const ATTR_DEFS = {
+      Strength: { gains: { health: 5, damage: 1.25, defense: 4, block: 0.2, drainHealth: 0.075, stagger: 0.04, mana: 1, stamina: 0.8, accuracy: 0.08, healthRegen: 0.02, damageReduction: 0.02 } },
+      Intellect: { gains: { mana: 9, damage: 1.5, defense: 2, manaRegen: 0.04, cooldownReduction: 0.075, spellAccuracy: 0.15, health: 3, stamina: 0.4, accuracy: 0.1, abilityCost: 0.05 } },
+      Vitality: { gains: { health: 25, defense: 1.5, healthRegen: 0.06, damageReduction: 0.04, bleedResist: 0.15, mana: 1.5, stamina: 1, resistance: 0.08, armor: 0.2 } },
+      Dexterity: { gains: { damage: 0.9, criticalChance: 0.3, accuracy: 0.25, attackSpeed: 0.2, evasion: 0.125, criticalDamage: 0.2, defense: 1.2, stamina: 0.6, movementSpeed: 0.08, reflexTime: 0.03, health: 3 } },
+      Endurance: { gains: { stamina: 6, defense: 5, blockEffect: 0.175, ccResistance: 0.1, armor: 0.6, defenseBreakResist: 0.125, health: 8, mana: 1, healthRegen: 0.02, block: 0.12 } },
+      Wisdom: { gains: { mana: 6, defense: 5.5, resistance: 0.25, cdrResist: 0.2, statusEffect: 0.075, spellblock: 0.125, health: 4, stamina: 0.5, damageReduction: 0.03, spellAccuracy: 0.1 } },
+      Agility: { gains: { movementSpeed: 0.15, evasion: 0.225, dodge: 0.15, reflexTime: 0.04, criticalEvasion: 0.25, fallDamage: 0.2, stamina: 1, accuracy: 0.1, attackSpeed: 0.05, damage: 0.3, health: 3 } },
+      Tactics: { gains: { stamina: 3, abilityCost: 0.075, armorPenetration: 0.2, blockPenetration: 0.175, defenseBreak: 0.1, comboCooldownRed: 0.125, damage: 0.4, defense: 1, mana: 1.5, cooldownReduction: 0.05, health: 3 } }
+    };
+
+    const BASE_STATS = {
+      health: 250, mana: 100, stamina: 100, damage: 0, defense: 0, block: 0, blockEffect: 0,
+      evasion: 0, accuracy: 0, criticalChance: 0, criticalDamage: 0, attackSpeed: 0, movementSpeed: 0,
+      resistance: 0, cdrResist: 0, defenseBreakResist: 0, armorPenetration: 0, blockPenetration: 0,
+      defenseBreak: 0, drainHealth: 0, manaRegen: 0, healthRegen: 0, cooldownReduction: 0, abilityCost: 0,
+      spellAccuracy: 0, stagger: 0, ccResistance: 0, armor: 0, damageReduction: 0, bleedResist: 0,
+      statusEffect: 0, spellblock: 0, dodge: 0, reflexTime: 0, criticalEvasion: 0, fallDamage: 0,
+      comboCooldownRed: 0
+    };
+
+    const STAT_LABELS = {
+      health: 'Health', mana: 'Mana', stamina: 'Stamina', damage: 'Damage', defense: 'Defense',
+      block: 'Block', blockEffect: 'Block Effect', evasion: 'Evasion', accuracy: 'Accuracy',
+      criticalChance: 'Crit Chance', criticalDamage: 'Crit Damage', attackSpeed: 'Attack Speed',
+      movementSpeed: 'Move Speed', resistance: 'Resistance', cdrResist: 'CDR Resist',
+      defenseBreakResist: 'Def Break Resist', armorPenetration: 'Armor Pen', blockPenetration: 'Block Pen',
+      defenseBreak: 'Defense Break', drainHealth: 'Lifesteal', manaRegen: 'Mana Regen/s',
+      healthRegen: 'HP Regen/s', cooldownReduction: 'CDR', abilityCost: 'Ability Cost',
+      spellAccuracy: 'Spell Accuracy', stagger: 'Stagger', ccResistance: 'CC Resist',
+      armor: 'Armor', damageReduction: 'Damage Reduction', bleedResist: 'Bleed Resist',
+      statusEffect: 'Status Resist', spellblock: 'Spell Block', dodge: 'Dodge CD',
+      reflexTime: 'Reflex Time', criticalEvasion: 'Crit Evasion', fallDamage: 'Fall Damage',
+      comboCooldownRed: 'Combo CDR'
+    };
+
+    const PCT_STATS = new Set(['attackSpeed', 'accuracy', 'criticalChance', 'criticalDamage', 'block', 'blockEffect', 'evasion', 'resistance', 'drainHealth', 'damageReduction', 'movementSpeed', 'cooldownReduction', 'armorPenetration', 'blockPenetration', 'ccResistance', 'spellblock', 'defenseBreak', 'spellAccuracy', 'cdrResist', 'defenseBreakResist', 'bleedResist', 'statusEffect', 'dodge', 'reflexTime', 'criticalEvasion', 'fallDamage', 'comboCooldownRed', 'stagger', 'abilityCost']);
+
+    // Sample build (spends all 160 points, balanced Warrior)
+    let attributePoints = { Strength: 28, Intellect: 8, Vitality: 32, Dexterity: 18, Endurance: 24, Wisdom: 10, Agility: 18, Tactics: 22 };
+
+    function totalPointsSpent() { return Object.values(attributePoints).reduce((a, b) => a + b, 0); }
+    function availablePoints() { return TOTAL_POINTS - totalPointsSpent(); }
+
+    function calculateStats() {
+      const s = Object.assign({}, BASE_STATS);
+      for (const [attr, pts] of Object.entries(attributePoints)) {
+        const def = ATTR_DEFS[attr];
+        if (!def || pts <= 0) continue;
+        for (const [key, per] of Object.entries(def.gains)) {
+          if (s[key] !== undefined) s[key] += per * pts;
+        }
+      }
+      const tac = attributePoints.Tactics || 0;
+      if (tac > 0) {
+        const mult = 1 + (tac * 0.5 / 100);
+        for (const key of Object.keys(s)) {
+          if (key !== 'health' && key !== 'mana' && key !== 'stamina') s[key] *= mult;
+        }
+      }
+      return s;
+    }
+
+    function calculateCombatPower(s) {
+      const ehp = s.health * (1 + s.defense / 100) * (1 + s.resistance / 100);
+      const dps = (s.damage + 10) * (1 + (s.criticalChance / 100) * (s.criticalDamage / 100)) * (1 + s.attackSpeed / 100);
+      const util = s.cooldownReduction * 2 + s.manaRegen * 10 + s.movementSpeed * 2;
+      return Math.floor(ehp * 0.4 + dps * 2.5 + util * 5);
+    }
+
+    function buildRating(cp) {
+      if (cp > 5400) return { letter: 'S+', color: '#fbbf24' };
+      if (cp > 4800) return { letter: 'S', color: '#fbbf24' };
+      if (cp > 4200) return { letter: 'A', color: '#a855f7' };
+      if (cp > 3600) return { letter: 'B', color: '#6ec96e' };
+      if (cp > 3000) return { letter: 'C', color: '#f5e2c1' };
+      if (cp > 2400) return { letter: 'D', color: '#d89040' };
+      return { letter: 'F', color: '#d45050' };
+    }
+
+    function buildTier(cp) {
+      if (cp > 5400) return { name: 'Legendary', color: '#89f7fe' };
+      if (cp > 4800) return { name: 'Warlord', color: '#f97316' };
+      if (cp > 4200) return { name: 'Epic', color: '#a855f7' };
+      if (cp > 3000) return { name: 'Hero', color: '#3b82f6' };
+      return { name: 'Normal', color: '#9ca3af' };
+    }
+
+    function fmtStat(key, v) {
+      if (PCT_STATS.has(key)) return v.toFixed(2) + '%';
+      return Math.floor(v).toLocaleString();
+    }
+
+    // ═══ CURATED INVENTORY (from ObjectStore, unique icon paths — no duplicates) ═══
+    const INVENTORY_ITEMS = [
+      { n: 'Bloodfeud Blade', e: '⚔️', path: 'icons/weapons/Sword_12.png', rarity: 'unique', qty: 1 },
+      { n: 'Wraithfang', e: '🗡️', path: 'icons/weapons/Sword_07.png', rarity: 'rare', qty: 1 },
+      { n: 'Gorehowl', e: '🪓', path: 'icons/weapons/Axe_03.png', rarity: 'unique', qty: 1 },
+      { n: 'Skullpiercer', e: '🎯', path: 'icons/weapons/Crossbow_02.png', rarity: 'rare', qty: 1 },
+      { n: 'Shadowflight Bow', e: '🏹', path: 'icons/weapons/Bow_08.png', rarity: 'unique', qty: 1 },
+      { n: 'Emberwrath Staff', e: '🔥', path: 'icons/weapons/Staff_05.png', rarity: 'unique', qty: 1 },
+      { n: 'Glacial Spire', e: '❄️', path: 'icons/weapons/Staff_25.png', rarity: 'unique', qty: 1 },
+      { n: 'Bulwark Plate', e: '🛡️', path: 'icons/armor_full/Chest_04.png', rarity: 'epic', qty: 1 },
+      { n: 'War Helm', e: '👒', path: 'icons/armor_full/Helmet_02.png', rarity: 'rare', qty: 1 },
+      { n: 'March Greaves', e: '🥾', path: 'icons/armor_full/Boots_11.png', rarity: 'rare', qty: 1 },
+      { n: 'Forge Grips', e: '🧤', path: 'icons/armor_full/Gloves_06.png', rarity: 'common', qty: 1 },
+      { n: 'Ashen Cuirass', e: '🥋', path: 'icons/armor_full/Chest_09.png', rarity: 'epic', qty: 1 },
+      { n: 'Siege Tonic', e: '🧪', path: 'icons/potions/Potion_07.png', rarity: 'common', qty: 12 },
+      { n: 'Field Ration', e: '🍖', path: 'icons/food/Food_03.png', rarity: 'common', qty: 24 },
+      { n: 'Signal Flare', e: '🎆', path: 'icons/items/Flare_01.png', rarity: 'uncommon', qty: 8 },
+      { n: 'Iron Ingot', e: '⛓️', path: 'icons/materials/Ingot_01.png', rarity: 'common', qty: 42 },
+      { n: 'Steel Plate', e: '⚙️', path: 'icons/materials/Plate_02.png', rarity: 'common', qty: 18 },
+      { n: 'Blood Crystal', e: '💎', path: 'icons/materials/Gem_04.png', rarity: 'rare', qty: 7 },
+      { n: 'Soul Shard', e: '💠', path: 'icons/materials/Gem_12.png', rarity: 'epic', qty: 3 },
+      { n: 'Wardstone Shard', e: '🔹', path: 'icons/materials/Rune_03.png', rarity: 'rare', qty: 5 },
+      { n: 'Scout Ledger', e: '📜', path: 'icons/items/Scroll_02.png', rarity: 'quest', qty: 1 },
+      { n: 'Ashen Map Fragment', e: '🗺️', path: 'icons/items/Map_01.png', rarity: 'quest', qty: 1 },
+      { n: 'Guard Sigil', e: '🔱', path: 'icons/items/Sigil_01.png', rarity: 'uncommon', qty: 1 },
+      { n: 'Ember Torch', e: '🔥', path: 'icons/items/Torch_01.png', rarity: 'common', qty: 4 }
+    ];
+
+    const RARITY_COLOR = {
+      common: '#9ca3af', uncommon: '#6ec96e', rare: '#5a9ad8',
+      epic: '#a87ddb', unique: '#d4a400', quest: '#f0c978'
+    };
+
+    // ═══ EQUIPMENT SLOTS (with ObjectStore armor icons) ═══
+    const EQUIP_SLOTS = [
+      { id: 'helmet', label: 'Helmet', emoji: '👒', path: 'icons/armor_full/Helmet_02.png', equipped: 'War Helm' },
+      { id: 'chest', label: 'Chest', emoji: '🥋', path: 'icons/armor_full/Chest_04.png', equipped: 'Ashen Cuirass' },
+      { id: 'legs', label: 'Legs', emoji: '👖', path: 'icons/armor_full/Legs_03.png', equipped: 'Plated Greaves' },
+      { id: 'boots', label: 'Boots', emoji: '🥾', path: 'icons/armor_full/Boots_11.png', equipped: 'March Greaves' },
+      { id: 'gloves', label: 'Gloves', emoji: '🧤', path: 'icons/armor_full/Gloves_06.png', equipped: 'Forge Grips' },
+      { id: 'belt', label: 'Belt', emoji: '〰', path: 'icons/armor_full/Belt_05.png', equipped: 'Warden Belt' },
+      { id: 'cape', label: 'Cape', emoji: '🧣', path: 'icons/armor_full/Back_02.png', equipped: 'Warden Cloak' },
+      { id: 'ring', label: 'Ring', emoji: '💍', path: 'icons/jewelry/Ring_02.png', equipped: 'Iron Ring' },
+      { id: 'amulet', label: 'Amulet', emoji: '📿', path: 'icons/jewelry/Amulet_01.png', equipped: 'Oath Medallion' },
+      { id: 'mainhand', label: 'Main Hand', emoji: '⚔', path: 'icons/weapons/Sword_12.png', equipped: 'Bloodfeud Blade' },
+      { id: 'offhand', label: 'Off-Hand', emoji: '🛡', path: 'icons/armor_full/Shield_04.png', equipped: 'Bulwark Plate' }
+    ];
+
+    // ═══ HOTBAR (4 skills + empty + 3 consumables) ═══
+    const HOTBAR = [
+      { key: '1', path: 'icons/weapons/Sword_12.png', emoji: '⚔', label: 'Power Strike' },
+      { key: '2', path: 'icons/weapons/Shield_01.png', emoji: '🛡', label: 'Shield Bash' },
+      { key: '3', path: 'icons/skills/WarCry.png', emoji: '📯', label: 'War Cry' },
+      { key: '4', path: 'icons/skills/Cleave.png', emoji: '💥', label: 'Cleave' },
+      { key: '5', path: null, emoji: '', label: '' },
+      { key: '6', path: 'icons/food/Food_03.png', emoji: '🍖', label: 'Ration' },
+      { key: '7', path: 'icons/potions/Potion_07.png', emoji: '🧪', label: 'Potion' },
+      { key: '8', path: 'icons/items/Sigil_01.png', emoji: '🔱', label: 'Sigil' }
+    ];
+
+    // ═══ RENDER ENGINE ═══
+
+    function buildTabs() {
+      const strip = document.getElementById('tabStrip');
+      strip.innerHTML = TABS.map(t =>
+        `<button class="tab-btn ${t.id === activeTab ? 'active' : ''}" data-tab="${t.id}">${t.label}</button>`
+      ).join('');
+      strip.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.onclick = () => { activeTab = btn.dataset.tab; buildTabs(); renderContent(); };
+      });
+    }
+
+    function renderContent() {
+      const area = document.getElementById('contentArea');
+      const renderers = {
+        equipment: renderEquipment,
+        attributes: renderAttributes,
+        derived: renderDerivedStats,
+        classSkill: renderClassSkills,
+        skillTree: renderWeaponSkills,
+        upgrade: renderUpgrades,
+        craft: renderCrafting,
+        quest: renderQuests,
+        guild: renderGuild
+      };
+      area.innerHTML = (renderers[activeTab] || (() => ''))();
+    }
+
+    function renderEquipment() {
+      const left = EQUIP_SLOTS.slice(0, 4);   // helmet, chest, legs, boots
+      const right = EQUIP_SLOTS.slice(4, 9);   // gloves, belt, cape, ring, amulet
+      const main = EQUIP_SLOTS.find(s => s.id === 'mainhand');
+      const off = EQUIP_SLOTS.find(s => s.id === 'offhand');
+      const slotCard = s => `
+    <div class="eq-slot" title="${s.equipped}" style="overflow:hidden">
+      <div style="width:54px;height:54px;display:flex;align-items:center;justify-content:center">${iconHTML(s.path, s.emoji, 54)}</div>
+      <span class="cat">${s.label}</span>
+    </div>`;
+      return `
+    <div class="section-title">Equipment Loadout</div>
+    <div class="equip-layout">
+      <div class="equip-stack">${left.map(slotCard).join('')}</div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
+        <div class="eq-center" style="overflow:hidden" title="${main.equipped}">
+          <div style="width:110px;height:110px;display:flex;align-items:center;justify-content:center">${iconHTML(main.path, main.emoji, 110)}</div>
+        </div>
+        <div class="eq-slot" style="width:80px;height:80px;overflow:hidden" title="${off.equipped}">
+          <div style="width:60px;height:60px;display:flex;align-items:center;justify-content:center">${iconHTML(off.path, off.emoji, 60)}</div>
+          <span class="cat">Off-Hand</span>
+        </div>
+      </div>
+      <div class="equip-stack">${right.map(slotCard).join('')}</div>
+    </div>
+    <div class="section-title" style="margin-top:20px">Equipped Set Bonuses</div>
+    <div style="padding:12px;background:linear-gradient(135deg,#1e1510,#160e08);border:1px solid var(--border-dim);border-radius:10px">
+      <div style="font-size:12px;color:var(--muted)">
+        <strong style="color:var(--gold-strong);font-family:var(--font-display)">Warden Captain (3/5):</strong> +18 defense, +12% block, +8% CC resistance.
+      </div>
+    </div>
+  `;
+    }
+
+    function renderAttributes() {
+      const avail = availablePoints();
+      return `
+    <div class="section-title">Character Attributes</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">
+      Spent: <span style="color:var(--gold-strong);font-family:var(--font-mono)">${totalPointsSpent()} / ${TOTAL_POINTS}</span>
+      · Available: <span style="color:${avail > 0 ? 'var(--green)' : 'var(--muted)'};font-family:var(--font-mono)">${avail}</span>
+    </div>
+    <div class="attr-grid">
+      ${ATTR_META.map(a => {
+        const v = attributePoints[a.id] || 0;
+        return `
+        <div class="attr-card" style="border-color:${a.color}33">
+          <div class="attr-icon" style="border-color:${a.color}66;color:${a.color}">${a.emoji}</div>
+          <div class="attr-info" style="flex:1;min-width:0">
+            <div class="name" style="color:${a.color}">${a.id}</div>
+            <div class="val">${v}</div>
+            <div class="desc">${a.desc}</div>
+          </div>
+          <button class="attr-btn" onclick="addAttributePoint('${a.id}')" title="Add point">+</button>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="section-title" style="margin-top:18px">Quick Preview</div>
+    <div style="padding:12px;background:linear-gradient(135deg,#1e1510,#160e08);border:1px solid var(--border-dim);border-radius:10px;font-size:12px;color:var(--muted);line-height:1.6">
+      Tactics multiplies all non-resource stats by <span style="color:var(--cyan);font-family:var(--font-mono)">${((attributePoints.Tactics || 0) * 0.5).toFixed(1)}%</span>.
+      Switch to <strong style="color:var(--gold-strong)">Derived Stats</strong> to see the full 37-stat breakdown.
+    </div>
+  `;
+    }
+
+    function addAttributePoint(id) {
+      if (availablePoints() <= 0) return;
+      attributePoints[id] = (attributePoints[id] || 0) + 1;
+      renderContent();
+      rebuildSidebar();
+    }
+
+    function renderDerivedStats() {
+      const s = calculateStats();
+      const cp = calculateCombatPower(s);
+      const r = buildRating(cp);
+      const t = buildTier(cp);
+      const keys = Object.keys(STAT_LABELS);
+      return `
+    <div class="section-title">Derived Stats <span style="font-size:10px;color:var(--muted);margin-left:8px">37 stats</span></div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px">
+      <div class="card" style="padding:14px;text-align:center;background:linear-gradient(135deg,#221710,#1a0f08);border:1px solid var(--border-dim);border-radius:10px">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Combat Power</div>
+        <div style="font-size:28px;color:var(--gold-strong);font-family:var(--font-display);font-weight:700">${cp.toLocaleString()}</div>
+        <div style="font-size:11px;color:${t.color}">${t.name}</div>
+      </div>
+      <div class="card" style="padding:14px;text-align:center;background:linear-gradient(135deg,#221710,#1a0f08);border:1px solid var(--border-dim);border-radius:10px">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Rating</div>
+        <div style="font-size:28px;color:${r.color};font-family:var(--font-display);font-weight:700">${r.letter}</div>
+        <div style="font-size:11px;color:var(--muted)">Build grade</div>
+      </div>
+      <div class="card" style="padding:14px;text-align:center;background:linear-gradient(135deg,#221710,#1a0f08);border:1px solid var(--border-dim);border-radius:10px">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Points Allocated</div>
+        <div style="font-size:28px;color:var(--green);font-family:var(--font-display);font-weight:700">${totalPointsSpent()}/${TOTAL_POINTS}</div>
+        <div style="font-size:11px;color:var(--muted)">8 attributes</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px">
+      ${keys.map(k => `
+        <div style="padding:10px 12px;background:linear-gradient(135deg,#1e1510,#160e08);border:1px solid var(--border-dim);border-radius:8px">
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">${STAT_LABELS[k]}</div>
+          <div style="font-size:15px;color:var(--gold-strong);font-family:var(--font-mono);font-weight:700;margin-top:2px">${fmtStat(k, s[k])}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+    }
+
+    function rebuildSidebar() {
+      const s = calculateStats();
+      const cp = calculateCombatPower(s);
+      const r = buildRating(cp);
+      const t = buildTier(cp);
+
+      document.getElementById('sidebarAttrs').innerHTML = `
+    <h3>Attributes</h3>
+    ${ATTR_META.map(a => {
+        const v = attributePoints[a.id] || 0;
+        return `<div class="stat-row"><span class="k" style="color:${a.color}">${a.emoji} ${a.id}</span><span class="v">${v}</span></div>`;
+      }).join('')}
+  `;
+
+      const primary = ['health', 'mana', 'stamina', 'damage', 'defense', 'criticalChance', 'block', 'accuracy', 'resistance', 'movementSpeed'];
+      document.getElementById('sidebarCombat').innerHTML = `
+    <h3>Combat Stats</h3>
+    ${primary.map(k => `<div class="stat-row"><span class="k">${STAT_LABELS[k]}</span><span class="v">${fmtStat(k, s[k])}</span></div>`).join('')}
+  `;
+
+      document.getElementById('sidebarProgression').innerHTML = `
+    <h3>Progression</h3>
+    <div class="stat-row"><span class="k">EXP</span><span class="v">42,580 / 60,000</span></div>
+    <div class="stat-row"><span class="k">Attr Pts</span><span class="v ${availablePoints() > 0 ? 'green' : ''}">${availablePoints()}</span></div>
+    <div class="stat-row"><span class="k">Skill Pts</span><span class="v green">3</span></div>
+    <div class="stat-row"><span class="k">Mastery</span><span class="v">Sword 14</span></div>
+  `;
+
+      document.getElementById('sidebarBuild').innerHTML = `
+    <h3>Build Summary</h3>
+    <div class="stat-row"><span class="k">Combat Power</span><span class="v" style="color:var(--gold-strong)">${cp.toLocaleString()}</span></div>
+    <div class="stat-row"><span class="k">Tier</span><span class="v" style="color:${t.color}">${t.name}</span></div>
+    <div class="stat-row"><span class="k">Rating</span><span class="v" style="color:${r.color};font-weight:700">${r.letter}</span></div>
+  `;
+    }
+
+    function renderSkillTree(tree, label) {
+      let html = '';
+      tree.tiers.forEach(tier => {
+        html += `<div class="skill-tier">
+      <div class="tier-label">${tier.name}</div>
+      <div class="skill-grid">
+        ${tier.skills.map((sk, i) => {
+          const unlocked = Math.random() > 0.5;
+          return `<div class="skill-node ${unlocked ? 'unlocked' : ''}">
+            <div class="sk-icon">${sk.icon}</div>
+            <div>
+              <div class="sk-name">${sk.name}</div>
+              <div class="sk-desc">${sk.desc}</div>
+              <div class="sk-meta">
+                ${sk.chips.map(c => `<span class="chip ${c}">${c}</span>`).join('')}
+              </div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+      });
+      return html;
+    }
+
+    let activeClass = 'Warrior';
+    function renderClassSkills() {
+      const classes = Object.keys(CLASS_TREES);
+      const tree = CLASS_TREES[activeClass];
+      return `
+    <div class="section-title">Class Skill Tree</div>
+    <div class="tree-selector">
+      ${classes.map(c => `<button class="tree-btn ${c === activeClass ? 'active' : ''}" onclick="activeClass='${c}';renderContent()">
+        <span class="class-badge ${c.toLowerCase()}">${c}</span>
+      </button>`).join('')}
+    </div>
+    ${renderSkillTree(tree)}
+  `;
+    }
+
+    let activeWeapon = 'Sword';
+    function renderWeaponSkills() {
+      const weapons = Object.keys(WEAPON_TREES);
+      const tree = WEAPON_TREES[activeWeapon];
+      return `
+    <div class="section-title">Weapon Mastery Tree</div>
+    <div class="tree-selector">
+      ${weapons.map(w => `<button class="tree-btn ${w === activeWeapon ? 'active' : ''}" onclick="activeWeapon='${w}';renderContent()">
+        ${WEAPON_TREES[w].icon} ${w}
+      </button>`).join('')}
+    </div>
+    ${renderSkillTree(tree)}
+  `;
+    }
+
+    function renderCrafting() {
+      return `
+    <div class="section-title">Crafting Station</div>
+    <div class="craft-layout">
+      <div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Ingredients</div>
+        <div class="craft-slots">
+          ${Array(6).fill(0).map((_, i) => `<div class="craft-slot">Slot ${i + 1}</div>`).join('')}
+        </div>
+      </div>
+      <div class="craft-arrow">→</div>
+      <div style="text-align:center">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Result</div>
+        <div class="craft-result">?</div>
+      </div>
+      <button class="craft-btn">Craft</button>
+    </div>
+    <div class="section-title" style="margin-top:20px">Known Recipes</div>
+    <div style="font-size:11px;color:var(--muted);padding:12px;border:1px dashed var(--border-dim);border-radius:8px;text-align:center">
+      Discover recipes by combining ingredients...
+    </div>
+  `;
+    }
+
+    function renderQuests() {
+      return `
+    <div class="section-title">Active Quests</div>
+    ${SAMPLE_QUESTS.map(q => `
+      <div class="quest-card">
+        <div class="q-title">${q.title}</div>
+        <div class="q-desc">${q.desc}</div>
+        <div class="q-progress"><div class="q-fill" style="width:${q.progress}%"></div></div>
+        <div class="q-reward">Reward: ${q.reward}</div>
+      </div>
+    `).join('')}
+  `;
+    }
+
+    function renderUpgrades() {
+      return `
+    <div class="section-title">Equipment Upgrades</div>
+    <div class="upgrade-grid">
+      ${SAMPLE_UPGRADES.map(u => `
+        <div class="upgrade-card">
+          <div class="u-name">${u.name}</div>
+          <div class="u-level">${u.level}</div>
+          <div class="u-desc">${u.desc}</div>
+          <div class="u-cost">Cost: ${u.cost}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+    }
+
+    function renderGuild() {
+      return `
+    <div class="section-title">Guild</div>
+    <div class="guild-header">
+      <div class="guild-crest">⚔</div>
+      <div class="guild-info">
+        <div class="gname">Grudge Warlords</div>
+        <div class="gmaster">Warlord: Racalvin</div>
+        <div class="gcap">Members: ${GUILD_MEMBERS.length} / 50</div>
+      </div>
+    </div>
+    <div class="section-title">Members</div>
+    <div class="member-list">
+      ${GUILD_MEMBERS.map(m => `
+        <div class="member-row">
+          <div class="member-dot ${m.online ? 'online' : 'offline'}"></div>
+          <span class="member-name">${m.name}</span>
+          <span class="member-lvl">Lv.${m.level}</span>
+          <span class="member-rank">${m.rank}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+    }
+
+    // ═══ INVENTORY — entity-aware ═══
+    function buildInventory() {
+      const grid = document.getElementById('invGrid'); if (!grid) return;
+      const e = getActiveEntity();
+      const items = e.inventory || INVENTORY_ITEMS;
+      // Update header
+      const nameEl = document.getElementById('inv-entity-name');
+      const goldEl = document.getElementById('inv-gold-display');
+      if (nameEl) nameEl.textContent = e.name + ' — Inventory';
+      if (goldEl) goldEl.textContent = '⚜ ' + (e.gold || 0).toLocaleString();
+      const slots = 30;
+      let html = '';
+      for (let i = 0; i < slots; i++) {
+        const item = items[i];
+        if (item) {
+          const rcol = RARITY_COLOR[item.rarity] || 'var(--border-dim)';
+          html += `<div class="inv-cell filled" title="${item.n} (${item.rarity})" style="border-color:${rcol}66;box-shadow:inset 0 0 8px ${rcol}22">
+        <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center">${iconHTML(item.path, item.e, 36)}</div>
+        ${item.qty > 1 ? `<span class="qty">${item.qty}</span>` : ''}
+      </div>`;
+        } else {
+          html += `<div class="inv-cell"></div>`;
+        }
+      }
+      grid.innerHTML = html;
+    }
+
+    // ═══ HOTBAR (4 skills + empty + 3 consumables) ═══
+    function buildHotbar() {
+      const bar = document.getElementById('hotbar');
+      bar.innerHTML = HOTBAR.map(h => {
+        const inner = h.path ? `<div style="width:32px;height:32px;display:flex;align-items:center;justify-content:center">${iconHTML(h.path, h.emoji, 32)}</div>` : '';
+        return `<div class="hb-slot" title="${h.label}"><span class="key">${h.key}</span>${inner}</div>`;
+      }).join('');
+    }
+
+    // ═══ INIT ═══
+    _buildEntitySelector();
+    selectEntity('player'); // loads first entity, sets attributePoints, updates top bar
+    buildTabs();
+    renderContent();
+    buildInventory();
+    buildHotbar();
+    rebuildSidebar();
+  </script>
+</body>
+
+</html>

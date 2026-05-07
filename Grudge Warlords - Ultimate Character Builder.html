@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<!-- saved from url=(0092)file:///C:/users/nugye/Documents/Grudge%20Warlords%20-%20Ultimate%20Character%20Builder.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grudge Warlords - Ultimate Character Builder</title>
+  <script src="./Grudge Warlords - Ultimate Character Builder_files/saved_resource"></script>
+  <script src="./Grudge Warlords - Ultimate Character Builder_files/chart.js.download"></script>
+  <link href="./Grudge Warlords - Ultimate Character Builder_files/css2" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: #141a2b;
+      --text: #e8eaf6;
+      --muted: #a5b4d0;
+      --border: #2a3150;
+      --accent: #6ee7b7;
+      --danger: #ef4444;
+      --success: #10b981;
+      --purple-accent: #a855f7;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Jost', sans-serif;
+      background: radial-gradient(circle at 20% -10%, rgba(110,231,183,0.1), transparent 40%),
+                  radial-gradient(circle at 90% 0%, rgba(99,102,241,0.1), transparent 40%),
+                  var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    .font-cinzel { font-family: 'Cinzel', serif; }
+
+    header {
+      background: linear-gradient(135deg, rgba(14,22,48,0.8), rgba(20,26,43,0.6));
+      border-bottom: 2px solid var(--border);
+      padding: 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2rem;
+      color: var(--accent);
+      letter-spacing: 1px;
+    }
+
+    header .subtitle {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-top: 6px;
+    }
+
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: 350px 1fr 400px;
+      gap: 20px;
+      min-height: calc(100vh - 120px);
+    }
+
+    .panel {
+      background: linear-gradient(135deg, rgba(20,26,43,0.95), rgba(20,26,43,0.75));
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .panel h2 {
+      margin: 0 0 16px;
+      font-size: 1.2rem;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 12px;
+    }
+
+    /* Attribute Controls Panel */
+    .attribute-item {
+      margin-bottom: 16px;
+    }
+
+    .attribute-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .attribute-label {
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: help;
+      position: relative;
+    }
+
+    .attribute-value {
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: 0.9rem;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .attribute-controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--border);
+      outline: none;
+      -webkit-appearance: none;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--purple-accent);
+      cursor: pointer;
+      border: 2px solid white;
+    }
+
+    input[type="number"] {
+      width: 50px;
+      padding: 6px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: rgba(14,22,48,0.8);
+      color: var(--accent);
+      font-weight: 600;
+      text-align: center;
+    }
+
+    /* Points Counter */
+    .points-counter {
+      text-align: center;
+      padding: 16px;
+      background: #1e293b;
+      border: 2px solid #334155;
+      border-radius: 8px;
+      margin: 16px 0;
+    }
+    .points-counter.complete {
+        border-color: var(--success);
+    }
+    .points-counter .label {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .points-counter .value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text);
+      transition: color 0.3s;
+    }
+    .points-counter.complete .value {
+        color: var(--success);
+    }
+
+    /* Action Buttons */
+    .button-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    button {
+      padding: 10px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.9rem;
+    }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), #10b981); color: #0b1020; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(110,231,183,0.3); }
+    .btn-secondary { background: var(--border); color: var(--text); }
+    .btn-secondary:hover { background: #3a4560; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-danger:hover { background: #dc2626; }
+
+    /* Character Stats Panel (Center) */
+    .result-card {
+        text-align: center;
+        margin-bottom: 24px;
+        padding: 16px;
+        border: 2px solid;
+        border-radius: 12px;
+        transition: all 0.5s ease-in-out;
+    }
+    .result-tier { font-size: 0.85rem; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+    .result-name { font-size: 1.5rem; font-weight: 700; margin: 4px 0; }
+    .result-desc { font-size: 0.9rem; color: var(--muted); }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .stat-card {
+      background: rgba(20,26,43,0.7);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .stat-label { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; }
+    .stat-value { font-size: 1.4rem; font-weight: 700; color: var(--accent); margin-top: 4px; font-family: ui-monospace, monospace; }
+    .stat-value.percentage::after { content: '%'; font-size: 0.9rem; }
+    .stat-tooltip { position: relative; display: inline-block; cursor: help; border-bottom: 1px dashed rgba(110,231,183,0.5); }
+    .stat-tooltip .stat-popover { visibility: hidden; width: 280px; background-color: rgba(14,22,48,0.98); color: var(--text); text-align: left; border: 1px solid var(--accent); border-radius: 6px; padding: 10px; position: absolute; z-index: 1000; bottom: 125%; left: 0; font-size: 0.75rem; line-height: 1.4; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+    .stat-tooltip:hover .stat-popover { visibility: visible; }
+
+    /* Learning Panel */
+    .learning-content { max-height: 80vh; overflow-y: auto; padding-right: 8px; }
+    .learning-content::-webkit-scrollbar { width: 6px; }
+    .learning-content::-webkit-scrollbar-track { background: rgba(20,26,43,0.5); border-radius: 3px; }
+    .learning-content::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+    .attribute-details { margin-bottom: 20px; padding: 12px; background: rgba(110,231,183,0.05); border-left: 3px solid var(--accent); border-radius: 4px; }
+    .attribute-details h4 { margin: 0 0 8px; color: var(--accent); font-size: 0.95rem; }
+    .attribute-details .description { color: var(--muted); font-size: 0.85rem; line-height: 1.5; margin-bottom: 8px; }
+    .attribute-details .gains { background: rgba(14,22,48,0.8); padding: 8px; border-radius: 4px; font-size: 0.8rem; line-height: 1.4; color: #dbe7ff; }
+    .gains-item { margin: 4px 0; padding: 2px 0; }
+
+    /* Class Tiers Colors */
+    .mystic-diamond { color: #89f7fe; border-color: #89f7fe; box-shadow: 0 0 20px #89f7fe33; }
+    .warlord-orange { color: #f97316; border-color: #f97316; box-shadow: 0 0 20px #f9731633; }
+    .epic-purple { color: #a855f7; border-color: #a855f7; box-shadow: 0 0 20px #a855f733; }
+    .hero-blue { color: #3b82f6; border-color: #3b82f6; box-shadow: 0 0 20px #3b82f633; }
+    .normal-grey { color: #9ca3af; border-color: #9ca3af; }
+    .unclassified { color: #4b5563; border-color: #4b5563; }
+
+    @media (max-width: 1200px) {
+      .container { grid-template-columns: 1fr; }
+    }
+  </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.container{width:100%}@media (min-width: 640px){.container{max-width:640px}}@media (min-width: 768px){.container{max-width:768px}}@media (min-width: 1024px){.container{max-width:1024px}}@media (min-width: 1280px){.container{max-width:1280px}}@media (min-width: 1536px){.container{max-width:1536px}}</style><style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.container{width:100%}@media (min-width: 640px){.container{max-width:640px}}@media (min-width: 768px){.container{max-width:768px}}@media (min-width: 1024px){.container{max-width:1024px}}@media (min-width: 1280px){.container{max-width:1280px}}@media (min-width: 1536px){.container{max-width:1536px}}</style></head>
+<body>
+  <header>
+    <h1 class="font-cinzel">⚔️ Grudge Warlords</h1>
+    <div class="subtitle">Ultimate Character Builder</div>
+  </header>
+
+  <div class="container">
+    <!-- LEFT PANEL: Attributes Controls -->
+    <div class="panel">
+      <h2 class="font-cinzel">Attributes</h2>
+      <div id="attributesContainer"><div class="attribute-item"><div class="attribute-header"><label class="attribute-label">Strength</label><span class="attribute-value" id="value-Strength">23</span></div><div class="attribute-controls"><input type="range" id="slider-Strength" min="0" max="160" value="0"><input type="number" id="input-Strength" min="0" max="160" value="0"></div></div><div class="attribute-item"><div class="attribute-header"><label class="attribute-label">Intellect</label><span class="attribute-value" id="value-Intellect">30</span></div><div class="attribute-controls"><input type="range" id="slider-Intellect" min="0" max="160" value="0"><input type="number" id="input-Intellect" min="0" max="160" value="0"></div></div><div class="attribute-item"><div class="attribute-header"><label class="attribute-label">Vitality</label><span class="attribute-value" id="value-Vitality">24</span></div><div class="attribute-controls"><input type="range" id="slider-Vitality" min="0" max="160" value="0"><input type="number" id="input-Vitality" min="0" max="160" value="0"></div></div><div class="attribute-item"><div class="attribute-header"><label class="attribute-label">Dexterity</label><span class="attribute-value" id="value-Dexterity">16</span></div><div class="attribute-controls"><input type="range" id="slider-Dexterity" min="0" max="160" value="0"><input type="number" id="input-Dexterity" min="0" max="160" value="0"></div></div><div class="attribute-item"><div class="attribute-header"><label class="attribute-label">Endurance</label><span class="attribute-value" id="value-Endurance">17</span></div><div class="attribute-controls"><input type="range" id="slider-Endurance" min="0" max="160" value="0"><input type="number" id="input-Endurance" min="0" max="160" value="0"></div></div><div class="attribute-item"><div class="attribute-header"><label class="attribute-label">Wisdom</label><span class="attribute-value" id="value-Wisdom">16</span></div><div class="attribute-controls"><input type="range" id="slider-Wisdom" min="0" max="160" value="0"><input type="number" id="input-Wisdom" min="0" max="160" value="0"></div></div><div class="attribute-item"><div class="attribute-header"><label class="attribute-label">Agility</label><span class="attribute-value" id="value-Agility">15</span></div><div class="attribute-controls"><input type="range" id="slider-Agility" min="0" max="160" value="0"><input type="number" id="input-Agility" min="0" max="160" value="0"></div></div><div class="attribute-item"><div class="attribute-header"><label class="attribute-label">Tactics</label><span class="attribute-value" id="value-Tactics">19</span></div><div class="attribute-controls"><input type="range" id="slider-Tactics" min="0" max="160" value="0"><input type="number" id="input-Tactics" min="0" max="160" value="0"></div></div></div>
+      <div class="points-counter complete" id="pointsCounter">
+        <div class="label">Points Allocated</div>
+        <div class="value" id="pointsValue">160 / 160</div>
+      </div>
+      <div class="button-group">
+        <button class="btn-primary" id="randomBtn">Randomize</button>
+        <button class="btn-secondary" id="shareBtn">Share Build</button>
+        <button class="btn-danger" id="resetBtn">Reset All</button>
+      </div>
+    </div>
+
+    <!-- CENTER PANEL: Character Stats Display -->
+    <div class="panel">
+      <div id="resultCard" class="result-card hero-blue">
+          <p id="resultTier" class="result-tier">Hero (Rank 106)</p>
+          <h2 id="resultName" class="result-name font-cinzel">Holy God</h2>
+          <p id="resultDesc" class="result-desc">A capable adventurer with potential.</p>
+      </div>
+
+      <div style="margin-bottom: 20px; height: 300px; position: relative;">
+        <canvas id="buildChart" width="664" height="300" style="display: block; box-sizing: border-box; height: 300px; width: 664px;"></canvas>
+      </div>
+
+      <div id="statisticalReview" style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid var(--border);">
+        <h3 class="font-cinzel" style="margin-top: 0; color: var(--accent);">Statistical Review</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <div style="font-size: 0.9rem; color: var(--muted);">Combat Power</div>
+                <div id="combatPowerValue" style="font-size: 1.8rem; font-weight: bold; color: #fbbf24;">3,666</div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 0.9rem; color: var(--muted);">Build Rating</div>
+                <div id="buildRatingValue" style="font-size: 1.8rem; font-weight: bold; color: rgb(232, 234, 246);">B</div>
+            </div>
+        </div>
+        <div id="buildAdvice" style="margin-top: 10px; font-size: 0.85rem; color: var(--muted); font-style: italic;">Solid build. Consider specializing further for higher tiers.</div>
+      </div>
+
+      <h2 class="font-cinzel">Derived Stats</h2>
+      <div class="stats-grid" id="statsContainer"><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">health<span class="stat-popover">Total hit points.</span></span></div><div class="stat-value ">1405</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">mana<span class="stat-popover">Energy for abilities.</span></span></div><div class="stat-value ">570</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">stamina<span class="stat-popover">Fuel for physical actions.</span></span></div><div class="stat-value ">346</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">damage<span class="stat-popover">Base damage dealt.</span></span></div><div class="stat-value ">109</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">defense<span class="stat-popover">Reduces physical damage.</span></span></div><div class="stat-value ">437</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">block<span class="stat-popover">Chance to block attacks.</span></span></div><div class="stat-value percentage">7.27</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">block Effect<span class="stat-popover">Damage reduction on block.</span></span></div><div class="stat-value percentage">3.26</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">evasion<span class="stat-popover">Chance to avoid damage.</span></span></div><div class="stat-value percentage">5.89</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">accuracy<span class="stat-popover">Chance to hit.</span></span></div><div class="stat-value percentage">11.32</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">critical Chance<span class="stat-popover">Chance of critical hit.</span></span></div><div class="stat-value percentage">5.26</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">critical Damage<span class="stat-popover">Extra damage on crit.</span></span></div><div class="stat-value percentage">3.50</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">attack Speed<span class="stat-popover">How fast you attack.</span></span></div><div class="stat-value percentage">4.33</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">movement Speed<span class="stat-popover">How fast you move.</span></span></div><div class="stat-value percentage">3.87</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">resistance<span class="stat-popover">Reduces magical damage.</span></span></div><div class="stat-value percentage">6.48</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">cdr Resist<span class="stat-popover">Reduces enemy Cooldown Reduction.</span></span></div><div class="stat-value percentage">3.50</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">defense Break Resist<span class="stat-popover">Resistance to Armor Break.</span></span></div><div class="stat-value percentage">2.33</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">armor Penetration<span class="stat-popover">Bypasses enemy Defense.</span></span></div><div class="stat-value percentage">4.16</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">block Penetration<span class="stat-popover">Attacks ignore Block Chance.</span></span></div><div class="stat-value percentage">3.64</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">defense Break<span class="stat-popover">Reduces enemy Defense.</span></span></div><div class="stat-value percentage">2.08</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">drain Health<span class="stat-popover">Heals for % of damage dealt.</span></span></div><div class="stat-value percentage">1.89</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">mana Regen<span class="stat-popover">Mana regen per second.</span></span></div><div class="stat-value ">1</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">health Regen<span class="stat-popover">Health regen per second.</span></span></div><div class="stat-value ">2</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">cooldown Reduction<span class="stat-popover">Reduces ability cooldowns.</span></span></div><div class="stat-value percentage">3.50</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">ability Cost<span class="stat-popover">Reduces ability costs.</span></span></div><div class="stat-value percentage">3.20</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">spell Accuracy<span class="stat-popover">Hit chance for spells.</span></span></div><div class="stat-value percentage">6.68</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">stagger<span class="stat-popover">Chance to interrupt enemies.</span></span></div><div class="stat-value percentage">1.01</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">cc Resistance<span class="stat-popover">Reduces duration of stuns.</span></span></div><div class="stat-value percentage">1.86</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">armor<span class="stat-popover">Flat physical defense.</span></span></div><div class="stat-value ">16</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">damage Reduction<span class="stat-popover">Reduces all incoming damage.</span></span></div><div class="stat-value percentage">2.08</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">bleed Resist<span class="stat-popover">Resistance to bleeding.</span></span></div><div class="stat-value percentage">3.94</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">status Effect<span class="stat-popover">Reduces duration of debuffs.</span></span></div><div class="stat-value percentage">1.31</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">spellblock<span class="stat-popover">Chance to negate spells.</span></span></div><div class="stat-value percentage">2.19</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">dodge<span class="stat-popover">Reduces cooldown of dodge ability.</span></span></div><div class="stat-value percentage">2.46</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">reflex Time<span class="stat-popover">Bonus to reaction time.</span></span></div><div class="stat-value percentage">1.18</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">critical Evasion<span class="stat-popover">Chance to avoid crits.</span></span></div><div class="stat-value percentage">4.11</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">fall Damage<span class="stat-popover">Reduces fall damage.</span></span></div><div class="stat-value percentage">3.29</div></div><div class="stat-card"><div class="stat-label"><span class="stat-tooltip">combo Cooldown Red<span class="stat-popover">Cooldown reduction for combos.</span></span></div><div class="stat-value percentage">2.60</div></div></div>
+    </div>
+
+    <!-- RIGHT PANEL: Learning & Details -->
+    <div class="panel">
+      <h2 class="font-cinzel">Attribute Guide</h2>
+      <div class="learning-content" id="learningPanel"><div class="attribute-details">
+              <h4>Strength <span style="color: #a5b4d0;">(23 points)</span></h4>
+              <div class="description">Increases raw damage output, physical defense, and health. Warriors and melee builds scale heavily with Strength. Each point grants diminishing returns on damage beyond 50 points.</div>
+              <div class="gains" style="margin-top: 8px;">
+                <strong style="display: block; margin-bottom: 4px; color: var(--accent);">Per-Point Gains:</strong>
+                <div class="gains-item">• Health: +115.00</div><div class="gains-item">• Physical Damage: +28.75</div><div class="gains-item">• Physical Defense: +92.00</div><div class="gains-item">• Block Chance: +4.60%</div><div class="gains-item">• Lifesteal: +1.72%</div><div class="gains-item">• Stagger on Hit: +0.92%</div><div class="gains-item">• Mana Pool: +23.00</div><div class="gains-item">• Stamina: +18.40</div><div class="gains-item">• Attack Accuracy: +1.84%</div><div class="gains-item">• Health Regen/s: +0.46</div><div class="gains-item">• Damage Reduction: +0.46%</div>
+              </div>
+            </div><div class="attribute-details">
+              <h4>Intellect <span style="color: #a5b4d0;">(30 points)</span></h4>
+              <div class="description">Powers magical damage, mana regeneration, and ability cooldown reduction. Casters scale directly with Intellect. High Intellect reduces spell cast times by 0.2% per point. Countered heavily by Resistance.</div>
+              <div class="gains" style="margin-top: 8px;">
+                <strong style="display: block; margin-bottom: 4px; color: var(--accent);">Per-Point Gains:</strong>
+                <div class="gains-item">• Mana Pool: +270.00</div><div class="gains-item">• Magical Damage: +45.00</div><div class="gains-item">• Magical Defense: +60.00</div><div class="gains-item">• Mana Regen/s: +1.20</div><div class="gains-item">• Cooldown Reduction: +2.25%</div><div class="gains-item">• Spell Accuracy: +4.50%</div><div class="gains-item">• Health: +90.00</div><div class="gains-item">• Stamina: +12.00</div><div class="gains-item">• Attack Accuracy: +3.00%</div><div class="gains-item">• Ability Cost Reduction: +1.50%</div>
+              </div>
+            </div><div class="attribute-details">
+              <h4>Vitality <span style="color: #a5b4d0;">(24 points)</span></h4>
+              <div class="description">Maximizes health pool and provides passive health regeneration. Vital for tanks and sustained damage builds. Very effective against burst damage, but weak to percentage-based damage abilities.</div>
+              <div class="gains" style="margin-top: 8px;">
+                <strong style="display: block; margin-bottom: 4px; color: var(--accent);">Per-Point Gains:</strong>
+                <div class="gains-item">• Health: +600.00</div><div class="gains-item">• Physical Defense: +36.00</div><div class="gains-item">• Health Regen/s: +1.44</div><div class="gains-item">• Damage Reduction: +0.96%</div><div class="gains-item">• Bleed Resistance: +3.60%</div><div class="gains-item">• Mana Pool: +36.00</div><div class="gains-item">• Stamina: +24.00</div><div class="gains-item">• Magic Resistance: +1.92%</div><div class="gains-item">• Armor Rating: +4.80</div>
+              </div>
+            </div><div class="attribute-details">
+              <h4>Dexterity <span style="color: #a5b4d0;">(16 points)</span></h4>
+              <div class="description">Dominates critical chance, attack speed, and accuracy. Rogues and archers scale with Dexterity. Provides attack speed bonus (0.4% per point). Critical hits bypass 40% of block chance.</div>
+              <div class="gains" style="margin-top: 8px;">
+                <strong style="display: block; margin-bottom: 4px; color: var(--accent);">Per-Point Gains:</strong>
+                <div class="gains-item">• Damage: +14.40</div><div class="gains-item">• Critical Chance: +4.80%</div><div class="gains-item">• Attack Accuracy: +4.00%</div><div class="gains-item">• Attack Speed: +3.20%</div><div class="gains-item">• Evasion Chance: +2.00%</div><div class="gains-item">• Critical Damage Multiplier: +3.20%</div><div class="gains-item">• Physical Defense: +19.20</div><div class="gains-item">• Stamina: +9.60</div><div class="gains-item">• Movement Speed: +1.28%</div><div class="gains-item">• Reaction Time Bonus: +0.48%</div><div class="gains-item">• Health: +48.00</div>
+              </div>
+            </div><div class="attribute-details">
+              <h4>Endurance <span style="color: #a5b4d0;">(17 points)</span></h4>
+              <div class="description">Builds stamina for abilities and provides armor scaling. High Endurance enables higher block effectiveness and reduces crowd control duration. Synergizes with blocking playstyles.</div>
+              <div class="gains" style="margin-top: 8px;">
+                <strong style="display: block; margin-bottom: 4px; color: var(--accent);">Per-Point Gains:</strong>
+                <div class="gains-item">• Stamina: +102.00</div><div class="gains-item">• Physical Defense: +85.00</div><div class="gains-item">• Block Effectiveness: +2.97%</div><div class="gains-item">• CC Duration Reduction: +1.70%</div><div class="gains-item">• Armor Rating: +10.20</div><div class="gains-item">• Armor Break Resistance: +2.13%</div><div class="gains-item">• Health: +136.00</div><div class="gains-item">• Mana Pool: +17.00</div><div class="gains-item">• Health Regen/s: +0.34</div><div class="gains-item">• Block Chance: +2.04%</div>
+              </div>
+            </div><div class="attribute-details">
+              <h4>Wisdom <span style="color: #a5b4d0;">(16 points)</span></h4>
+              <div class="description">Primary counter to magical damage. Scales resistance and provides magic immunity scaling. Each point provides 0.4% Cooldown Reduction Resistance (slows enemy cooldown reduction). Essential for magic-heavy environments.</div>
+              <div class="gains" style="margin-top: 8px;">
+                <strong style="display: block; margin-bottom: 4px; color: var(--accent);">Per-Point Gains:</strong>
+                <div class="gains-item">• Mana Pool: +96.00</div><div class="gains-item">• Magical Defense: +88.00</div><div class="gains-item">• Magic Resistance: +4.00%</div><div class="gains-item">• CDR Resistance: +3.20%</div><div class="gains-item">• Status Effect Duration Reduction: +1.20%</div><div class="gains-item">• Spell Block Chance: +2.00%</div><div class="gains-item">• Health: +64.00</div><div class="gains-item">• Stamina: +8.00</div><div class="gains-item">• Damage Reduction: +0.48%</div><div class="gains-item">• Spell Accuracy: +1.60%</div>
+              </div>
+            </div><div class="attribute-details">
+              <h4>Agility <span style="color: #a5b4d0;">(15 points)</span></h4>
+              <div class="description">Increases movement speed, dodge chance, and evasion. Synergizes with high-risk playstyles. Each point grants 0.3% movement speed. Dodge provides invincibility frames (0.5s per dodge).</div>
+              <div class="gains" style="margin-top: 8px;">
+                <strong style="display: block; margin-bottom: 4px; color: var(--accent);">Per-Point Gains:</strong>
+                <div class="gains-item">• Movement Speed: +2.25%</div><div class="gains-item">• Evasion Chance: +3.38%</div><div class="gains-item">• Dodge Cooldown Reduction: +2.25%</div><div class="gains-item">• Reaction Time Bonus: +0.60%</div><div class="gains-item">• Crit Evasion: +3.75%</div><div class="gains-item">• Fall Damage Reduction: +3.00%</div><div class="gains-item">• Stamina: +15.00</div><div class="gains-item">• Attack Accuracy: +1.50%</div><div class="gains-item">• Attack Speed: +0.75%</div><div class="gains-item">• Damage: +4.50</div><div class="gains-item">• Health: +45.00</div>
+              </div>
+            </div><div class="attribute-details">
+              <h4>Tactics <span style="color: #a5b4d0;">(19 points)</span></h4>
+              <div class="description">Expertise in ability execution and resource management. Tactics grants a scaling bonus to all other stats based on total invested points (0.5% per point). High Tactics reduces ability costs, cooldowns, and provides armor penetration. Counters enemy Defense and Block. Essential for versatile builds.</div>
+              <div class="gains" style="margin-top: 8px;">
+                <strong style="display: block; margin-bottom: 4px; color: var(--accent);">Per-Point Gains:</strong>
+                <div class="gains-item">• Stamina: +57.00</div><div class="gains-item">• Ability Cost Reduction: +1.43%</div><div class="gains-item">• Armor Penetration: +3.80%</div><div class="gains-item">• Block Penetration: +3.32%</div><div class="gains-item">• Defense Break Power: +1.90%</div><div class="gains-item">• Combo Cooldown Reduction: +2.38%</div><div class="gains-item">• Damage: +7.60</div><div class="gains-item">• Physical Defense: +19.00</div><div class="gains-item">• Mana Pool: +28.50</div><div class="gains-item">• Cooldown Reduction: +0.95%</div><div class="gains-item">• Health: +57.00</div>
+              </div>
+            </div></div>
+    </div>
+  </div>
+
+  <script>
+    const TOTAL_POINTS = 160;
+    let buildChart = null;
+    
+    // ========================================
+    // DATA DEFINITIONS (ATTRIBUTES, STATS, CLASSES)
+    // ========================================
+    const attributeDefinitions = {
+      Strength: {
+        description: "Physical might and raw power.",
+        fullDescription: "Increases raw damage output, physical defense, and health. Warriors and melee builds scale heavily with Strength. Each point grants diminishing returns on damage beyond 50 points.",
+        gains: {
+          health: { label: "Health", value: 5 },
+          damage: { label: "Physical Damage", value: 1.25 },
+          defense: { label: "Physical Defense", value: 4 },
+          block: { label: "Block Chance", value: 0.2 },
+          drainHealth: { label: "Lifesteal", value: 0.075 },
+          stagger: { label: "Stagger on Hit", value: 0.04 },
+          mana: { label: "Mana Pool", value: 1 },
+          stamina: { label: "Stamina", value: 0.8 },
+          accuracy: { label: "Attack Accuracy", value: 0.08 },
+          healthRegen: { label: "Health Regen/s", value: 0.02 },
+          damageReduction: { label: "Damage Reduction", value: 0.02 },
+        }
+      },
+      Intellect: {
+        description: "Mental acuity and spellcasting power.",
+        fullDescription: "Powers magical damage, mana regeneration, and ability cooldown reduction. Casters scale directly with Intellect. High Intellect reduces spell cast times by 0.2% per point. Countered heavily by Resistance.",
+        gains: {
+          mana: { label: "Mana Pool", value: 9 },
+          damage: { label: "Magical Damage", value: 1.5 },
+          defense: { label: "Magical Defense", value: 2 },
+          manaRegen: { label: "Mana Regen/s", value: 0.04 },
+          cooldownReduction: { label: "Cooldown Reduction", value: 0.075 },
+          spellAccuracy: { label: "Spell Accuracy", value: 0.15 },
+          health: { label: "Health", value: 3 },
+          stamina: { label: "Stamina", value: 0.4 },
+          accuracy: { label: "Attack Accuracy", value: 0.1 },
+          abilityCost: { label: "Ability Cost Reduction", value: 0.05 },
+        }
+      },
+      Vitality: {
+        description: "Physical endurance and life force.",
+        fullDescription: "Maximizes health pool and provides passive health regeneration. Vital for tanks and sustained damage builds. Very effective against burst damage, but weak to percentage-based damage abilities.",
+        gains: {
+          health: { label: "Health", value: 25 },
+          defense: { label: "Physical Defense", value: 1.5 },
+          healthRegen: { label: "Health Regen/s", value: 0.06 },
+          damageReduction: { label: "Damage Reduction", value: 0.04 },
+          bleedResist: { label: "Bleed Resistance", value: 0.15 },
+          mana: { label: "Mana Pool", value: 1.5 },
+          stamina: { label: "Stamina", value: 1 },
+          resistance: { label: "Magic Resistance", value: 0.08 },
+          armor: { label: "Armor Rating", value: 0.2 },
+        }
+      },
+      Dexterity: {
+        description: "Hand-eye coordination and finesse.",
+        fullDescription: "Dominates critical chance, attack speed, and accuracy. Rogues and archers scale with Dexterity. Provides attack speed bonus (0.4% per point). Critical hits bypass 40% of block chance.",
+        gains: {
+          damage: { label: "Damage", value: 0.9 },
+          criticalChance: { label: "Critical Chance", value: 0.3 },
+          accuracy: { label: "Attack Accuracy", value: 0.25 },
+          attackSpeed: { label: "Attack Speed", value: 0.2 },
+          evasion: { label: "Evasion Chance", value: 0.125 },
+          criticalDamage: { label: "Critical Damage Multiplier", value: 0.2 },
+          defense: { label: "Physical Defense", value: 1.2 },
+          stamina: { label: "Stamina", value: 0.6 },
+          movementSpeed: { label: "Movement Speed", value: 0.08 },
+          reflexTime: { label: "Reaction Time Bonus", value: 0.03 },
+          health: { label: "Health", value: 3 },
+        }
+      },
+      Endurance: {
+        description: "Stamina reserves and physical resistance.",
+        fullDescription: "Builds stamina for abilities and provides armor scaling. High Endurance enables higher block effectiveness and reduces crowd control duration. Synergizes with blocking playstyles.",
+        gains: {
+          stamina: { label: "Stamina", value: 6 },
+          defense: { label: "Physical Defense", value: 5 },
+          blockEffect: { label: "Block Effectiveness", value: 0.175 },
+          ccResistance: { label: "CC Duration Reduction", value: 0.1 },
+          armor: { label: "Armor Rating", value: 0.6 },
+          defenseBreakResist: { label: "Armor Break Resistance", value: 0.125 },
+          health: { label: "Health", value: 8 },
+          mana: { label: "Mana Pool", value: 1 },
+          healthRegen: { label: "Health Regen/s", value: 0.02 },
+          block: { label: "Block Chance", value: 0.12 },
+        }
+      },
+      Wisdom: {
+        description: "Mental fortitude and magical resilience.",
+        fullDescription: "Primary counter to magical damage. Scales resistance and provides magic immunity scaling. Each point provides 0.4% Cooldown Reduction Resistance (slows enemy cooldown reduction). Essential for magic-heavy environments.",
+        gains: {
+          mana: { label: "Mana Pool", value: 6 },
+          defense: { label: "Magical Defense", value: 5.5 },
+          resistance: { label: "Magic Resistance", value: 0.25 },
+          cdrResist: { label: "CDR Resistance", value: 0.2 },
+          statusEffect: { label: "Status Effect Duration Reduction", value: 0.075 },
+          spellblock: { label: "Spell Block Chance", value: 0.125 },
+          health: { label: "Health", value: 4 },
+          stamina: { label: "Stamina", value: 0.5 },
+          damageReduction: { label: "Damage Reduction", value: 0.03 },
+          spellAccuracy: { label: "Spell Accuracy", value: 0.1 },
+        }
+      },
+      Agility: {
+        description: "Speed, reflexes, and positioning.",
+        fullDescription: "Increases movement speed, dodge chance, and evasion. Synergizes with high-risk playstyles. Each point grants 0.3% movement speed. Dodge provides invincibility frames (0.5s per dodge).",
+        gains: {
+          movementSpeed: { label: "Movement Speed", value: 0.15 },
+          evasion: { label: "Evasion Chance", value: 0.225 },
+          dodge: { label: "Dodge Cooldown Reduction", value: 0.15 },
+          reflexTime: { label: "Reaction Time Bonus", value: 0.04 },
+          criticalEvasion: { label: "Crit Evasion", value: 0.25 },
+          fallDamage: { label: "Fall Damage Reduction", value: 0.2 },
+          stamina: { label: "Stamina", value: 1 },
+          accuracy: { label: "Attack Accuracy", value: 0.1 },
+          attackSpeed: { label: "Attack Speed", value: 0.05 },
+          damage: { label: "Damage", value: 0.3 },
+          health: { label: "Health", value: 3 },
+        }
+      },
+      Tactics: {
+        description: "Strategic thinking and ability control.",
+        fullDescription: "Expertise in ability execution and resource management. Tactics grants a scaling bonus to all other stats based on total invested points (0.5% per point). High Tactics reduces ability costs, cooldowns, and provides armor penetration. Counters enemy Defense and Block. Essential for versatile builds.",
+        gains: {
+          stamina: { label: "Stamina", value: 3 },
+          abilityCost: { label: "Ability Cost Reduction", value: 0.075 },
+          armorPenetration: { label: "Armor Penetration", value: 0.2 },
+          blockPenetration: { label: "Block Penetration", value: 0.175 },
+          defenseBreak: { label: "Defense Break Power", value: 0.1 },
+          comboCooldownRed: { label: "Combo Cooldown Reduction", value: 0.125 },
+          damage: { label: "Damage", value: 0.4 },
+          defense: { label: "Physical Defense", value: 1 },
+          mana: { label: "Mana Pool", value: 1.5 },
+          cooldownReduction: { label: "Cooldown Reduction", value: 0.05 },
+          health: { label: "Health", value: 3 },
+        }
+      }
+    };
+
+    const baseStats = { health: 250, mana: 100, stamina: 100, damage: 0, defense: 0, block: 0, blockEffect: 0, evasion: 0, accuracy: 0, criticalChance: 0, criticalDamage: 0, attackSpeed: 0, movementSpeed: 0, resistance: 0, cdrResist: 0, defenseBreakResist: 0, armorPenetration: 0, blockPenetration: 0, defenseBreak: 0, drainHealth: 0, manaRegen: 0, healthRegen: 0, cooldownReduction: 0, abilityCost: 0, spellAccuracy: 0, stagger: 0, ccResistance: 0, armor: 0, damageReduction: 0, bleedResist: 0, statusEffect: 0, spellblock: 0, dodge: 0, reflexTime: 0, criticalEvasion: 0, fallDamage: 0, comboCooldownRed: 0 };
+    
+    const statDescriptions = { health: "Total hit points.", mana: "Energy for abilities.", stamina: "Fuel for physical actions.", damage: "Base damage dealt.", defense: "Reduces physical damage.", block: "Chance to block attacks.", blockEffect: "Damage reduction on block.", evasion: "Chance to avoid damage.", accuracy: "Chance to hit.", criticalChance: "Chance of critical hit.", criticalDamage: "Extra damage on crit.", attackSpeed: "How fast you attack.", movementSpeed: "How fast you move.", resistance: "Reduces magical damage.", cdrResist: "Reduces enemy Cooldown Reduction.", defenseBreakResist: "Resistance to Armor Break.", armorPenetration: "Bypasses enemy Defense.", blockPenetration: "Attacks ignore Block Chance.", defenseBreak: "Reduces enemy Defense.", drainHealth: "Heals for % of damage dealt.", manaRegen: "Mana regen per second.", healthRegen: "Health regen per second.", cooldownReduction: "Reduces ability cooldowns.", abilityCost: "Reduces ability costs.", spellAccuracy: "Hit chance for spells.", stagger: "Chance to interrupt enemies.", ccResistance: "Reduces duration of stuns.", armor: "Flat physical defense.", damageReduction: "Reduces all incoming damage.", bleedResist: "Resistance to bleeding.", statusEffect: "Reduces duration of debuffs.", spellblock: "Chance to negate spells.", dodge: "Reduces cooldown of dodge ability.", reflexTime: "Bonus to reaction time.", criticalEvasion: "Chance to avoid crits.", fallDamage: "Reduces fall damage.", comboCooldownRed: "Cooldown reduction for combos." };
+    
+    const CLASS_TIERS = [ { minRank: 1, maxRank: 10, name: 'Legendary', className: 'mystic-diamond', desc: 'Mythical power achieved through perfect synergy.' }, { minRank: 11, maxRank: 50, name: 'Warlord', className: 'warlord-orange', desc: 'A dominant force on the battlefield.' }, { minRank: 51, maxRank: 100, name: 'Epic', className: 'epic-purple', desc: 'A hero of renown and great skill.' }, { minRank: 101, maxRank: 200, name: 'Hero', className: 'hero-blue', desc: 'A capable adventurer with potential.' }, { minRank: 201, maxRank: 300, name: 'Normal', className: 'normal-grey', desc: 'A standard combatant.' } ];
+    
+    const CLASS_NAMES = (() => { const n = [], p = ["Void", "Solar", "Lunar", "Star", "Chaos", "Holy", "Dark", "Blood", "Iron", "Storm", "Frost", "Fire", "Wind", "Earth", "Spirit", "Mind", "Soul", "Time", "Space", "Life"], r = ["Walker", "Weaver", "Lord", "King", "Queen", "God", "Titan", "Slayer", "Breaker", "Maker", "Seer", "Sage", "Guard", "Blade", "Fist", "Shield", "Heart", "Eye", "Hand", "Wing"]; n.push(...["Primordial God-King", "Eternal Void Walker", "Celestial Archon", "Omniscient Sage", "Timeless Sentinel", "Reality Weaver", "Abyssal Sovereign", "Divine Arbiter", "Cosmic Guardian", "Transcendent Being"]); for (let i = 0; i < 40; i++) n.push(`${p[i % 20]} ${r[i % 20]} Warlord`); for (let i = 0; i < 50; i++) n.push(`Epic ${p[i % 20]} ${r[i % 20]}`); for (let i = 0; i < 100; i++) n.push(`${p[i % 20]} ${r[i % 20]}`); for (let i = 0; i < 100; i++) n.push(`Novice ${r[i % 20]}`); return n; })();
+
+    // ========================================
+    // STATE & CALCULATION LOGIC
+    // ========================================
+    let attributePoints = {};
+
+    function calculateCombatPower(stats) {
+        // Effective Health = Health * (1 + Defense/100) * (1 + Resistance/100)
+        const ehp = stats.health * (1 + (stats.defense / 100)) * (1 + (stats.resistance / 100));
+        
+        // DPS Factor = Damage * (1 + CritChance * CritDmg) * (1 + AttackSpeed)
+        const dps = (stats.damage + 10) * (1 + (stats.criticalChance / 100) * (stats.criticalDamage / 100)) * (1 + (stats.attackSpeed / 100));
+        
+        // Utility Factor = CDR + ManaRegen + MoveSpeed
+        const utility = (stats.cooldownReduction * 2) + (stats.manaRegen * 10) + (stats.movementSpeed * 2);
+        
+        return Math.floor((ehp * 0.4) + (dps * 2.5) + (utility * 5));
+    }
+
+    function calculateBuildScore(stats) {
+        if (getTotalPointsSpent() < TOTAL_POINTS) return 0;
+        
+        const combatPower = calculateCombatPower(stats);
+        // Normalize CP to a 0-100 scale roughly. Max possible CP is around 5000-8000 depending on build.
+        // Let's say 6000 is "Perfect".
+        let score = (combatPower / 6000) * 100;
+        
+        // Synergy Bonus
+        const norm = Object.keys(attributePoints).reduce((acc, k) => ({ ...acc, [k]: attributePoints[k] / TOTAL_POINTS }), {});
+        const synergy = Math.max(
+            (norm.Strength + norm.Vitality + norm.Endurance), // Tank
+            (norm.Intellect + norm.Wisdom + norm.Tactics), // Mage
+            (norm.Dexterity + norm.Agility + norm.Strength), // Rogue/Warrior
+            (norm.Tactics + norm.Endurance + norm.Wisdom) // Support
+        ) * 20;
+
+        return Math.min(100, score + synergy);
+    }
+
+    function getRankFromScore(score) {
+        // Higher score = Lower Rank Number (Better)
+        // Score 100+ -> Rank 1
+        // Score 0 -> Rank 300
+        const maxRank = 300;
+        const rank = Math.max(1, Math.floor(maxRank - (score * 2.8)));
+        return rank;
+    }
+
+    function detectClass() {
+        if (getTotalPointsSpent() < TOTAL_POINTS) return { name: '...', tier: 'Unclassified', description: 'Spend all 160 points to reveal your class rank.', className: 'unclassified' };
+        
+        const stats = calculateStats();
+        const score = calculateBuildScore(stats); 
+        const rank = getRankFromScore(score); 
+        const tier = CLASS_TIERS.find(t => rank >= t.minRank && rank <= t.maxRank) || CLASS_TIERS[CLASS_TIERS.length-1]; 
+        const name = CLASS_NAMES[rank - 1] || 'Unknown Entity';
+        
+        return { name, tier: `${tier.name} (Rank ${rank})`, description: tier.desc, className: tier.className, score, combatPower: calculateCombatPower(stats) };
+    }
+
+    function calculateStats() {
+      const stats = { ...baseStats }; const tacticsPoints = attributePoints.Tactics || 0;
+      Object.entries(attributePoints).forEach(([attr, points]) => { 
+        const def = attributeDefinitions[attr]; 
+        if (def && points > 0) {
+          Object.entries(def.gains).forEach(([key, gain]) => { 
+            if (stats[key] !== undefined) {
+              stats[key] += gain.value * points;
+            }
+          }); 
+        }
+      });
+      if (tacticsPoints > 0) { 
+        const tacticsBonus = tacticsPoints * 0.5; 
+        Object.entries(stats).forEach(([key, value]) => { 
+          if (key !== 'health' && key !== 'mana' && key !== 'stamina' && typeof value === 'number') {
+            stats[key] *= (1 + (tacticsBonus / 100)); 
+          }
+        }); 
+      }
+      return stats;
+    }
+
+    function getTotalPointsSpent() { return Object.values(attributePoints).reduce((a, b) => a + b, 0); }
+    
+    // ========================================
+    // UI RENDERING
+    // ========================================
+    function renderAttributes() {
+        const container = document.getElementById('attributesContainer'); container.innerHTML = '';
+        Object.keys(attributeDefinitions).forEach(name => {
+            const item = document.createElement('div'); item.className = 'attribute-item';
+            item.innerHTML = `<div class="attribute-header"><label class="attribute-label">${name}</label><span class="attribute-value" id="value-${name}">0</span></div><div class="attribute-controls"><input type="range" id="slider-${name}" min="0" max="${TOTAL_POINTS}" value="0" /><input type="number" id="input-${name}" min="0" max="${TOTAL_POINTS}" value="0" /></div>`;
+            container.appendChild(item);
+            const slider = item.querySelector(`#slider-${name}`); const input = item.querySelector(`#input-${name}`);
+            const updateValue = (newValStr) => {
+                let newVal = parseInt(newValStr) || 0;
+                const remaining = TOTAL_POINTS - getTotalPointsSpent(); const current = attributePoints[name]; const diff = newVal - current;
+                if (diff > 0 && diff > remaining) newVal = current + remaining;
+                if (newVal < 0) newVal = 0; if (newVal > TOTAL_POINTS) newVal = TOTAL_POINTS;
+                attributePoints[name] = newVal; updateUI();
+            };
+            slider.addEventListener('input', e => updateValue(e.target.value)); input.addEventListener('change', e => updateValue(e.target.value));
+        });
+    }
+
+    function renderStats() {
+        const stats = calculateStats(); const container = document.getElementById('statsContainer'); container.innerHTML = '';
+        const percentageStats = new Set(['attackSpeed', 'accuracy', 'criticalChance', 'criticalDamage', 'block', 'blockEffect', 'evasion', 'resistance', 'drainHealth', 'damageReduction', 'movementSpeed', 'cooldownReduction', 'armorPenetration', 'blockPenetration', 'ccResistance', 'spellblock', 'defenseBreak', 'spellAccuracy', 'cdrResist', 'defenseBreakResist', 'bleedResist', 'statusEffect', 'dodge', 'reflexTime', 'criticalEvasion', 'fallDamage', 'comboCooldownRed', 'stagger', 'abilityCost']);
+        Object.keys(statDescriptions).forEach(key => {
+            const card = document.createElement('div'); card.className = 'stat-card'; const isPercentage = percentageStats.has(key);
+            const value = isPercentage ? (stats[key] || 0).toFixed(2) : Math.floor(stats[key] || 0);
+            card.innerHTML = `<div class="stat-label"><span class="stat-tooltip">${key.replace(/([A-Z])/g, ' $1').trim()}<span class="stat-popover">${statDescriptions[key]}</span></span></div><div class="stat-value ${isPercentage ? 'percentage' : ''}">${value}</div>`;
+            container.appendChild(card);
+        });
+    }
+
+    function renderLearningPanel() {
+        const panel = document.getElementById('learningPanel'); 
+        panel.innerHTML = '';
+        
+        // Always show ALL attributes with their full info
+        Object.entries(attributeDefinitions).forEach(([attr, def]) => {
+            const points = attributePoints[attr] || 0;
+            const div = document.createElement('div'); 
+            div.className = 'attribute-details';
+            
+            let gainsHTML = '';
+            Object.entries(def.gains).forEach(([key, gain]) => {
+                const total = (gain.value * points).toFixed(2);
+                const unit = ['block', 'blockEffect', 'evasion', 'accuracy', 'criticalChance', 'criticalDamage', 'attackSpeed', 'movementSpeed', 'resistance', 'drainHealth', 'damageReduction', 'cooldownReduction', 'armorPenetration', 'blockPenetration', 'ccResistance', 'spellblock', 'defenseBreak', 'spellAccuracy', 'cdrResist', 'defenseBreakResist', 'bleedResist', 'statusEffect', 'dodge', 'reflexTime', 'criticalEvasion', 'fallDamage', 'comboCooldownRed', 'stagger', 'abilityCost'].includes(key) ? '%' : '';
+                gainsHTML += `<div class="gains-item">• ${gain.label}: +${total}${unit}</div>`;
+            });
+            
+            div.innerHTML = `
+              <h4>${attr} <span style="color: #a5b4d0;">(${points} points)</span></h4>
+              <div class="description">${def.fullDescription}</div>
+              <div class="gains" style="margin-top: 8px;">
+                <strong style="display: block; margin-bottom: 4px; color: var(--accent);">Per-Point Gains:</strong>
+                ${gainsHTML}
+              </div>
+            `;
+            panel.appendChild(div);
+        });
+    }
+
+    function renderGraph() {
+        const ctx = document.getElementById('buildChart').getContext('2d');
+        
+        // Calculate axis values
+        const stats = calculateStats();
+        const maxHP = 3000; // Theoretical max
+        const maxDmg = 500;
+        const maxDef = 500;
+        const maxUtil = 100;
+        
+        const data = {
+            labels: ['Survivability', 'Damage', 'Utility', 'Mobility', 'Control', 'Magic'],
+            datasets: [{
+                label: 'Current Build',
+                data: [
+                    Math.min(100, (stats.health / maxHP) * 100 + (stats.defense / maxDef) * 50),
+                    Math.min(100, (stats.damage / maxDmg) * 100 + stats.criticalChance),
+                    Math.min(100, stats.cooldownReduction * 2 + stats.manaRegen * 5),
+                    Math.min(100, stats.movementSpeed * 5 + stats.evasion),
+                    Math.min(100, stats.block + stats.stagger * 2),
+                    Math.min(100, stats.resistance + stats.mana / 20)
+                ],
+                fill: true,
+                backgroundColor: 'rgba(110, 231, 183, 0.2)',
+                borderColor: '#6ee7b7',
+                pointBackgroundColor: '#6ee7b7',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: '#6ee7b7'
+            }, {
+                label: 'Optimal Balanced',
+                data: [60, 60, 50, 50, 40, 40], // Reference
+                fill: true,
+                backgroundColor: 'rgba(165, 180, 208, 0.1)',
+                borderColor: '#a5b4d0',
+                pointBackgroundColor: '#a5b4d0',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: '#a5b4d0',
+                borderDash: [5, 5]
+            }]
+        };
+
+        if (buildChart) {
+            buildChart.data = data;
+            buildChart.update();
+        } else {
+            buildChart = new Chart(ctx, {
+                type: 'radar',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    elements: {
+                        line: { borderWidth: 3 }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            pointLabels: {
+                                color: '#e8eaf6',
+                                font: { size: 12, family: "'Jost', sans-serif" }
+                            },
+                            ticks: { display: false, backdropColor: 'transparent' },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: { color: '#a5b4d0', font: { family: "'Jost', sans-serif" } }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    function updateUI() {
+        const total = getTotalPointsSpent();
+        Object.keys(attributePoints).forEach(name => {
+            const value = attributePoints[name];
+            document.getElementById(`value-${name}`).textContent = value;
+            document.getElementById(`slider-${name}`).value = value;
+            document.getElementById(`input-${name}`).value = value;
+        });
+
+        const pointsCounter = document.getElementById('pointsCounter');
+        document.getElementById('pointsValue').textContent = `${total} / ${TOTAL_POINTS}`;
+        pointsCounter.classList.toggle('complete', total === TOTAL_POINTS);
+
+        const classInfo = detectClass();
+        const resultCard = document.getElementById('resultCard');
+        document.getElementById('resultTier').textContent = classInfo.tier;
+        document.getElementById('resultName').textContent = classInfo.name;
+        document.getElementById('resultDesc').textContent = classInfo.description;
+        resultCard.className = `result-card ${classInfo.className}`;
+        
+        // Update Statistical Review
+        if (total === TOTAL_POINTS) {
+            document.getElementById('combatPowerValue').textContent = classInfo.combatPower.toLocaleString();
+            
+            let rating = 'F';
+            if (classInfo.score > 90) rating = 'S+';
+            else if (classInfo.score > 80) rating = 'S';
+            else if (classInfo.score > 70) rating = 'A';
+            else if (classInfo.score > 60) rating = 'B';
+            else if (classInfo.score > 50) rating = 'C';
+            else rating = 'D';
+            
+            const ratingEl = document.getElementById('buildRatingValue');
+            ratingEl.textContent = rating;
+            ratingEl.style.color = rating.startsWith('S') ? '#fbbf24' : (rating === 'A' ? '#a855f7' : '#e8eaf6');
+            
+            let advice = "";
+            if (classInfo.combatPower < 3000) advice = "Low combat effectiveness. Try focusing on synergy stats.";
+            else if (classInfo.combatPower > 5000) advice = "Excellent build efficiency!";
+            else advice = "Solid build. Consider specializing further for higher tiers.";
+            document.getElementById('buildAdvice').textContent = advice;
+        } else {
+            document.getElementById('combatPowerValue').textContent = "0";
+            document.getElementById('buildRatingValue').textContent = "?";
+            document.getElementById('buildAdvice').textContent = "Complete point allocation to see stats.";
+        }
+
+        renderStats();
+        renderLearningPanel();
+        renderGraph();
+    }
+
+    // ========================================
+    // EVENT LISTENERS & INITIALIZATION
+    // ========================================
+    document.getElementById('resetBtn').addEventListener('click', () => { if (confirm('Reset all points?')) init(true); });
+    document.getElementById('randomBtn').addEventListener('click', () => {
+        Object.keys(attributePoints).forEach(k => attributePoints[k] = 0);
+        let remaining = TOTAL_POINTS;
+        while (remaining > 0) { const keys = Object.keys(attributePoints); const key = keys[Math.floor(Math.random() * keys.length)]; attributePoints[key]++; remaining--; }
+        updateUI();
+    });
+    document.getElementById('shareBtn').addEventListener('click', () => { 
+        const buildStr = btoa(JSON.stringify(attributePoints)); 
+        const url = `${window.location.origin}${window.location.pathname}?build=${buildStr}`; 
+        navigator.clipboard.writeText(url).then(() => alert('Build URL copied to clipboard!')).catch(() => alert('Build code: ' + buildStr)); 
+    });
+
+    function init(forceReset = false) {
+        attributePoints = Object.keys(attributeDefinitions).reduce((acc, key) => ({ ...acc, [key]: 0 }), {});
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('build') && !forceReset) {
+            try { 
+                const loaded = JSON.parse(atob(params.get('build'))); 
+                if (Object.keys(loaded).length === Object.keys(attributePoints).length) attributePoints = loaded; 
+            } catch (e) { 
+                console.error("Failed to load build from URL", e); 
+            }
+        }
+        renderAttributes();
+        updateUI();
+    }
+
+    init();
+  </script>
+<script>window.parent.postMessage({ action: "ready" }, "*"); 
+ 
+window.console = new Proxy(console, {
+  get(target, prop) {
+    if (['log', 'warn', 'error'].includes(prop)) {
+      return new Proxy(target[prop], {
+        apply(fn, thisArg, args) {
+          fn.apply(thisArg, args);
+          window.parent.postMessage({ action: 'console', 
+            type: prop, 
+            args: args.map((arg) => {
+              try {
+                return JSON.stringify(arg).replace(/^["']|["']$/g, '');
+              } catch (e) {
+                return arg;
+              }
+            }) 
+          }, '*');
+        }
+      });
+    }
+    return target[prop];
+  }
+});
+</script>
+
+</body></html>

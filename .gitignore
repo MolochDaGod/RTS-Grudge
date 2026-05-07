@@ -31,3 +31,11 @@ _tracked_*.txt
 # loaded by URL in production. Keep them locally for dev, ignore for push.
 client/public/models/tutorial_island/scene.glb
 client/public/models/pirate_islands/scene.bin
+
+.vercel
+.env
+.env.*
+.env*.local
+
+# VS Code local history
+.history/

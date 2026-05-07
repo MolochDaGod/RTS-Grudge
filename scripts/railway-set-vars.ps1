@@ -8,7 +8,7 @@ $tok = (($tokLine.Line -split '=',2)[1]).Trim().Trim('"')
 
 $projectId = '2df16bc4-1455-415a-bb9d-162f59fa841b'
 $envId     = 'e4c3ada3-16e6-40a1-a634-b6703620e1dc'
-$serviceId = '26b25063-e979-4a79-99ec-9a2bb77dd76f'
+$serviceId = '26b96c60-d88d-4448-80fc-7afb5298ea32'
 
 # Parse .env into a hashtable (skip blanks/comments, strip surrounding quotes).
 $dotenv = @{}

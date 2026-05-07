@@ -10,7 +10,9 @@
     "build:client": "vite build",
     "start": "NODE_ENV=production node dist/index.cjs",
     "check": "tsc",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "deploy:chat-worker": "npm --prefix workers/chat run deploy",
+    "dev:chat-worker": "npm --prefix workers/chat run dev"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.19.3",

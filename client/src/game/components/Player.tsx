@@ -83,6 +83,7 @@ import { computeMasteryBonuses, type WeaponTypeId as WSD_WeaponTypeId } from "@/
 import { triggerScreenShake, isCameraOrbiting, getCameraYaw } from "./Camera";
 import { useTargeting } from "@/lib/stores/useTargeting";
 import { updateGrassPlayerPosition } from "../world/GrassLayer";
+import { setLocalPlayerNetState } from "@/lib/grudge/playerBroadcastBus";
 import { vfx, VFXPresets } from "../vfx";
 
 const MATERIAL_TO_PART: Record<string, keyof MaterialColors> = {
@@ -3179,6 +3180,22 @@ function PlayerModel({
 
     onPositionUpdate(playerPos.current);
     updateGrassPlayerPosition(playerPos.current.x, playerPos.current.y, playerPos.current.z);
+
+    // Publish the local player's transform + animation to the network
+    // broadcast bus. <WorldNetBridge> reads this on a 100ms interval and
+    // emits `world:move` to the Railway authoritative server. We send the
+    // combat state when it's not idle/falling so attacks/skills/climb
+    // surface to remotes; otherwise we send the locomotion clip name.
+    {
+      const netAnim = (currentCombatState !== "idle" && currentCombatState !== "falling")
+        ? (currentCombatState as string)
+        : (lastAnimPlayed.current || "idle");
+      const yaw = modelRef.current ? modelRef.current.rotation.y : 0;
+      setLocalPlayerNetState(
+        playerPos.current.x, playerPos.current.y, playerPos.current.z,
+        yaw, netAnim,
+      );
+    }
 
     // Suppress stamina regen while on a climb so the per-frame drain
     // in the climb controller produces a real net loss instead of

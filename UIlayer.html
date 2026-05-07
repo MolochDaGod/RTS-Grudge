@@ -1,0 +1,1697 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPG UI Overlay</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* 
+           FORCE TOP LAYER: 
+           These settings ensure the UI sits ON TOP of your game canvas 
+        */
+        #ui-overlay-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            font-family: 'Cinzel', serif;
+            display: flex;
+            align-items: stretch; /* all 3 sections same height */
+            padding: 0 8px 8px;
+            gap: 8px;
+            box-sizing: border-box;
+        }
+
+        /* Re-enable clicking only on the actual UI elements */
+        .ui-element {
+            pointer-events: auto;
+        }
+
+        /* 
+           VISUAL STYLING
+           Mimicking the stone/gold texture with CSS only 
+        */
+        :root {
+            --gold: #c5a059;
+            --stone: #1a1a1a;
+            --border-shadow: #000;
+        }
+
+        .panel-style {
+            background: linear-gradient(to bottom, #2a2a2a, #111);
+            border: 2px solid var(--gold);
+            box-shadow: 
+                inset 0 0 10px #000,
+                0 0 10px rgba(0,0,0,0.8),
+                inset 1px 1px 0 rgba(255,255,255,0.2);
+            position: relative;
+        }
+        
+        /* Gold rivets in corners */
+        .panel-style::after, .panel-style::before {
+            content: ''; position: absolute; width: 6px; height: 6px;
+            background: var(--gold); border: 1px solid #fff; box-shadow: 0 0 3px gold;
+        }
+        .panel-style::before { top: 2px; left: 2px; }
+        .panel-style::after { top: 2px; right: 2px; }
+
+        .hotbar-slot {
+            width: 48px; height: 48px;
+            background: #000;
+            border: 2px solid #444;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; color: #fff;
+            box-shadow: inset 0 0 5px #000;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+        .hotbar-slot:hover { border-color: var(--gold); transform: scale(1.05); }
+        .hotbar-num { position: absolute; top: 2px; left: 4px; font-size: 10px; color: #aaa; }
+
+        .circle-btn {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: radial-gradient(#333, #000);
+            border: 2px solid var(--gold);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--gold);
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+            cursor: pointer;
+        }
+        .circle-btn:hover { background: rgba(197,160,89,0.15); }
+        .circle-btn.active {
+            background: radial-gradient(rgba(197,160,89,0.35),#111);
+            border-color: var(--gold); box-shadow: 0 0 14px rgba(197,160,89,0.5); color:#fff;
+        }
+        .hotbar-slot.pressed { transform:scale(0.88); border-color:var(--gold); box-shadow:inset 0 0 10px rgba(197,160,89,0.4); }
+
+        /* ═══ FLOATING PANEL SYSTEM ═══ */
+        .float-panel {
+            position: fixed;
+            /* Centered horizontally, rises above the footer */
+            left: 50%;
+            bottom: 185px;
+            width: clamp(280px, 28vw, 360px);
+            background: linear-gradient(150deg,#1e140e 0%,#120c06 60%,#0f0805 100%);
+            border: 2px solid var(--gold); border-radius: 12px;
+            box-shadow: 0 -8px 40px rgba(0,0,0,.9), 0 0 0 1px rgba(197,160,89,.1), inset 0 0 20px rgba(0,0,0,.5);
+            pointer-events: auto;
+            transform: translateX(-50%) translateY(18px) scale(0.96); opacity: 0; visibility: hidden;
+            transition: transform .22s cubic-bezier(.34,1.56,.64,1), opacity .18s ease, visibility 0s linear .22s;
+            z-index: 10000; overflow: hidden;
+        }
+        .float-panel.open {
+            transform: translateX(-50%) translateY(0) scale(1); opacity: 1; visibility: visible;
+            transition: transform .22s cubic-bezier(.34,1.56,.64,1), opacity .18s ease, visibility 0s;
+        }
+        .float-panel::before, .float-panel::after {
+            content:''; position:absolute; width:7px; height:7px; background:var(--gold);
+            border:1px solid #fff; box-shadow:0 0 4px gold; border-radius:1px; z-index:2;
+        }
+        .float-panel::before { top:3px; left:3px; }
+        .float-panel::after  { top:3px; right:3px; }
+
+        .fp-header {
+            display:flex; align-items:center; justify-content:space-between;
+            padding:11px 16px 10px;
+            border-bottom:1px solid rgba(197,160,89,.2);
+            background:linear-gradient(90deg,rgba(197,160,89,.07),transparent,rgba(197,160,89,.07));
+        }
+        .fp-title { font-family:'Cinzel',serif; font-size:11px; color:var(--gold); text-transform:uppercase; letter-spacing:2.5px; }
+        .fp-close { cursor:pointer; color:#555; font-size:14px; line-height:1; padding:2px 5px; border-radius:4px; transition:.15s; }
+        .fp-close:hover { color:var(--gold); background:rgba(197,160,89,.1); }
+
+        /* Entity tabs row */
+        .entity-tabs { display:flex; border-bottom:1px solid rgba(197,160,89,.15); padding:0 10px; background:rgba(0,0,0,.2); }
+        .entity-tab {
+            padding:6px 10px; font-size:9px; font-family:'Cinzel',serif;
+            text-transform:uppercase; letter-spacing:.8px; color:#555;
+            cursor:pointer; border-bottom:2px solid transparent; transition:.15s; white-space:nowrap;
+        }
+        .entity-tab:hover { color:#ccc; }
+        .entity-tab.active { color:var(--gold); border-bottom-color:var(--gold); background:rgba(197,160,89,.05); }
+
+        /* Entity badges */
+        .entity-badge {
+            display:inline-flex; align-items:center; gap:4px; padding:2px 8px;
+            border-radius:99px; font-size:9px; font-weight:800; text-transform:uppercase;
+            letter-spacing:.5px; border:1px solid;
+        }
+        .entity-badge.player { color:#6ec96e; border-color:rgba(110,201,110,.4); background:rgba(110,201,110,.1); }
+        .entity-badge.ally   { color:#5a9ad8; border-color:rgba(90,154,216,.4);  background:rgba(90,154,216,.1);  }
+        .entity-badge.enemy  { color:#d45050; border-color:rgba(212,80,80,.4);   background:rgba(212,80,80,.1);   }
+
+        /* ── SKILLS PANEL ── */
+        .skill-slots-wrap { padding:12px; }
+        .skill-slots-label { font-size:9px; color:#6b5535; text-transform:uppercase; letter-spacing:1.5px; margin-bottom:10px; font-family:'Cinzel',serif; }
+        .skill-slot-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
+        .sk-slot {
+            aspect-ratio:1; background:linear-gradient(135deg,#1a0f08,#0f0805);
+            border:2px solid #2a1a0a; border-radius:8px;
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            cursor:pointer; transition:.15s; position:relative; overflow:hidden; user-select:none;
+        }
+        .sk-slot:hover { border-color:var(--gold); box-shadow:0 0 12px rgba(197,160,89,.25); }
+        .sk-slot.filled { border-color:#4a3015; }
+        .sk-slot.filled:hover { border-color:var(--gold); }
+        .sk-slot.active-slot {
+            border-color:var(--gold) !important;
+            box-shadow:0 0 16px rgba(197,160,89,.4),inset 0 0 12px rgba(197,160,89,.08);
+            background:linear-gradient(135deg,#2a1a08,#1a1005);
+        }
+        .sk-num { position:absolute; top:3px; left:5px; font-size:8px; color:#555; font-family:monospace; }
+        .sk-icon { font-size:26px; line-height:1; margin-bottom:2px; }
+        .sk-name { font-size:7px; color:#888; text-align:center; font-family:'Cinzel',serif; text-transform:uppercase; letter-spacing:.3px; padding:0 4px; line-height:1.2; }
+        .cd-sweep { position:absolute; inset:0; border-radius:6px; background:conic-gradient(rgba(0,0,0,.75) 0%,transparent 0%); pointer-events:none; display:none; }
+        .sk-slot.on-cooldown .cd-sweep { display:block; }
+        .cd-text { position:absolute; inset:0; display:none; align-items:center; justify-content:center; font-size:16px; font-weight:700; color:#fff; font-family:monospace; text-shadow:0 1px 4px rgba(0,0,0,.9); pointer-events:none; }
+        .sk-slot.on-cooldown .cd-text { display:flex; }
+        .skill-equip-bar { display:flex; gap:6px; padding:8px 12px; border-top:1px solid rgba(197,160,89,.15); background:rgba(0,0,0,.25); }
+        .sk-equip-slot { flex:1; height:36px; background:#0a0805; border:1.5px dashed #2a1a0a; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:9px; color:#444; cursor:pointer; font-family:'Cinzel',serif; text-transform:uppercase; letter-spacing:.5px; transition:.15s; }
+        .sk-equip-slot:hover { border-color:var(--gold); color:var(--gold); }
+        .sk-equip-slot.set { border-style:solid; border-color:#4a3015; }
+
+        /* ── CHARACTER PANEL ── */
+        .char-panel-body { padding:12px; }
+        .char-header { display:flex; gap:12px; margin-bottom:10px; }
+        .char-portrait { width:72px; height:72px; border-radius:10px; border:2px solid var(--gold); background:radial-gradient(circle,rgba(197,160,89,.12),#0f0805); display:flex; align-items:center; justify-content:center; font-size:34px; flex-shrink:0; position:relative; }
+        .entity-type-dot { position:absolute; bottom:3px; right:3px; width:10px; height:10px; border-radius:50%; border:1.5px solid #0f0805; }
+        .entity-type-dot.player { background:#6ec96e; box-shadow:0 0 4px rgba(110,201,110,.5); }
+        .entity-type-dot.ally   { background:#5a9ad8; box-shadow:0 0 4px rgba(90,154,216,.5); }
+        .entity-type-dot.enemy  { background:#d45050; box-shadow:0 0 4px rgba(212,80,80,.5); }
+        .char-info { flex:1; min-width:0; }
+        .char-name { font-family:'Cinzel',serif; font-size:14px; color:var(--gold); font-weight:700; line-height:1.1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .char-sub  { font-size:9px; color:#6b5535; margin-top:2px; text-transform:uppercase; letter-spacing:.8px; }
+        .char-res  { margin-top:6px; display:flex; flex-direction:column; gap:4px; }
+        .cr-bar    { height:10px; background:#0a0805; border:1px solid #1a0f08; border-radius:3px; overflow:hidden; position:relative; }
+        .cr-bar .fill { height:100%; border-radius:2px; transition:width .4s ease; }
+        .cr-bar .fill.hp { background:linear-gradient(90deg,#7a1515,#d44040); }
+        .cr-bar .fill.mp { background:linear-gradient(90deg,#1a3560,#3a7ad8); }
+        .cr-bar .fill.sp { background:linear-gradient(90deg,#4a5a10,#8ab020); }
+        .cr-bar .lbl { position:absolute; inset:0; text-align:center; font-size:7px; line-height:10px; color:rgba(255,255,255,.85); text-shadow:0 1px 2px #000; font-family:monospace; }
+        .char-stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:5px; margin-top:10px; }
+        .csg-cell { text-align:center; padding:5px 3px; background:linear-gradient(135deg,#1a0f08,#0f0805); border:1px solid #1e1208; border-radius:6px; }
+        .csg-val { font-family:monospace; font-size:13px; color:var(--gold); font-weight:700; }
+        .csg-key { font-size:7px; color:#6b5535; text-transform:uppercase; letter-spacing:.3px; margin-top:1px; font-family:'Cinzel',serif; }
+
+        /* ── INVENTORY PANEL ── */
+        .mini-inv-body { padding:10px 10px 12px; }
+        .mini-inv-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:5px; }
+        .mi-cell { aspect-ratio:1; background:linear-gradient(135deg,#1a0f08,#0f0805); border:1.5px solid #1e1208; border-radius:6px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; transition:.15s; position:relative; font-size:16px; overflow:hidden; }
+        .mi-cell:hover { border-color:var(--gold); box-shadow:0 0 8px rgba(197,160,89,.2); }
+        .mi-cell.filled { border-color:#3a2510; }
+        .mi-cell .mq { position:absolute; bottom:1px; right:2px; font-size:8px; color:var(--gold); font-family:monospace; }
+
+        /* ── OPEN FULL PANEL BUTTON ── */
+        .open-full-btn {
+            display:block; width:calc(100% - 24px); margin:8px 12px 12px;
+            padding:8px 0; border:1px solid rgba(197,160,89,.5); border-radius:7px;
+            background:linear-gradient(180deg,rgba(197,160,89,.12),rgba(197,160,89,.04));
+            color:var(--gold); font-family:'Cinzel',serif; font-size:10px;
+            text-transform:uppercase; letter-spacing:1.5px; cursor:pointer; transition:.15s; text-align:center;
+        }
+        .open-full-btn:hover { background:rgba(197,160,89,.25); box-shadow:0 0 12px rgba(197,160,89,.2); }
+
+        /* ═══ MAIN PANEL SMART WINDOW ═══ */
+        #main-panel-window {
+            position: fixed;
+            display: flex;
+            flex-direction: column;
+            z-index: 10100;
+            min-width: 520px; min-height: 360px;
+            max-width: 98vw;  max-height: 96vh;
+            background: linear-gradient(150deg,#1e140e 0%,#120c06 60%,#0f0805 100%);
+            border: 2px solid var(--gold);
+            border-radius: 12px;
+            box-shadow: 0 24px 80px rgba(0,0,0,.97), 0 0 0 1px rgba(197,160,89,.12), inset 0 0 40px rgba(0,0,0,.4);
+            visibility: hidden;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .18s ease, visibility 0s linear .18s;
+            overflow: hidden;
+        }
+        #main-panel-window.mpw-open {
+            visibility: visible;
+            opacity: 1;
+            pointer-events: auto;
+            transition: opacity .18s ease, visibility 0s;
+        }
+        #main-panel-window.mpw-maximized {
+            border-radius: 0 !important;
+            border-width: 1px !important;
+        }
+        #main-panel-window.mpw-minimized #mpw-body { display: none; }
+        #main-panel-window.mpw-minimized { min-height: 0 !important; }
+        /* Title bar */
+        #mpw-titlebar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 14px 8px;
+            background: linear-gradient(90deg,rgba(197,160,89,.09),transparent,rgba(197,160,89,.05));
+            border-bottom: 1px solid rgba(197,160,89,.2);
+            cursor: move;
+            user-select: none;
+            flex-shrink: 0;
+        }
+        #mpw-title {
+            flex: 1;
+            font-family: 'Cinzel', serif;
+            font-size: 11px;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+        }
+        .mpw-btn {
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            border: 1px solid rgba(197,160,89,.35);
+            background: rgba(0,0,0,.5);
+            color: var(--gold);
+            font-size: 11px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: .15s;
+            flex-shrink: 0;
+        }
+        .mpw-btn:hover { background: rgba(197,160,89,.22); border-color: var(--gold); }
+        .mpw-btn.mpw-close:hover { background: rgba(180,40,40,.55); border-color: #d44; color: #fff; }
+        /* iframe body */
+        #mpw-body { flex: 1; overflow: hidden; position: relative; }
+        #mpw-body iframe { width: 100%; height: 100%; border: none; display: block; }
+        /* Resize handles */
+        .mpw-resize { position: absolute; z-index: 10; }
+        .mpw-resize.n  { top:0;    left:8px;   right:8px;  height:5px; cursor:n-resize; }
+        .mpw-resize.s  { bottom:0; left:8px;   right:8px;  height:5px; cursor:s-resize; }
+        .mpw-resize.e  { right:0;  top:8px;    bottom:8px; width:5px;  cursor:e-resize; }
+        .mpw-resize.w  { left:0;   top:8px;    bottom:8px; width:5px;  cursor:w-resize; }
+        .mpw-resize.ne { top:0;    right:0;    width:12px; height:12px; cursor:ne-resize; }
+        .mpw-resize.nw { top:0;    left:0;     width:12px; height:12px; cursor:nw-resize; }
+        .mpw-resize.se { bottom:0; right:0;    width:12px; height:12px; cursor:se-resize; }
+        .mpw-resize.sw { bottom:0; left:0;     width:12px; height:12px; cursor:sw-resize; }
+
+        /* ═══════════════════════════════════════════════════
+           TOOLTIP SYSTEM — GW_Tooltip
+           Shared across hotbar · skills · inventory · stats
+        ═══════════════════════════════════════════════════ */
+        #gw-tooltip {
+            position: fixed;
+            z-index: 99999;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(6px) scale(0.97);
+            transition: opacity .13s ease, transform .13s ease;
+            max-width: 268px;
+            min-width: 170px;
+            background: linear-gradient(150deg,#1f1810 0%,#130e08 55%,#0f0a05 100%);
+            border: 1px solid rgba(197,160,89,.6);
+            border-radius: 10px;
+            box-shadow:
+                0 10px 40px rgba(0,0,0,.97),
+                0 0 0 1px rgba(197,160,89,.07),
+                inset 0 0 28px rgba(0,0,0,.35);
+            overflow: hidden;
+            font-family: 'Cinzel', serif;
+            color: #f5e2c1;
+        }
+        #gw-tooltip.show {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        /* Gold rivet pin — top-left corner decoration */
+        #gw-tooltip::before {
+            content: '';
+            position: absolute;
+            top: 3px; left: 3px;
+            width: 5px; height: 5px;
+            background: var(--gold);
+            border-radius: 1px;
+            box-shadow: 0 0 4px rgba(197,160,89,.7);
+            z-index: 1;
+        }
+        /* Rarity bar (top edge stripe) */
+        .tt-rarity { height: 3px; width: 100%; }
+        /* Header row */
+        .tt-header {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px 9px;
+            border-bottom: 1px solid rgba(197,160,89,.18);
+            background: linear-gradient(90deg,rgba(197,160,89,.07),transparent,rgba(197,160,89,.03));
+        }
+        /* Icon box */
+        .tt-icon {
+            width: 42px; height: 42px; flex-shrink: 0;
+            border-radius: 8px;
+            background: linear-gradient(135deg,#201408,#0f0805);
+            border: 1.5px solid rgba(197,160,89,.22);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,.6);
+        }
+        .tt-title {
+            font-family: 'Cinzel', serif;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--gold);
+            line-height: 1.1;
+        }
+        .tt-subtitle {
+            font-size: 9px;
+            color: #6b5535;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-top: 3px;
+        }
+        /* Body */
+        .tt-body { padding: 8px 12px 10px; }
+        /* Description — italic parchment text */
+        .tt-desc {
+            font-size: 11px;
+            color: #a08060;
+            line-height: 1.55;
+            font-family: Georgia, 'Times New Roman', serif;
+            font-style: italic;
+            margin-bottom: 7px;
+        }
+        .tt-desc b { color: #d4b878; font-style: normal; font-weight: 600; }
+        /* Stats rows */
+        .tt-stats { display: flex; flex-direction: column; gap: 3px; margin-bottom: 5px; }
+        .tt-stat-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(0,0,0,.32);
+            border: 1px solid rgba(197,160,89,.06);
+        }
+        .tt-stat-row .ts-key { font-size: 9px; color: #5a4828; text-transform: uppercase; letter-spacing: .6px; }
+        .tt-stat-row .ts-val { font-family: monospace; font-size: 11px; color: #f5e2c1; font-weight: 700; }
+        .tt-stat-row .ts-val.pos { color: #6ec96e; }
+        .tt-stat-row .ts-val.neg { color: #d45050; }
+        /* Ability tags */
+        .tt-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+        .tt-tag {
+            font-size: 8px; padding: 2px 7px; border-radius: 99px;
+            font-weight: 800; text-transform: uppercase; letter-spacing: .6px;
+            border: 1px solid; font-family: 'Cinzel', serif;
+        }
+        .tt-tag.type-dmg     { color:#ef4444; border-color:rgba(239,68,68,.35);   background:rgba(239,68,68,.1); }
+        .tt-tag.type-passive { color:#6ec96e; border-color:rgba(110,201,110,.35); background:rgba(110,201,110,.1); }
+        .tt-tag.type-ult     { color:#a87ddb; border-color:rgba(168,125,219,.35); background:rgba(168,125,219,.1); }
+        .tt-tag.type-cd      { color:#c5a059; border-color:rgba(197,160,89,.35);  background:rgba(197,160,89,.08); }
+        .tt-tag.type-cc      { color:#f59e0b; border-color:rgba(245,158,11,.35);  background:rgba(245,158,11,.08); }
+        .tt-tag.type-aoe     { color:#d45050; border-color:rgba(212,80,80,.35);   background:rgba(212,80,80,.1); }
+        /* Keybind footer */
+        .tt-keybind {
+            display: flex; align-items: center; gap: 7px;
+            padding: 5px 12px;
+            border-top: 1px solid rgba(197,160,89,.12);
+            background: rgba(0,0,0,.28);
+            font-size: 9px; color: #5a4828;
+            text-transform: uppercase; letter-spacing: .8px;
+        }
+        .tt-key {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 20px; height: 20px; padding: 0 5px;
+            background: linear-gradient(180deg,#2a1e10,#1a1008);
+            border: 1px solid rgba(197,160,89,.35); border-radius: 4px;
+            color: var(--gold); font-size: 11px; font-weight: 700; font-family: monospace;
+            box-shadow: 0 2px 0 rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.07);
+        }
+
+        /* ═══════════════════════════════════════════════════
+           TOOLTIP SYSTEM — GW_Tooltip
+           Shared across hotbar · skills · inventory · stats
+        ═══════════════════════════════════════════════════ */
+        #gw-tooltip {
+            position: fixed;
+            z-index: 99999;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(6px) scale(0.97);
+            transition: opacity .13s ease, transform .13s ease;
+            max-width: 268px;
+            min-width: 170px;
+            background: linear-gradient(150deg,#1f1810 0%,#130e08 55%,#0f0a05 100%);
+            border: 1px solid rgba(197,160,89,.6);
+            border-radius: 10px;
+            box-shadow:
+                0 10px 40px rgba(0,0,0,.97),
+                0 0 0 1px rgba(197,160,89,.07),
+                inset 0 0 28px rgba(0,0,0,.35);
+            overflow: hidden;
+            font-family: 'Cinzel', serif;
+            color: #f5e2c1;
+        }
+        #gw-tooltip.show {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        /* Gold rivet pin — top-left corner decoration */
+        #gw-tooltip::before {
+            content: '';
+            position: absolute;
+            top: 3px; left: 3px;
+            width: 5px; height: 5px;
+            background: var(--gold);
+            border-radius: 1px;
+            box-shadow: 0 0 4px rgba(197,160,89,.7);
+            z-index: 1;
+        }
+        /* Rarity bar (top edge stripe) */
+        .tt-rarity { height: 3px; width: 100%; }
+        /* Header row */
+        .tt-header {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px 9px;
+            border-bottom: 1px solid rgba(197,160,89,.18);
+            background: linear-gradient(90deg,rgba(197,160,89,.07),transparent,rgba(197,160,89,.03));
+        }
+        /* Icon box */
+        .tt-icon {
+            width: 42px; height: 42px; flex-shrink: 0;
+            border-radius: 8px;
+            background: linear-gradient(135deg,#201408,#0f0805);
+            border: 1.5px solid rgba(197,160,89,.22);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,.6);
+        }
+        .tt-title {
+            font-family: 'Cinzel', serif;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--gold);
+            line-height: 1.1;
+        }
+        .tt-subtitle {
+            font-size: 9px;
+            color: #6b5535;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            margin-top: 3px;
+        }
+        /* Body */
+        .tt-body { padding: 8px 12px 10px; }
+        /* Description — italic parchment text */
+        .tt-desc {
+            font-size: 11px;
+            color: #a08060;
+            line-height: 1.55;
+            font-family: Georgia, 'Times New Roman', serif;
+            font-style: italic;
+            margin-bottom: 7px;
+        }
+        .tt-desc b { color: #d4b878; font-style: normal; font-weight: 600; }
+        /* Stats rows */
+        .tt-stats { display: flex; flex-direction: column; gap: 3px; margin-bottom: 5px; }
+        .tt-stat-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(0,0,0,.32);
+            border: 1px solid rgba(197,160,89,.06);
+        }
+        .tt-stat-row .ts-key { font-size: 9px; color: #5a4828; text-transform: uppercase; letter-spacing: .6px; }
+        .tt-stat-row .ts-val { font-family: monospace; font-size: 11px; color: #f5e2c1; font-weight: 700; }
+        .tt-stat-row .ts-val.pos { color: #6ec96e; }
+        .tt-stat-row .ts-val.neg { color: #d45050; }
+        /* Ability tags */
+        .tt-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+        .tt-tag {
+            font-size: 8px; padding: 2px 7px; border-radius: 99px;
+            font-weight: 800; text-transform: uppercase; letter-spacing: .6px;
+            border: 1px solid; font-family: 'Cinzel', serif;
+        }
+        .tt-tag.type-dmg     { color:#ef4444; border-color:rgba(239,68,68,.35);   background:rgba(239,68,68,.1); }
+        .tt-tag.type-passive { color:#6ec96e; border-color:rgba(110,201,110,.35); background:rgba(110,201,110,.1); }
+        .tt-tag.type-ult     { color:#a87ddb; border-color:rgba(168,125,219,.35); background:rgba(168,125,219,.1); }
+        .tt-tag.type-cd      { color:#c5a059; border-color:rgba(197,160,89,.35);  background:rgba(197,160,89,.08); }
+        .tt-tag.type-cc      { color:#f59e0b; border-color:rgba(245,158,11,.35);  background:rgba(245,158,11,.08); }
+        .tt-tag.type-aoe     { color:#d45050; border-color:rgba(212,80,80,.35);   background:rgba(212,80,80,.1); }
+        /* Keybind footer */
+        .tt-keybind {
+            display: flex; align-items: center; gap: 7px;
+            padding: 5px 12px;
+            border-top: 1px solid rgba(197,160,89,.12);
+            background: rgba(0,0,0,.28);
+            font-size: 9px; color: #5a4828;
+            text-transform: uppercase; letter-spacing: .8px;
+        }
+        .tt-key {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-width: 20px; height: 20px; padding: 0 5px;
+            background: linear-gradient(180deg,#2a1e10,#1a1008);
+            border: 1px solid rgba(197,160,89,.35); border-radius: 4px;
+            color: var(--gold); font-size: 11px; font-weight: 700; font-family: monospace;
+            box-shadow: 0 2px 0 rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.07);
+        }
+
+    </style>
+</head>
+<body style="background:#1a1008; margin:0;">
+
+    <!-- ═══ FLOATING PANELS ═══ -->
+
+    <!-- SKILLS PANEL (S) -->
+ !-- TOOLTIP ELEMENT — single floating card for entire HUD -->
+<div id="gw-tooltip"></div>
+
+<   <div id="panel-skills" class="float-panel">
+        <div class="fp-header">
+            <span class="fp-title">⚡ Skills</span>
+            <span class="fp-close" onclick="PanelMgr.close()">✕</span>
+        </div>
+        <div class="entity-tabs" id="skills-entity-tabs"></div>
+        <div class="skill-slots-wrap">
+            <div class="skill-slots-label">Active Skill Slots — 9 Slots</div>
+            <div class="skill-slot-grid" id="skill-slot-grid"></div>
+        </div>
+        <div class="skill-equip-bar">
+            <div class="sk-equip-slot" id="qslot-1" title="Quickslot 1">Q1</div>
+            <div class="sk-equip-slot" id="qslot-2" title="Quickslot 2">Q2</div>
+            <div class="sk-equip-slot" id="qslot-3" title="Quickslot 3">Q3</div>
+        </div>
+    </div>
+
+    <!-- CHARACTER PANEL (C) -->
+    <div id="panel-char" class="float-panel">
+        <div class="fp-header">
+            <span class="fp-title">👤 Character</span>
+            <span class="fp-close" onclick="PanelMgr.close()">✕</span>
+        </div>
+        <div class="entity-tabs" id="char-entity-tabs"></div>
+        <div class="char-panel-body" id="char-panel-body"></div>
+    </div>
+
+    <!-- INVENTORY PANEL (I) -->
+    <div id="panel-inv" class="float-panel">
+        <div class="fp-header">
+            <span class="fp-title">🎒 Inventory</span>
+            <span class="fp-close" onclick="PanelMgr.close()">✕</span>
+        </div>
+        <div class="entity-tabs" id="inv-entity-tabs"></div>
+        <div class="mini-inv-body" id="mini-inv-body"></div>
+    </div>
+
+    <!-- ═══ MAIN PANEL SMART WINDOW (C) ═══ -->
+    <div id="main-panel-window">
+        <div id="mpw-titlebar">
+            <span style="font-size:15px;line-height:1;">⚔</span>
+            <span id="mpw-title">Character — Main Panel</span>
+            <div class="mpw-btn" title="Minimize" onclick="MainWindow.minimize()">—</div>
+            <div class="mpw-btn" title="Maximize / Restore" onclick="MainWindow.maximize()">□</div>
+            <div class="mpw-btn mpw-close" title="Close  [C]" onclick="MainWindow.close()">✕</div>
+        </div>
+        <div id="mpw-body">
+            <iframe id="mpw-iframe" src="" frameborder="0"></iframe>
+        </div>
+        <div class="mpw-resize n"  data-dir="n"></div>
+        <div class="mpw-resize s"  data-dir="s"></div>
+        <div class="mpw-resize e"  data-dir="e"></div>
+        <div class="mpw-resize w"  data-dir="w"></div>
+        <div class="mpw-resize ne" data-dir="ne"></div>
+        <div class="mpw-resize nw" data-dir="nw"></div>
+        <div class="mpw-resize se" data-dir="se"></div>
+        <div class="mpw-resize sw" data-dir="sw"></div>
+    </div>
+
+<!-- ═══ HUD BOTTOM BAR ═══ -->
+<div id="ui-overlay-container">
+
+    <!-- LEFT: Chat -->
+    <div class="ui-element panel-style"
+        style="flex:0 0 220px;min-width:160px;display:flex;flex-direction:column;">
+        <div id="chat-log" style="flex:1;padding:8px;font-size:11px;color:#ccc;overflow-y:auto;line-height:1.5;">
+            <div style="color:#c5a059">[System]: Welcome to Grudge Warlords.</div>
+            <div style="color:#66ff66">[Party]: Raid ready?</div>
+            <div style="color:#aaaaff">[Guild]: Meet at the Forgespire!</div>
+        </div>
+        <div style="height:30px;border-top:1px solid #333;background:rgba(0,0,0,.4);display:flex;align-items:center;">
+            <input id="chat-input" type="text" placeholder="Chat…" autocomplete="off"
+                style="flex:1;background:transparent;border:none;color:#fff;padding:0 8px;outline:none;font-size:11px;"
+                onkeydown="HUD.sendChat(event)">
+        </div>
+        </div>
+
+    <!-- CENTER: Hotbar 1-8 -->
+    <div class="ui-element panel-style"
+        style="flex:1;min-width:0;display:flex;justify-content:center;padding:10px 14px;align-items:center;">
+        <div style="display:flex;gap:5px;align-items:center;" id="hotbar-slots">
+            <div class="hotbar-slot" data-key="1" title="Power Strike"><span class="hotbar-num">1</span><span
+                    style="font-size:20px">⚔</span></div>
+            <div class="hotbar-slot" data-key="2" title="Shield Bash"><span class="hotbar-num">2</span><span
+                    style="font-size:20px">🛡</span></div>
+            <div class="hotbar-slot" data-key="3" title="War Cry"><span class="hotbar-num">3</span><span
+                    style="font-size:20px">📯</span></div>
+            <div class="hotbar-slot" data-key="4" title="Cleave"><span class="hotbar-num">4</span><span
+                    style="font-size:20px">💥</span></div>
+            <div style="width:1px;height:34px;background:rgba(197,160,89,.25);margin:0 2px;"></div>
+            <div class="hotbar-slot" data-key="5" title="Empty"><span class="hotbar-num">5</span></div>
+            <div class="hotbar-slot" data-key="6" title="Ration"><span class="hotbar-num">6</span><span
+                    style="font-size:20px">🍖</span></div>
+            <div class="hotbar-slot" data-key="7" title="Potion"><span class="hotbar-num">7</span><span
+                    style="font-size:20px">🧪</span></div>
+            <div class="hotbar-slot" data-key="8" title="Sigil"><span class="hotbar-num">8</span><span
+                    style="font-size:20px">🔱</span></div>
+        </div>
+    </div>
+
+    <!-- RIGHT: Mini Status + I/C/S Buttons -->
+    <div class="ui-element" style="flex:0 0 210px;min-width:160px;display:flex;flex-direction:column;align-items:flex-end;">
+        <!-- Circle Buttons -->
+        <div style="display:flex;gap:6px;margin-bottom:-16px;z-index:10;padding-right:8px;">
+            <div class="circle-btn" data-panel="panel-inv" onclick="PanelMgr.toggle('panel-inv')" title="Inventory [I]">I</div>
+            <div class="circle-btn" onclick="MainWindow.toggle()" title="Character [C]">C
+            </div>
+            <div class="circle-btn" data-panel="panel-skills" onclick="PanelMgr.toggle('panel-skills')" title="Skills [S]">S
+            </div>
+        </div>
+        <!-- Mini Status Panel -->
+        <div class="panel-style" style="width:100%;height:132px;display:flex;padding:14px 10px 10px;">
+            <!-- Portrait -->
+            <div style="width:52px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:5px;">
+                <div id="hud-portrait" onclick="MainWindow.toggle()"
+                    style="width:44px;height:44px;border-radius:8px;background:#000;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;transition:.15s;">
+                    ⚔</div>
+                <div style="width:100%;height:4px;background:#300;border-radius:2px;overflow:hidden;">
+                    <div id="hud-hp" style="height:100%;background:#d00;border-radius:2px;transition:width .4s;width:78%;">
+                    </div>
+                </div>
+                <div style="width:100%;height:4px;background:#003;border-radius:2px;overflow:hidden;">
+                    <div id="hud-mp" style="height:100%;background:#00d;border-radius:2px;transition:width .4s;width:62%;">
+                    </div>
+                </div>
+                <div style="width:100%;height:4px;background:#230;border-radius:2px;overflow:hidden;">
+                    <div id="hud-sp" style="height:100%;background:#8b0;border-radius:2px;transition:width .4s;width:91%;">
+                    </div>
+                </div>
+            </div>
+            <!-- Info -->
+            <div style="flex:1;margin-left:9px;overflow:hidden;">
+                <div id="hud-name"
+                    style="color:var(--gold);font-family:'Cinzel',serif;font-weight:700;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                    Racalvin</div>
+                <div id="hud-class"
+                    style="color:#777;font-size:9px;margin-top:1px;text-transform:uppercase;letter-spacing:.8px;">Lv.42 Warrior
+                </div>
+                <div style="border-top:1px solid #333;margin:6px 0 4px;"></div>
+                <div style="font-size:8px;color:#777;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">Equipped
+                </div>
+                <div id="hud-gear" style="display:flex;flex-direction:column;gap:2px;font-size:10px;line-height:1.4;">
+                    <div style="color:#d4a400;">⚔ Bloodfeud Blade</div>
+                    <div style="color:#ccc;">🛡 Bulwark Plate</div>
+                </div>
+            </div>
+        </div>
+        </div>
+        </div>
+
+<!-- TOOLTIP ELEMENT — single floating card for entire HUD -->
+<div id="gw-tooltip"></div>
+
+<script>
+    /* ═══════════════════════════════════════════════════════
+       GRUDGE ARENA — HUD OVERLAY  |  Panel + Entity System
+       Reusable framework for any game unit (player/ally/enemy)
+       ═══════════════════════════════════════════════════════ */
+
+    // ── Entity Data Store ──
+    const ENTITIES = {
+        player: {
+            id: 'player', name: 'Racalvin', level: 42, class: 'Warrior', race: 'Human', type: 'player', emoji: '⚔',
+            hp: [780, 1000], mp: [310, 500], sp: [91, 100],
+            stats: { STR: 28, INT: 8, VIT: 32, DEX: 18, END: 24, WIS: 10, AGI: 18, TAC: 22 },
+            skills: [
+                { name: 'Power Strike', icon: '⚔', active: true },
+                { name: 'Shield Bash', icon: '🛡', active: true },
+                { name: 'War Cry', icon: '📯', active: true },
+                { name: 'Cleave', icon: '💥', active: true },
+                { name: 'Berserker', icon: '🔥', active: false },
+                { name: 'Execute', icon: '💀', active: false },
+                { name: 'Parry', icon: '🔄', active: false },
+                { name: 'Rend', icon: '🩸', active: false },
+                { name: 'Unbreakable', icon: '🏰', active: false }
+            ],
+            inventory: [
+                { name: 'Bloodfeud Blade', emoji: '⚔', qty: 1, rarity: 'unique' },
+                { name: 'War Helm', emoji: '👒', qty: 1, rarity: 'rare' },
+                { name: 'Ashen Cuirass', emoji: '🥋', qty: 1, rarity: 'epic' },
+                { name: 'March Greaves', emoji: '🥾', qty: 1, rarity: 'rare' },
+                { name: 'Bulwark Plate', emoji: '🛡', qty: 1, rarity: 'epic' },
+                { name: 'Siege Tonic', emoji: '🧪', qty: 12, rarity: 'common' },
+                { name: 'Field Ration', emoji: '🍖', qty: 24, rarity: 'common' },
+                { name: 'Iron Ingot', emoji: '⛓', qty: 42, rarity: 'common' },
+                { name: 'Blood Crystal', emoji: '💎', qty: 7, rarity: 'rare' },
+                { name: 'Soul Shard', emoji: '💠', qty: 3, rarity: 'epic' }
+            ]
+        },
+        shadowfang: {
+            id: 'shadowfang', name: 'Shadowfang', level: 38, class: 'Ranger', race: 'Elf', type: 'ally', emoji: '🏹',
+            hp: [650, 800], mp: [400, 600], sp: [85, 100],
+            stats: { STR: 12, INT: 15, VIT: 22, DEX: 35, END: 18, WIS: 20, AGI: 30, TAC: 8 },
+            skills: [
+                { name: 'Multi-Shot', icon: '🏹', active: true },
+                { name: 'Shadow Step', icon: '👤', active: true },
+                { name: 'Poison Arrow', icon: '☠', active: true },
+                { name: 'Eagle Eye', icon: '👁', active: true },
+                { name: 'Rapid Fire', icon: '💨', active: false },
+                { name: 'Camouflage', icon: '🍃', active: false },
+                { name: '', icon: '', active: false },
+                { name: '', icon: '', active: false },
+                { name: 'Deadeye', icon: '👑', active: false }
+            ],
+            inventory: [
+                { name: 'Shadowflight Bow', emoji: '🏹', qty: 1, rarity: 'unique' },
+                { name: 'Poison Flask', emoji: '☠', qty: 8, rarity: 'uncommon' },
+                { name: 'Smoke Bomb', emoji: '💨', qty: 5, rarity: 'uncommon' },
+                { name: 'Feathered Arrows', emoji: '🪶', qty: 60, rarity: 'common' }
+            ]
+        },
+        slime: {
+            id: 'slime', name: 'Greater Slime', level: 28, class: 'Beast', race: 'Slime', type: 'enemy', emoji: '🟢',
+            hp: [450, 450], mp: [0, 0], sp: [60, 100],
+            stats: { STR: 18, INT: 2, VIT: 40, DEX: 5, END: 30, WIS: 0, AGI: 8, TAC: 0 },
+            skills: [
+                { name: 'Acid Spit', icon: '🧪', active: true },
+                { name: 'Body Slam', icon: '💥', active: true },
+                { name: 'Split', icon: '⚡', active: false },
+                { name: '', icon: '', active: false }, { name: '', icon: '', active: false },
+                { name: '', icon: '', active: false }, { name: '', icon: '', active: false },
+                { name: '', icon: '', active: false }, { name: '', icon: '', active: false }
+            ],
+            inventory: [
+                { name: 'Slime Core', emoji: '💚', qty: 1, rarity: 'uncommon' },
+                { name: 'Acid Vial', emoji: '🧪', qty: 2, rarity: 'common' }
+            ]
+        }
+    };
+
+    const ENTITY_ORDER = ['player', 'shadowfang', 'slime'];
+    const RARITY_COLOR = {
+        common: '#9ca3af', uncommon: '#6ec96e', rare: '#5a9ad8',
+        epic: '#a87ddb', unique: '#d4a400', quest: '#f0c978'
+    };
+
+    let selectedEntityId = 'player';
+    function getEntity(id) { return ENTITIES[id || selectedEntityId]; }
+
+    // ── Panel Manager ──
+    const PanelMgr = {
+        active: null,
+        toggle(id) { this.active === id ? this.close() : this.open(id); },
+        open(id) {
+            if (this.active) this._off(this.active);
+            this.active = id;
+            document.getElementById(id).classList.add('open');
+            const btn = document.querySelector(`.circle-btn[data-panel="${id}"]`);
+            if (btn) btn.classList.add('active');
+            _refreshPanel(id);
+        },
+        close() {
+            if (!this.active) return;
+            this._off(this.active); this.active = null;
+        },
+        _off(id) {
+            document.getElementById(id).classList.remove('open');
+            const btn = document.querySelector(`.circle-btn[data-panel="${id}"]`);
+            if (btn) btn.classList.remove('active');
+        }
+    };
+
+    // Close on outside click
+    document.addEventListener('click', e => {
+        if (!e.target.closest('.float-panel') && !e.target.closest('.circle-btn') && !e.target.closest('#hud-portrait'))
+            PanelMgr.close();
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', e => {
+        if (e.target.tagName === 'INPUT') return;
+        if (e.key === 'i' || e.key === 'I') PanelMgr.toggle('panel-inv');
+        if (e.key === 'c' || e.key === 'C') MainWindow.toggle();
+        if (e.key === 's' || e.key === 'S') PanelMgr.toggle('panel-skills');
+        if (e.key === 'Escape') { PanelMgr.close(); MainWindow.close(); }
+        const n = parseInt(e.key);
+        if (n >= 1 && n <= 8) {
+            const slot = document.querySelector(`.hotbar-slot[data-key="${n}"]`);
+            if (slot) { slot.classList.add('pressed'); setTimeout(() => slot.classList.remove('pressed'), 150); }
+        }
+    });
+
+    // ── Entity Tabs ──
+    function _buildEntityTabs(containerId) {
+        const el = document.getElementById(containerId); if (!el) return;
+        el.innerHTML = ENTITY_ORDER.map(id => {
+            const e = ENTITIES[id];
+            const col = { player: '#6ec96e', ally: '#5a9ad8', enemy: '#d45050' }[e.type] || '#888';
+            return `<div class="entity-tab ${id === selectedEntityId ? 'active' : ''}" onclick="selectEntity('${id}','${containerId}')">
+      <span style="margin-right:3px;color:${col}">●</span>${e.name}
+    </div>`;
+        }).join('');
+    }
+
+    function selectEntity(id, originTab) {
+        selectedEntityId = id;
+        ['skills-entity-tabs', 'char-entity-tabs', 'inv-entity-tabs'].forEach(c => _buildEntityTabs(c));
+        _refreshAllPanels();
+        _updateHUD();
+
+    /* ═══════════════════════════════════════════════════════
+       GW_TOOLTIP — Unified tooltip engine
+       Supports: skills, items, stats, hotbar slots, buttons,
+                 resource bars, and plain text tooltips.
+    ═══════════════════════════════════════════════════════ */
+
+    // ── Skill metadata (desc · cost · cooldown · type · tags) ──
+    const SKILL_META = {
+      'Power Strike': { desc:'Overhead strike dealing <b>150% weapon damage</b>. Ignores 10% target armor.',     cost:'35 SP', cd:'4s',  type:'active',  tags:['dmg'] },
+      'Shield Bash':  { desc:'Bash with your shield, <b>stunning the target for 1.5s</b> and dealing 80% dmg.',  cost:'40 SP', cd:'8s',  type:'active',  tags:['cc','cd'] },
+      'War Cry':      { desc:'AoE shout that <b>taunts nearby enemies for 4s</b> and cuts their damage by 15%.',  cost:'50 SP', cd:'20s', type:'active',  tags:['aoe','cc','cd'] },
+      'Cleave':       { desc:'Wide arc strike hitting <b>all frontal enemies</b> for 90% weapon damage.',         cost:'45 SP', cd:'6s',  type:'active',  tags:['aoe','dmg'] },
+      'Berserker':    { desc:'<b>Passive:</b> Below 30% HP, gain +25% attack speed and 8% lifesteal.',           cost:'—',     cd:'—',   type:'passive', tags:['passive'] },
+      'Execute':      { desc:'Devastating strike on targets <b>below 20% HP</b> for 200% weapon damage.',        cost:'60 SP', cd:'12s', type:'active',  tags:['dmg','cd'] },
+      'Parry':        { desc:'Parry an attack, reducing damage by 70%, then <b>counter for 50%</b> weapon dmg.', cost:'30 SP', cd:'7s',  type:'active',  tags:['cd'] },
+      'Rend':         { desc:'Slash deeply, inflicting a <b>bleed DoT: 30 dmg/s for 4 seconds</b>.',             cost:'25 SP', cd:'5s',  type:'active',  tags:['dmg'] },
+      'Unbreakable':  { desc:'<b>CC immunity for 6s.</b> No stun, root, silence, or knockback can affect you.',  cost:'80 SP', cd:'45s', type:'active',  tags:['ult','cd'] },
+      'Multi-Shot':   { desc:'Fire <b>3 arrows in a cone</b>. Each deals 60% weapon damage independently.',      cost:'40 MP', cd:'5s',  type:'active',  tags:['aoe','dmg'] },
+      'Shadow Step':  { desc:'Teleport <b>behind your target</b> and enter 3 seconds of stealth.',              cost:'50 MP', cd:'18s', type:'active',  tags:['cd'] },
+      'Poison Arrow': { desc:'30% chance to apply <b>venom DoT: 30 dmg/s for 8 seconds</b> per hit.',           cost:'35 MP', cd:'—',   type:'active',  tags:['dmg'] },
+      'Eagle Eye':    { desc:'<b>Passive:</b> +5% ranged accuracy and +10% critical hit range at all times.',    cost:'—',     cd:'—',   type:'passive', tags:['passive'] },
+      'Rapid Fire':   { desc:'<b>Passive:</b> Increases bow attack speed by +6%. Always active.',               cost:'—',     cd:'—',   type:'passive', tags:['passive'] },
+      'Camouflage':   { desc:'Full <b>stealth for 10s</b>. First attack from stealth is a guaranteed critical.', cost:'70 MP', cd:'30s', type:'active',  tags:['ult','cd'] },
+      'Deadeye':      { desc:'<b>Ascendancy Passive:</b> All ranged attacks permanently gain +20% crit damage.', cost:'—',     cd:'—',   type:'passive', tags:['passive','ult'] },
+      'Acid Spit':    { desc:'Spits corrosive acid: <b>45 damage + 15 dmg/s burn for 5 seconds</b>.',           cost:'—',     cd:'3s',  type:'active',  tags:['dmg'] },
+      'Body Slam':    { desc:'Charges and slams, dealing <b>80 damage and knocking back</b> the target.',        cost:'—',     cd:'8s',  type:'active',  tags:['cc','cd'] },
+      'Split':        { desc:'At 25% HP, <b>splits into 2 smaller slimes</b>, each with 40% HP.',               cost:'—',     cd:'Once',type:'passive', tags:['passive'] },
+    };
+
+    // ── Attribute metadata ──
+    const STAT_META = {
+      STR:{ name:'Strength',  desc:'Increases physical damage, melee attack power, and carry weight.',   color:'#ef4444' },
+      INT:{ name:'Intellect', desc:'Increases spell damage, magic attack power, and mana pool size.',    color:'#8b5cf6' },
+      VIT:{ name:'Vitality',  desc:'Increases maximum HP and natural HP regeneration rate.',              color:'#22c55e' },
+      DEX:{ name:'Dexterity', desc:'Increases attack speed, critical hit chance, and ranged damage.',    color:'#f59e0b' },
+      END:{ name:'Endurance', desc:'Increases stamina pool, physical resistance, and stamina regen.',    color:'#9ca3af' },
+      WIS:{ name:'Wisdom',    desc:'Increases maximum MP, mana regeneration, and spell resistance.',     color:'#3b82f6' },
+      AGI:{ name:'Agility',   desc:'Increases movement speed, dodge chance, and evasion rating.',       color:'#84cc16' },
+      TAC:{ name:'Tactics',   desc:'Increases party buff strength, command range, and debuff uptime.',  color:'#ec4899' },
+    };
+
+    // ── Item metadata ──
+    const ITEM_META = {
+      'Bloodfeud Blade': { desc:'Forged from ancient grudges. Hums with furious energy in battle.',        type:'Unique Sword',      stats:['+120 ATK','+15% Crit Chance','+8 STR'] },
+      'War Helm':        { desc:'Battle-worn helm of a veteran warrior. Dented but unbroken.',             type:'Rare Helmet',        stats:['+80 DEF','+10 VIT'] },
+      'Ashen Cuirass':   { desc:'Chest armor tempered in ashen flame, nigh impenetrable.',                 type:'Epic Chestpiece',    stats:['+160 DEF','+20 END','+5% Fire Res'] },
+      'March Greaves':   { desc:'Built for long campaigns across unforgiving terrain.',                     type:'Rare Boots',         stats:['+60 DEF','+8% Move Speed'] },
+      'Bulwark Plate':   { desc:'A massive war shield engraved with the Grudge crest.',                    type:'Epic Shield',        stats:['+200 Block','+40 DEF','+15 VIT'] },
+      'Siege Tonic':     { desc:'Restores 400 HP over 6 seconds. Cannot be used in active combat.',        type:'Common Consumable',  stats:['+400 HP (over 6s)'] },
+      'Field Ration':    { desc:'Tough but filling. Restores a small amount of stamina.',                  type:'Common Food',        stats:['+25 SP Regen (10s)'] },
+      'Iron Ingot':      { desc:'Refined iron ore used for crafting and smithing.',                        type:'Common Material',    stats:['Used in smithing'] },
+      'Blood Crystal':   { desc:'A crystal humming with preserved warrior blood. High crafting value.',    type:'Rare Material',      stats:['Rare-tier crafting'] },
+      'Soul Shard':      { desc:'Fragment of a defeated soul. Radiates dark energy.',                      type:'Epic Material',      stats:['Epic-tier crafting'] },
+      'Shadowflight Bow':{ desc:'So light it seems to vanish in shadow. Whispers as it fires.',            type:'Unique Bow',         stats:['+95 ATK','+20% Crit','+25 DEX'] },
+      'Poison Flask':    { desc:'Concentrated venom. Apply to arrows to add a deadly DoT.',               type:'Uncommon Consumable', stats:['30 dmg/s for 8s'] },
+      'Smoke Bomb':      { desc:'Releases a smoke cloud on impact, breaking line of sight for 8 seconds.', type:'Uncommon Utility',   stats:['8s stealth area'] },
+      'Feathered Arrows':{ desc:'Standard hunting arrows with precision-cut fletching.',                   type:'Common Ammo',        stats:['+5% Accuracy'] },
+      'Slime Core':      { desc:'The crystallized core of a slime. Common alchemical ingredient.',         type:'Uncommon Material',  stats:['Used in alchemy'] },
+      'Acid Vial':       { desc:'A vial of corrosive slime acid. Handle with extreme care.',               type:'Common Material',    stats:['Used in crafting'] },
+    };
+
+    const GW_Tooltip = {
+      el: null,
+      _timer: null,
+
+      init() {
+        this.el = document.getElementById('gw-tooltip');
+        document.addEventListener('mousemove', e => this._pos(e), { passive: true });
+        this._bindStatic();
+        this._bindDelegated();
+      },
+
+      // Smart positioning — flips to stay inside viewport
+      _pos(e) {
+        if (!this.el || !this.el.classList.contains('show')) return;
+        const PAD = 12, tw = this.el.offsetWidth, th = this.el.offsetHeight;
+        const vw = window.innerWidth, vh = window.innerHeight;
+        let x = e.clientX + 18, y = e.clientY - 10;
+        if (x + tw > vw - PAD) x = e.clientX - tw - 14;
+        if (y + th > vh - PAD) y = vh - th - PAD;
+        if (y < PAD) y = PAD;
+        this.el.style.left = x + 'px';
+        this.el.style.top  = y + 'px';
+      },
+
+      show(html, delay = 70) {
+        clearTimeout(this._timer);
+        this._timer = setTimeout(() => {
+          if (!this.el) return;
+          this.el.innerHTML = html;
+          this.el.classList.add('show');
+        }, delay);
+      },
+
+      hide() {
+        clearTimeout(this._timer);
+        if (this.el) this.el.classList.remove('show');
+      },
+
+      // ── HTML template builders ──
+
+      skill(sk) {
+        if (!sk || !sk.name) return this.simple('Empty Slot', 'Drag a skill here to assign it to this slot.');
+        const m = SKILL_META[sk.name] || { desc: 'No description available.', cost: '—', cd: '—', type: 'active', tags: [] };
+        const typeLabel = { active: 'Active Ability', passive: 'Passive Ability' }[m.type] || 'Ultimate Ability';
+        const tags = (m.tags || []).map(t => `<span class="tt-tag type-${t}">${t}</span>`).join('');
+        return `
+          <div class="tt-header">
+            <div class="tt-icon">${sk.icon || '?'}</div>
+            <div><div class="tt-title">${sk.name}</div><div class="tt-subtitle">${typeLabel}</div></div>
+          </div>
+          <div class="tt-body">
+            <div class="tt-desc">${m.desc}</div>
+            ${m.cost !== '—' || m.cd !== '—' ? `<div class="tt-stats">
+              ${m.cost !== '—' ? `<div class="tt-stat-row"><span class="ts-key">Cost</span><span class="ts-val">${m.cost}</span></div>` : ''}
+              ${m.cd   !== '—' ? `<div class="tt-stat-row"><span class="ts-key">Cooldown</span><span class="ts-val">${m.cd}</span></div>` : ''}
+            </div>` : ''}
+            ${tags ? `<div class="tt-tags">${tags}</div>` : ''}
+          </div>`;
+      },
+
+      item(item) {
+        if (!item || !item.name) return this.simple('Empty', 'No item in this slot.');
+        const m = ITEM_META[item.name] || { desc: item.name, type: (item.rarity || 'common') + ' item', stats: [] };
+        const rc = RARITY_COLOR[item.rarity] || '#888';
+        const stats = (m.stats || []).map(s => `<div class="tt-stat-row"><span class="ts-val pos">${s}</span></div>`).join('');
+        return `
+          <div class="tt-rarity" style="background:${rc}"></div>
+          <div class="tt-header">
+            <div class="tt-icon">${item.emoji || '⬡'}</div>
+            <div>
+              <div class="tt-title" style="color:${rc}">${item.name}</div>
+              <div class="tt-subtitle">${m.type}</div>
+              ${item.qty > 1 ? `<div style="font-size:9px;color:#6b5535;margin-top:3px">Qty: <span style="color:var(--gold);font-family:monospace;font-weight:700">${item.qty}</span></div>` : ''}
+            </div>
+          </div>
+          <div class="tt-body">
+            <div class="tt-desc">${m.desc}</div>
+            ${stats ? `<div class="tt-stats">${stats}</div>` : ''}
+          </div>`;
+      },
+
+      stat(key, val) {
+        const m = STAT_META[key] || { name: key, desc: 'An attribute that affects character performance.', color: '#888' };
+        return `
+          <div class="tt-header">
+            <div class="tt-icon" style="font-size:13px;font-weight:700;color:${m.color};font-family:'Cinzel',serif">${key}</div>
+            <div><div class="tt-title" style="color:${m.color}">${m.name}</div><div class="tt-subtitle">Base Attribute</div></div>
+          </div>
+          <div class="tt-body">
+            <div class="tt-desc">${m.desc}</div>
+            <div class="tt-stats">
+              <div class="tt-stat-row"><span class="ts-key">Current Value</span><span class="ts-val pos">${val}</span></div>
+            </div>
+          </div>`;
+      },
+
+      button(label, desc, key) {
+        return `
+          <div class="tt-header">
+            <div><div class="tt-title">${label}</div><div class="tt-subtitle">Panel Toggle</div></div>
+          </div>
+          <div class="tt-body"><div class="tt-desc">${desc}</div></div>
+          <div class="tt-keybind"><span class="tt-key">${key}</span><span>Press to toggle</span></div>`;
+      },
+
+      hotbar(sk, keyNum) {
+        if (!sk || !sk.name) return this.simple(`Slot ${keyNum}`, 'This hotbar slot is empty.');
+        const m = SKILL_META[sk.name] || { desc: 'No description available.', cost: '—', cd: '—', tags: [] };
+        const tags = (m.tags || []).map(t => `<span class="tt-tag type-${t}">${t}</span>`).join('');
+        return `
+          <div class="tt-header">
+            <div class="tt-icon">${sk.icon || '?'}</div>
+            <div><div class="tt-title">${sk.name}</div><div class="tt-subtitle">Hotbar Skill</div></div>
+          </div>
+          <div class="tt-body">
+            <div class="tt-desc">${m.desc}</div>
+            ${m.cost !== '—' || m.cd !== '—' ? `<div class="tt-stats">
+              ${m.cost !== '—' ? `<div class="tt-stat-row"><span class="ts-key">Cost</span><span class="ts-val">${m.cost}</span></div>` : ''}
+              ${m.cd   !== '—' ? `<div class="tt-stat-row"><span class="ts-key">Cooldown</span><span class="ts-val">${m.cd}</span></div>` : ''}
+            </div>` : ''}
+            ${tags ? `<div class="tt-tags">${tags}</div>` : ''}
+          </div>
+          <div class="tt-keybind"><span class="tt-key">${keyNum}</span><span>Activate</span></div>`;
+      },
+
+      resource(label, cur, max, color) {
+        const pct = Math.round(cur / Math.max(max, 1) * 100);
+        const cls = pct < 25 ? 'neg' : pct >= 60 ? 'pos' : '';
+        return `
+          <div class="tt-header">
+            <div><div class="tt-title" style="color:${color}">${label}</div><div class="tt-subtitle">Resource</div></div>
+          </div>
+          <div class="tt-body"><div class="tt-stats">
+            <div class="tt-stat-row"><span class="ts-key">Current</span><span class="ts-val pos">${cur}</span></div>
+            <div class="tt-stat-row"><span class="ts-key">Maximum</span><span class="ts-val">${max}</span></div>
+            <div class="tt-stat-row"><span class="ts-key">Fill</span><span class="ts-val ${cls}">${pct}%</span></div>
+          </div></div>`;
+      },
+
+      simple(title, desc) {
+        return `
+          <div class="tt-header"><div><div class="tt-title">${title}</div></div></div>
+          <div class="tt-body"><div class="tt-desc">${desc}</div></div>`;
+      },
+
+      // ── Helper: bind enter/leave on a static element ──
+      _on(el, buildFn) {
+        el.addEventListener('mouseenter', () => this.show(buildFn()));
+        el.addEventListener('mouseleave', () => this.hide());
+      },
+
+      // ── Bind static elements (hotbar · circle buttons · HUD bars) ──
+      _bindStatic() {
+        const T = this;
+        // Hotbar — map slot keys to player skills
+        const HOTBAR_SKILLS = [
+          { name:'Power Strike', icon:'⚔' }, { name:'Shield Bash', icon:'🛡' },
+          { name:'War Cry', icon:'📯' },     { name:'Cleave', icon:'💥' },
+          null,
+          { name:'', icon:'' }, { name:'', icon:'' }, { name:'', icon:'' }
+        ];
+        document.querySelectorAll('.hotbar-slot').forEach((slot, i) => {
+          const key = slot.dataset.key;
+          T._on(slot, () => T.hotbar(HOTBAR_SKILLS[i] || null, key));
+        });
+        // Circle buttons I / C / S
+        const BTN_DATA = {
+          'panel-inv':    ['Inventory',  'Browse your items, equipment, and materials.', 'I'],
+          'panel-char':   ['Character',  'View stats, attributes, and resource bars.',   'C'],
+          'panel-skills': ['Skills',     'Manage your 9 active skill slots.',             'S'],
+        };
+        document.querySelectorAll('.circle-btn').forEach(btn => {
+          const d = BTN_DATA[btn.dataset.panel];
+          if (d) T._on(btn, () => T.button(d[0], d[1], d[2]));
+        });
+        // HUD portrait mini-bars
+        const BAR_DEFS = [
+          ['hud-hp', 'Hit Points (HP)', 'hp', '#d44040'],
+          ['hud-mp', 'Mana Points (MP)', 'mp', '#3a7ad8'],
+          ['hud-sp', 'Stamina Points (SP)', 'sp', '#8ab020'],
+        ];
+        BAR_DEFS.forEach(([id, label, key, color]) => {
+          const bar = document.getElementById(id);
+          const wrap = bar && bar.parentElement;
+          if (wrap) T._on(wrap, () => {
+            const e = getEntity();
+            return e ? T.resource(label, e[key][0], e[key][1], color) : T.simple(label, '');
+          });
+        });
+      },
+
+      // ── Bind dynamic content via event delegation ──
+      _bindDelegated() {
+        const T = this;
+        // Skills grid — delegates on the container
+        const skillGrid = document.getElementById('skill-slot-grid');
+        skillGrid.addEventListener('mouseover', e => {
+          const slot = e.target.closest('.sk-slot'); if (!slot) return;
+          const idx = Array.from(slot.parentElement.children).indexOf(slot);
+          T.show(T.skill(getEntity()?.skills?.[idx]));
+        });
+        skillGrid.addEventListener('mouseleave', () => T.hide());
+        // Inventory panel — delegates on body wrapper
+        const invBody = document.getElementById('mini-inv-body');
+        invBody.addEventListener('mouseover', e => {
+          const cell = e.target.closest('.mi-cell');
+          if (!cell || !cell.classList.contains('filled')) return;
+          const grid = cell.parentElement;
+          const idx  = Array.from(grid.children).indexOf(cell);
+          T.show(T.item(getEntity()?.inventory?.[idx]));
+        });
+        invBody.addEventListener('mouseleave', () => T.hide());
+        // Character panel stat cells — delegates on panel body
+        const charBody = document.getElementById('char-panel-body');
+        charBody.addEventListener('mouseover', e => {
+          const cell = e.target.closest('.csg-cell'); if (!cell) return;
+          const key = cell.querySelector('.csg-key')?.textContent?.trim();
+          const val = cell.querySelector('.csg-val')?.textContent?.trim();
+          if (key && val) T.show(T.stat(key, val));
+        });
+        charBody.addEventListener('mouseleave', () => T.hide());
+      }
+    };
+
+    GW_Tooltip.init();
+    }
+
+    // ── Panel Renderers ──
+    function _refreshPanel(panelId) {
+        _buildEntityTabs('skills-entity-tabs');
+        _buildEntityTabs('char-entity-tabs');
+        _buildEntityTabs('inv-entity-tabs');
+        if (panelId === 'panel-skills') _renderSkills();
+        if (panelId === 'panel-char') _renderChar();
+        if (panelId === 'panel-inv') _renderInv();
+    }
+    function _refreshAllPanels() {
+        if (PanelMgr.active === 'panel-skills') _renderSkills();
+        if (PanelMgr.active === 'panel-char') _renderChar();
+        if (PanelMgr.active === 'panel-inv') _renderInv();
+    }
+
+    // SKILLS PANEL
+    function _renderSkills() {
+        const e = getEntity(); const grid = document.getElementById('skill-slot-grid'); if (!grid) return;
+        grid.innerHTML = (e.skills || []).map((sk, i) => {
+            const filled = !!sk.name; const act = sk.active;
+            return `<div class="sk-slot ${filled ? 'filled' : ''} ${act ? 'active-slot' : ''}"
+              title="${sk.name || 'Empty slot'}" onclick="_selectSkillSlot(${i},this)">
+      <span class="sk-num">${i + 1}</span>
+      ${filled ? `<span class="sk-icon">${sk.icon}</span><span class="sk-name">${sk.name}</span>` : ''}
+      <div class="cd-sweep"></div><div class="cd-text"></div>
+    </div>`;
+        }).join('');
+    }
+    function _selectSkillSlot(i, el) {
+        document.querySelectorAll('.sk-slot').forEach(s => s.style.outline = '');
+        el.style.outline = '2px solid var(--gold)';
+    }
+
+    // CHARACTER PANEL
+    function _renderChar() {
+        const e = getEntity(); const body = document.getElementById('char-panel-body'); if (!body) return;
+        const pct = (a, b) => Math.round(a / Math.max(b, 1) * 100);
+        const hpP = pct(e.hp[0], e.hp[1]), mpP = pct(e.mp[0], e.mp[1]), spP = pct(e.sp[0], e.sp[1]);
+        body.innerHTML = `
+    <div class="char-header">
+      <div class="char-portrait">${e.emoji}<div class="entity-type-dot ${e.type}"></div></div>
+      <div class="char-info">
+        <div class="char-name">${e.name}</div>
+        <div class="char-sub">Lv.${e.level} ${e.race} ${e.class}</div>
+        <div style="margin-top:4px"><span class="entity-badge ${e.type}">${e.type}</span></div>
+        <div class="char-res">
+          <div class="cr-bar"><div class="fill hp" style="width:${hpP}%"></div><span class="lbl">HP ${e.hp[0]}/${e.hp[1]}</span></div>
+          <div class="cr-bar"><div class="fill mp" style="width:${mpP}%"></div><span class="lbl">MP ${e.mp[0]}/${e.mp[1]}</span></div>
+          <div class="cr-bar"><div class="fill sp" style="width:${spP}%"></div><span class="lbl">SP ${e.sp[0]}/${e.sp[1]}</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="char-stats-grid">
+      ${['STR', 'INT', 'VIT', 'DEX', 'END', 'WIS', 'AGI', 'TAC'].map(k => `
+        <div class="csg-cell"><div class="csg-val">${e.stats[k] || 0}</div><div class="csg-key">${k}</div></div>`).join('')}
+    </div>
+    <div style="margin-top:10px;padding:8px;background:linear-gradient(135deg,#1a0f08,#0f0805);border:1px solid #2a1a0a;border-radius:8px;">
+      <div style="font-size:9px;color:#6b5535;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-family:'Cinzel',serif;">Active Skills</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;">
+        ${(e.skills || []).filter(s => s.active && s.name).map(s => `<span style="font-size:11px;background:#0f0805;border:1px solid #2a1a0a;border-radius:4px;padding:3px 6px;">${s.icon} <span style="font-size:9px;color:#9b7d52">${s.name}</span></span>`).join('')}
+      </div>
+    </div>
+    <button class="open-full-btn" onclick="window.open('mainpanel.html','_blank')">
+      ⚔ Open Full Character Panel
+    </button>`;
+}
+
+    // INVENTORY PANEL
+    function _renderInv() {
+        const e = getEntity(); const body = document.getElementById('mini-inv-body'); if (!body) return;
+        const SLOTS = 15; const items = e.inventory || [];
+        const gold = e.type === 'enemy' ? 0 : Math.floor(Math.random() * 15000 + 5000);
+        let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:0 2px;">
+    <span style="font-size:9px;color:#6b5535;font-family:'Cinzel',serif;text-transform:uppercase;letter-spacing:1px;">Items (${items.length}/${SLOTS})</span>
+    <span style="font-size:10px;color:#ffd56a;font-family:monospace;">⚜ ${gold.toLocaleString()}</span>
+  </div>
+  <div class="mini-inv-grid">`;
+        for (let i = 0; i < SLOTS; i++) {
+            const item = items[i];
+            if (item) {
+                const rc = RARITY_COLOR[item.rarity] || '#888';
+                html += `<div class="mi-cell filled" title="${item.name} (${item.rarity})" style="border-color:${rc}50;">
+        ${item.emoji}${item.qty > 1 ? `<span class="mq">${item.qty}</span>` : ''}
+      </div>`;
+            } else { html += `<div class="mi-cell"></div>`; }
+        }
+        html += `</div>`;
+        body.innerHTML = html;
+    }
+
+    // ── HUD Updater ──
+    function _updateHUD() {
+        const e = getEntity();
+        document.getElementById('hud-portrait').textContent = e.emoji;
+        document.getElementById('hud-name').textContent = e.name;
+        document.getElementById('hud-class').textContent = `Lv.${e.level} ${e.class}`;
+        document.getElementById('hud-hp').style.width = (e.hp[0] / Math.max(e.hp[1], 1) * 100) + '%';
+        document.getElementById('hud-mp').style.width = (e.mp[0] / Math.max(e.mp[1], 1) * 100) + '%';
+        document.getElementById('hud-sp').style.width = (e.sp[0] / Math.max(e.sp[1], 1) * 100) + '%';
+    }
+
+    // ── Chat ──
+    const HUD = {
+        sendChat(evt) {
+            if (evt.key !== 'Enter') return;
+            const inp = document.getElementById('chat-input'); const msg = inp.value.trim(); if (!msg) return;
+            const log = document.getElementById('chat-log');
+            const d = document.createElement('div'); d.style.color = '#f5e2c1'; d.textContent = `[You]: ${msg}`;
+            log.appendChild(d); log.scrollTop = log.scrollHeight; inp.value = '';
+        }
+    };
+
+    // ── postMessage Game API ──
+    // Usage: iframe.contentWindow.postMessage({action:'selectEntity',data:{id:'slime'}}, '*')
+    window.addEventListener('message', ev => {
+        const { action, data } = ev.data || {};
+        if (action === 'selectEntity' && data?.id) {
+            if (!ENTITIES[data.id] && typeof data === 'object') ENTITIES[data.id] = data;
+            selectEntity(data.id);
+        }
+    if (action === 'updateEntity' && data?.id && ENTITIES[data.id]) {
+        Object.assign(ENTITIES[data.id], data);
+        _refreshAllPanels(); _updateHUD();
+    }
+});
+
+    // ── Init ──
+    _updateHUD();
+    window.parent.postMessage({ action: 'ready' }, '*');
+
+    /* ═══════════════════════════════════════════════════════
+       GW_TOOLTIP — Unified tooltip engine
+       Supports: skills, items, stats, hotbar slots, buttons,
+                 resource bars, and plain text tooltips.
+    ═══════════════════════════════════════════════════════ */
+
+    // ── Skill metadata (desc · cost · cooldown · type · tags) ──
+    const SKILL_META = {
+      'Power Strike': { desc:'Overhead strike dealing <b>150% weapon damage</b>. Ignores 10% target armor.',     cost:'35 SP', cd:'4s',  type:'active',  tags:['dmg'] },
+      'Shield Bash':  { desc:'Bash with your shield, <b>stunning the target for 1.5s</b> and dealing 80% dmg.',  cost:'40 SP', cd:'8s',  type:'active',  tags:['cc','cd'] },
+      'War Cry':      { desc:'AoE shout that <b>taunts nearby enemies for 4s</b> and cuts their damage by 15%.',  cost:'50 SP', cd:'20s', type:'active',  tags:['aoe','cc','cd'] },
+      'Cleave':       { desc:'Wide arc strike hitting <b>all frontal enemies</b> for 90% weapon damage.',         cost:'45 SP', cd:'6s',  type:'active',  tags:['aoe','dmg'] },
+      'Berserker':    { desc:'<b>Passive:</b> Below 30% HP, gain +25% attack speed and 8% lifesteal.',           cost:'—',     cd:'—',   type:'passive', tags:['passive'] },
+      'Execute':      { desc:'Devastating strike on targets <b>below 20% HP</b> for 200% weapon damage.',        cost:'60 SP', cd:'12s', type:'active',  tags:['dmg','cd'] },
+      'Parry':        { desc:'Parry an attack, reducing damage by 70%, then <b>counter for 50%</b> weapon dmg.', cost:'30 SP', cd:'7s',  type:'active',  tags:['cd'] },
+      'Rend':         { desc:'Slash deeply, inflicting a <b>bleed DoT: 30 dmg/s for 4 seconds</b>.',             cost:'25 SP', cd:'5s',  type:'active',  tags:['dmg'] },
+      'Unbreakable':  { desc:'<b>CC immunity for 6s.</b> No stun, root, silence, or knockback can affect you.',  cost:'80 SP', cd:'45s', type:'active',  tags:['ult','cd'] },
+      'Multi-Shot':   { desc:'Fire <b>3 arrows in a cone</b>. Each deals 60% weapon damage independently.',      cost:'40 MP', cd:'5s',  type:'active',  tags:['aoe','dmg'] },
+      'Shadow Step':  { desc:'Teleport <b>behind your target</b> and enter 3 seconds of stealth.',              cost:'50 MP', cd:'18s', type:'active',  tags:['cd'] },
+      'Poison Arrow': { desc:'30% chance to apply <b>venom DoT: 30 dmg/s for 8 seconds</b> per hit.',           cost:'35 MP', cd:'—',   type:'active',  tags:['dmg'] },
+      'Eagle Eye':    { desc:'<b>Passive:</b> +5% ranged accuracy and +10% critical hit range at all times.',    cost:'—',     cd:'—',   type:'passive', tags:['passive'] },
+      'Rapid Fire':   { desc:'<b>Passive:</b> Increases bow attack speed by +6%. Always active.',               cost:'—',     cd:'—',   type:'passive', tags:['passive'] },
+      'Camouflage':   { desc:'Full <b>stealth for 10s</b>. First attack from stealth is a guaranteed critical.', cost:'70 MP', cd:'30s', type:'active',  tags:['ult','cd'] },
+      'Deadeye':      { desc:'<b>Ascendancy Passive:</b> All ranged attacks permanently gain +20% crit damage.', cost:'—',     cd:'—',   type:'passive', tags:['passive','ult'] },
+      'Acid Spit':    { desc:'Spits corrosive acid: <b>45 damage + 15 dmg/s burn for 5 seconds</b>.',           cost:'—',     cd:'3s',  type:'active',  tags:['dmg'] },
+      'Body Slam':    { desc:'Charges and slams, dealing <b>80 damage and knocking back</b> the target.',        cost:'—',     cd:'8s',  type:'active',  tags:['cc','cd'] },
+      'Split':        { desc:'At 25% HP, <b>splits into 2 smaller slimes</b>, each with 40% HP.',               cost:'—',     cd:'Once',type:'passive', tags:['passive'] },
+    };
+
+    // ── Attribute metadata ──
+    const STAT_META = {
+      STR:{ name:'Strength',  desc:'Increases physical damage, melee attack power, and carry weight.',   color:'#ef4444' },
+      INT:{ name:'Intellect', desc:'Increases spell damage, magic attack power, and mana pool size.',    color:'#8b5cf6' },
+      VIT:{ name:'Vitality',  desc:'Increases maximum HP and natural HP regeneration rate.',              color:'#22c55e' },
+      DEX:{ name:'Dexterity', desc:'Increases attack speed, critical hit chance, and ranged damage.',    color:'#f59e0b' },
+      END:{ name:'Endurance', desc:'Increases stamina pool, physical resistance, and stamina regen.',    color:'#9ca3af' },
+      WIS:{ name:'Wisdom',    desc:'Increases maximum MP, mana regeneration, and spell resistance.',     color:'#3b82f6' },
+      AGI:{ name:'Agility',   desc:'Increases movement speed, dodge chance, and evasion rating.',       color:'#84cc16' },
+      TAC:{ name:'Tactics',   desc:'Increases party buff strength, command range, and debuff uptime.',  color:'#ec4899' },
+    };
+
+    // ── Item metadata ──
+    const ITEM_META = {
+      'Bloodfeud Blade': { desc:'Forged from ancient grudges. Hums with furious energy in battle.',        type:'Unique Sword',      stats:['+120 ATK','+15% Crit Chance','+8 STR'] },
+      'War Helm':        { desc:'Battle-worn helm of a veteran warrior. Dented but unbroken.',             type:'Rare Helmet',        stats:['+80 DEF','+10 VIT'] },
+      'Ashen Cuirass':   { desc:'Chest armor tempered in ashen flame, nigh impenetrable.',                 type:'Epic Chestpiece',    stats:['+160 DEF','+20 END','+5% Fire Res'] },
+      'March Greaves':   { desc:'Built for long campaigns across unforgiving terrain.',                     type:'Rare Boots',         stats:['+60 DEF','+8% Move Speed'] },
+      'Bulwark Plate':   { desc:'A massive war shield engraved with the Grudge crest.',                    type:'Epic Shield',        stats:['+200 Block','+40 DEF','+15 VIT'] },
+      'Siege Tonic':     { desc:'Restores 400 HP over 6 seconds. Cannot be used in active combat.',        type:'Common Consumable',  stats:['+400 HP (over 6s)'] },
+      'Field Ration':    { desc:'Tough but filling. Restores a small amount of stamina.',                  type:'Common Food',        stats:['+25 SP Regen (10s)'] },
+      'Iron Ingot':      { desc:'Refined iron ore used for crafting and smithing.',                        type:'Common Material',    stats:['Used in smithing'] },
+      'Blood Crystal':   { desc:'A crystal humming with preserved warrior blood. High crafting value.',    type:'Rare Material',      stats:['Rare-tier crafting'] },
+      'Soul Shard':      { desc:'Fragment of a defeated soul. Radiates dark energy.',                      type:'Epic Material',      stats:['Epic-tier crafting'] },
+      'Shadowflight Bow':{ desc:'So light it seems to vanish in shadow. Whispers as it fires.',            type:'Unique Bow',         stats:['+95 ATK','+20% Crit','+25 DEX'] },
+      'Poison Flask':    { desc:'Concentrated venom. Apply to arrows to add a deadly DoT.',               type:'Uncommon Consumable', stats:['30 dmg/s for 8s'] },
+      'Smoke Bomb':      { desc:'Releases a smoke cloud on impact, breaking line of sight for 8 seconds.', type:'Uncommon Utility',   stats:['8s stealth area'] },
+      'Feathered Arrows':{ desc:'Standard hunting arrows with precision-cut fletching.',                   type:'Common Ammo',        stats:['+5% Accuracy'] },
+      'Slime Core':      { desc:'The crystallized core of a slime. Common alchemical ingredient.',         type:'Uncommon Material',  stats:['Used in alchemy'] },
+      'Acid Vial':       { desc:'A vial of corrosive slime acid. Handle with extreme care.',               type:'Common Material',    stats:['Used in crafting'] },
+    };
+
+    const GW_Tooltip = {
+      el: null,
+      _timer: null,
+
+      init() {
+        this.el = document.getElementById('gw-tooltip');
+        document.addEventListener('mousemove', e => this._pos(e), { passive: true });
+        this._bindStatic();
+        this._bindDelegated();
+      },
+
+      // Smart positioning — flips to stay inside viewport
+      _pos(e) {
+        if (!this.el || !this.el.classList.contains('show')) return;
+        const PAD = 12, tw = this.el.offsetWidth, th = this.el.offsetHeight;
+        const vw = window.innerWidth, vh = window.innerHeight;
+        let x = e.clientX + 18, y = e.clientY - 10;
+        if (x + tw > vw - PAD) x = e.clientX - tw - 14;
+        if (y + th > vh - PAD) y = vh - th - PAD;
+        if (y < PAD) y = PAD;
+        this.el.style.left = x + 'px';
+        this.el.style.top  = y + 'px';
+      },
+
+      show(html, delay = 70) {
+        clearTimeout(this._timer);
+        this._timer = setTimeout(() => {
+          if (!this.el) return;
+          this.el.innerHTML = html;
+          this.el.classList.add('show');
+        }, delay);
+      },
+
+      hide() {
+        clearTimeout(this._timer);
+        if (this.el) this.el.classList.remove('show');
+      },
+
+      // ── HTML template builders ──
+
+      skill(sk) {
+        if (!sk || !sk.name) return this.simple('Empty Slot', 'Drag a skill here to assign it to this slot.');
+        const m = SKILL_META[sk.name] || { desc: 'No description available.', cost: '—', cd: '—', type: 'active', tags: [] };
+        const typeLabel = { active: 'Active Ability', passive: 'Passive Ability' }[m.type] || 'Ultimate Ability';
+        const tags = (m.tags || []).map(t => `<span class="tt-tag type-${t}">${t}</span>`).join('');
+        return `
+          <div class="tt-header">
+            <div class="tt-icon">${sk.icon || '?'}</div>
+            <div><div class="tt-title">${sk.name}</div><div class="tt-subtitle">${typeLabel}</div></div>
+          </div>
+          <div class="tt-body">
+            <div class="tt-desc">${m.desc}</div>
+            ${m.cost !== '—' || m.cd !== '—' ? `<div class="tt-stats">
+              ${m.cost !== '—' ? `<div class="tt-stat-row"><span class="ts-key">Cost</span><span class="ts-val">${m.cost}</span></div>` : ''}
+              ${m.cd   !== '—' ? `<div class="tt-stat-row"><span class="ts-key">Cooldown</span><span class="ts-val">${m.cd}</span></div>` : ''}
+            </div>` : ''}
+            ${tags ? `<div class="tt-tags">${tags}</div>` : ''}
+          </div>`;
+      },
+
+      item(item) {
+        if (!item || !item.name) return this.simple('Empty', 'No item in this slot.');
+        const m = ITEM_META[item.name] || { desc: item.name, type: (item.rarity || 'common') + ' item', stats: [] };
+        const rc = RARITY_COLOR[item.rarity] || '#888';
+        const stats = (m.stats || []).map(s => `<div class="tt-stat-row"><span class="ts-val pos">${s}</span></div>`).join('');
+        return `
+          <div class="tt-rarity" style="background:${rc}"></div>
+          <div class="tt-header">
+            <div class="tt-icon">${item.emoji || '⬡'}</div>
+            <div>
+              <div class="tt-title" style="color:${rc}">${item.name}</div>
+              <div class="tt-subtitle">${m.type}</div>
+              ${item.qty > 1 ? `<div style="font-size:9px;color:#6b5535;margin-top:3px">Qty: <span style="color:var(--gold);font-family:monospace;font-weight:700">${item.qty}</span></div>` : ''}
+            </div>
+          </div>
+          <div class="tt-body">
+            <div class="tt-desc">${m.desc}</div>
+            ${stats ? `<div class="tt-stats">${stats}</div>` : ''}
+          </div>`;
+      },
+
+      stat(key, val) {
+        const m = STAT_META[key] || { name: key, desc: 'An attribute that affects character performance.', color: '#888' };
+        return `
+          <div class="tt-header">
+            <div class="tt-icon" style="font-size:13px;font-weight:700;color:${m.color};font-family:'Cinzel',serif">${key}</div>
+            <div><div class="tt-title" style="color:${m.color}">${m.name}</div><div class="tt-subtitle">Base Attribute</div></div>
+          </div>
+          <div class="tt-body">
+            <div class="tt-desc">${m.desc}</div>
+            <div class="tt-stats">
+              <div class="tt-stat-row"><span class="ts-key">Current Value</span><span class="ts-val pos">${val}</span></div>
+            </div>
+          </div>`;
+      },
+
+      button(label, desc, key) {
+        return `
+          <div class="tt-header">
+            <div><div class="tt-title">${label}</div><div class="tt-subtitle">Panel Toggle</div></div>
+          </div>
+          <div class="tt-body"><div class="tt-desc">${desc}</div></div>
+          <div class="tt-keybind"><span class="tt-key">${key}</span><span>Press to toggle</span></div>`;
+      },
+
+      hotbar(sk, keyNum) {
+        if (!sk || !sk.name) return this.simple(`Slot ${keyNum}`, 'This hotbar slot is empty.');
+        const m = SKILL_META[sk.name] || { desc: 'No description available.', cost: '—', cd: '—', tags: [] };
+        const tags = (m.tags || []).map(t => `<span class="tt-tag type-${t}">${t}</span>`).join('');
+        return `
+          <div class="tt-header">
+            <div class="tt-icon">${sk.icon || '?'}</div>
+            <div><div class="tt-title">${sk.name}</div><div class="tt-subtitle">Hotbar Skill</div></div>
+          </div>
+          <div class="tt-body">
+            <div class="tt-desc">${m.desc}</div>
+            ${m.cost !== '—' || m.cd !== '—' ? `<div class="tt-stats">
+              ${m.cost !== '—' ? `<div class="tt-stat-row"><span class="ts-key">Cost</span><span class="ts-val">${m.cost}</span></div>` : ''}
+              ${m.cd   !== '—' ? `<div class="tt-stat-row"><span class="ts-key">Cooldown</span><span class="ts-val">${m.cd}</span></div>` : ''}
+            </div>` : ''}
+            ${tags ? `<div class="tt-tags">${tags}</div>` : ''}
+          </div>
+          <div class="tt-keybind"><span class="tt-key">${keyNum}</span><span>Activate</span></div>`;
+      },
+
+      resource(label, cur, max, color) {
+        const pct = Math.round(cur / Math.max(max, 1) * 100);
+        const cls = pct < 25 ? 'neg' : pct >= 60 ? 'pos' : '';
+        return `
+          <div class="tt-header">
+            <div><div class="tt-title" style="color:${color}">${label}</div><div class="tt-subtitle">Resource</div></div>
+          </div>
+          <div class="tt-body"><div class="tt-stats">
+            <div class="tt-stat-row"><span class="ts-key">Current</span><span class="ts-val pos">${cur}</span></div>
+            <div class="tt-stat-row"><span class="ts-key">Maximum</span><span class="ts-val">${max}</span></div>
+            <div class="tt-stat-row"><span class="ts-key">Fill</span><span class="ts-val ${cls}">${pct}%</span></div>
+          </div></div>`;
+      },
+
+      simple(title, desc) {
+        return `
+          <div class="tt-header"><div><div class="tt-title">${title}</div></div></div>
+          <div class="tt-body"><div class="tt-desc">${desc}</div></div>`;
+      },
+
+      // ── Helper: bind enter/leave on a static element ──
+      _on(el, buildFn) {
+        el.addEventListener('mouseenter', () => this.show(buildFn()));
+        el.addEventListener('mouseleave', () => this.hide());
+      },
+
+      // ── Bind static elements (hotbar · circle buttons · HUD bars) ──
+      _bindStatic() {
+        const T = this;
+        // Hotbar — map slot keys to player skills
+        const HOTBAR_SKILLS = [
+          { name:'Power Strike', icon:'⚔' }, { name:'Shield Bash', icon:'🛡' },
+          { name:'War Cry', icon:'📯' },     { name:'Cleave', icon:'💥' },
+          null,
+          { name:'', icon:'' }, { name:'', icon:'' }, { name:'', icon:'' }
+        ];
+        document.querySelectorAll('.hotbar-slot').forEach((slot, i) => {
+          const key = slot.dataset.key;
+          T._on(slot, () => T.hotbar(HOTBAR_SKILLS[i] || null, key));
+        });
+        // Circle buttons I / C / S
+        const BTN_DATA = {
+          'panel-inv':    ['Inventory',  'Browse your items, equipment, and materials.', 'I'],
+          'panel-char':   ['Character',  'View stats, attributes, and resource bars.',   'C'],
+          'panel-skills': ['Skills',     'Manage your 9 active skill slots.',             'S'],
+        };
+        document.querySelectorAll('.circle-btn').forEach(btn => {
+          const d = BTN_DATA[btn.dataset.panel];
+          if (d) T._on(btn, () => T.button(d[0], d[1], d[2]));
+        });
+        // HUD portrait mini-bars
+        const BAR_DEFS = [
+          ['hud-hp', 'Hit Points (HP)', 'hp', '#d44040'],
+          ['hud-mp', 'Mana Points (MP)', 'mp', '#3a7ad8'],
+          ['hud-sp', 'Stamina Points (SP)', 'sp', '#8ab020'],
+        ];
+        BAR_DEFS.forEach(([id, label, key, color]) => {
+          const bar = document.getElementById(id);
+          const wrap = bar && bar.parentElement;
+          if (wrap) T._on(wrap, () => {
+            const e = getEntity();
+            return e ? T.resource(label, e[key][0], e[key][1], color) : T.simple(label, '');
+          });
+        });
+      },
+
+      // ── Bind dynamic content via event delegation ──
+      _bindDelegated() {
+        const T = this;
+        // Skills grid — delegates on the container
+        const skillGrid = document.getElementById('skill-slot-grid');
+        skillGrid.addEventListener('mouseover', e => {
+          const slot = e.target.closest('.sk-slot'); if (!slot) return;
+          const idx = Array.from(slot.parentElement.children).indexOf(slot);
+          T.show(T.skill(getEntity()?.skills?.[idx]));
+        });
+        skillGrid.addEventListener('mouseleave', () => T.hide());
+        // Inventory panel — delegates on body wrapper
+        const invBody = document.getElementById('mini-inv-body');
+        invBody.addEventListener('mouseover', e => {
+          const cell = e.target.closest('.mi-cell');
+          if (!cell || !cell.classList.contains('filled')) return;
+          const grid = cell.parentElement;
+          const idx  = Array.from(grid.children).indexOf(cell);
+          T.show(T.item(getEntity()?.inventory?.[idx]));
+        });
+        invBody.addEventListener('mouseleave', () => T.hide());
+        // Character panel stat cells — delegates on panel body
+        const charBody = document.getElementById('char-panel-body');
+        charBody.addEventListener('mouseover', e => {
+          const cell = e.target.closest('.csg-cell'); if (!cell) return;
+          const key = cell.querySelector('.csg-key')?.textContent?.trim();
+          const val = cell.querySelector('.csg-val')?.textContent?.trim();
+          if (key && val) T.show(T.stat(key, val));
+        });
+        charBody.addEventListener('mouseleave', () => T.hide());
+      }
+    };
+
+    GW_Tooltip.init();
+
+    // ═══ MAIN PANEL SMART WINDOW ═══
+    const MainWindow = (() => {
+        const WIN      = document.getElementById('main-panel-window');
+        const IFRAME   = document.getElementById('mpw-iframe');
+        const TITLEBAR = document.getElementById('mpw-titlebar');
+        const MIN_W = 520, MIN_H = 360;
+        let _open = false, _minimized = false, _maximized = false;
+        let _drag = null, _resize = null;
+        let _savedGeom = null;
+
+        function _applyGeom(x, y, w, h) {
+            WIN.style.left   = x + 'px';
+            WIN.style.top    = y + 'px';
+            WIN.style.width  = Math.max(MIN_W, w) + 'px';
+            WIN.style.height = Math.max(MIN_H, h) + 'px';
+            WIN.style.transform = 'none';
+        }
+
+        function open() {
+            if (_open) return;
+            _open = true;
+            if (!IFRAME.getAttribute('data-loaded')) {
+                IFRAME.src = 'mainpanel.html';
+                IFRAME.setAttribute('data-loaded', '1');
+            }
+            const vw = window.innerWidth, vh = window.innerHeight;
+            const w  = Math.min(960, Math.max(MIN_W, vw * 0.88));
+            const h  = Math.min(660, Math.max(MIN_H, vh * 0.82));
+            _applyGeom((vw - w) / 2, (vh - h) / 2, w, h);
+            WIN.classList.add('mpw-open');
+        }
+
+        function close() {
+            if (!_open) return;
+            _open = false; _minimized = false; _maximized = false;
+            WIN.classList.remove('mpw-open', 'mpw-minimized', 'mpw-maximized');
+        }
+
+        function toggle() { _open ? close() : open(); }
+
+        function minimize() {
+            if (_maximized) return;
+            _minimized = !_minimized;
+            WIN.classList.toggle('mpw-minimized', _minimized);
+        }
+
+        function maximize() {
+            if (!_maximized) {
+                _savedGeom = { x: WIN.offsetLeft, y: WIN.offsetTop, w: WIN.offsetWidth, h: WIN.offsetHeight };
+                const vw = window.innerWidth, vh = window.innerHeight;
+                _applyGeom(0, 0, vw, vh - 158);
+                WIN.classList.add('mpw-maximized');
+            } else {
+                if (_savedGeom) _applyGeom(_savedGeom.x, _savedGeom.y, _savedGeom.w, _savedGeom.h);
+                WIN.classList.remove('mpw-maximized');
+            }
+            _minimized = false;
+            WIN.classList.remove('mpw-minimized');
+            _maximized = !_maximized;
+        }
+
+        // ── Drag ──
+        TITLEBAR.addEventListener('mousedown', e => {
+            if (e.target.closest('.mpw-btn') || _maximized) return;
+            const rect = WIN.getBoundingClientRect();
+            _drag = { ox: e.clientX - rect.left, oy: e.clientY - rect.top };
+            e.preventDefault();
+        });
+
+        // ── Resize ──
+        WIN.querySelectorAll('.mpw-resize').forEach(handle => {
+            handle.addEventListener('mousedown', e => {
+                if (_maximized) return;
+                const rect = WIN.getBoundingClientRect();
+                _resize = {
+                    dir: handle.dataset.dir,
+                    startX: e.clientX, startY: e.clientY,
+                    startW: rect.width,  startH: rect.height,
+                    startL: rect.left,   startT: rect.top,
+                };
+                e.preventDefault(); e.stopPropagation();
+            });
+        });
+
+        document.addEventListener('mousemove', e => {
+            if (_drag) {
+                const nx = e.clientX - _drag.ox;
+                const ny = e.clientY - _drag.oy;
+                WIN.style.left = Math.max(0, Math.min(nx, window.innerWidth  - WIN.offsetWidth))  + 'px';
+                WIN.style.top  = Math.max(0, Math.min(ny, window.innerHeight - WIN.offsetHeight)) + 'px';
+            }
+            if (_resize) {
+                const { dir, startX, startY, startW, startH, startL, startT } = _resize;
+                const dx = e.clientX - startX, dy = e.clientY - startY;
+                let nl = startL, nt = startT, nw = startW, nh = startH;
+                if (dir.includes('e')) nw = startW + dx;
+                if (dir.includes('s')) nh = startH + dy;
+                if (dir.includes('w')) { nw = startW - dx; nl = startL + dx; }
+                if (dir.includes('n')) { nh = startH - dy; nt = startT + dy; }
+                nw = Math.max(MIN_W, nw); nh = Math.max(MIN_H, nh);
+                WIN.style.width  = nw + 'px'; WIN.style.height = nh + 'px';
+                WIN.style.left   = nl + 'px'; WIN.style.top    = nt + 'px';
+            }
+        });
+
+        document.addEventListener('mouseup', () => { _drag = null; _resize = null; });
+
+        return { open, close, toggle, minimize, maximize, get isOpen() { return _open; } };
+    })();
+
+    // Console proxy for iframe debug
+    window.console = new Proxy(console, {
+        get(t, p) {
+            if (['log', 'warn', 'error'].includes(p)) {
+                return new Proxy(t[p], {
+                    apply(fn, ta, args) {
+                        fn.apply(ta, args);
+                        window.parent.postMessage({ action: 'console', type: p, args: args.map(a => { try { return JSON.stringify(a).replace(/^["']|["']$/g, ''); } catch (e) { return a; } }) }, '*');
+                    }
+                });
+    }
+        return t[p];
+  }
+});
+</script>
+</body>
+</html>

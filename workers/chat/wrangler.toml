@@ -1,0 +1,37 @@
+name = "rts-grudge-chat"
+main = "src/index.ts"
+compatibility_date = "2025-04-15"
+compatibility_flags = ["nodejs_compat"]
+
+# Cloudflare Worker that fronts a Durable-Object-backed chat room. The
+# RTS-Grudge client opens a WebSocket per zone; the worker authenticates
+# the player via the same JWT used by the Railway server (HS256 over
+# GRUDGE_JWT_SECRET, or JWKS via GRUDGE_JWKS_URL) and forwards messages
+# to the matching ChatRoom DO.
+
+# Public env (set with `wrangler secret put` for everything else)
+[vars]
+GRUDGE_JWT_ISSUER   = "https://id.grudge-studio.com"
+GRUDGE_JWT_AUDIENCE = "rts-grudge"
+ALLOWED_ORIGINS     = "https://rts-grudge.vercel.app,https://rts.grudge-studio.com,http://localhost:5173"
+
+# Durable Object: one instance per zone (e.g. "tutorial", "open-sea")
+[[durable_objects.bindings]]
+name       = "CHAT_ROOM"
+class_name = "ChatRoom"
+
+[[migrations]]
+tag         = "v1"
+new_classes = ["ChatRoom"]
+
+# Optional: deploy a worker route once the custom domain is wired.
+# routes = [
+#   { pattern = "chat.grudge-studio.com/*", custom_domain = true }
+# ]
+
+# Build / observability defaults
+[observability]
+enabled = true
+
+[build]
+command = ""
