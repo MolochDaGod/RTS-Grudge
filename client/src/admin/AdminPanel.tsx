@@ -14,6 +14,7 @@ import AnimationPanel from "./panels/AnimationPanel";
 import UIPanel from "./panels/UIPanel";
 import ModelBrowser from "./panels/ModelBrowser";
 import GrudgeScenesPanel from "./panels/GrudgeScenesPanel";
+import GrudgeStudioPanel from "./panels/GrudgeStudioPanel";
 import VibeConsole from "./vibe/VibeConsole";
 
 type PageId =
@@ -30,7 +31,8 @@ type PageId =
   | "ui"
   | "models"
   | "scenes"
-  | "ai";
+  | "ai"
+  | "studio";
 
 interface PageDef {
   id: PageId;
@@ -55,15 +57,17 @@ const PAGES: PageDef[] = [
   { id: "models", label: "Asset Browser", description: "Characters, weapons, animations", group: "Interface", icon: "📦" },
   { id: "scenes", label: "Grudge Scenes", description: "ThreeJS-Games assets, scenes, textures", group: "Interface", icon: "🎭" },
   { id: "ai", label: "VIBE AI", description: "AI assistant for game creation", group: "Interface", icon: "🤖" },
+  { id: "studio", label: "Grudge Studio", description: "Live integration status, session, PvP rooms", group: "Platform", icon: "🛡" },
 ];
 
-const GROUPS = ["World", "Combat", "Entities", "Interface"];
+const GROUPS = ["World", "Combat", "Entities", "Interface", "Platform"];
 
 const GROUP_COLORS: Record<string, string> = {
   World: "#7ed88a",
   Combat: "#e8534a",
   Entities: "#c9950a",
   Interface: "#f0d68a",
+  Platform: "#8ab4f0",
 };
 
 const GROUP_ICONS: Record<string, string> = {
@@ -71,6 +75,7 @@ const GROUP_ICONS: Record<string, string> = {
   Combat: "⚔",
   Entities: "👥",
   Interface: "🖥",
+  Platform: "🛡",
 };
 
 const T = {
@@ -154,6 +159,7 @@ export default function AdminPanel({ onClose }: AdminPanelProps) {
       case "models": return <ModelBrowser />;
       case "scenes": return <GrudgeScenesPanel />;
       case "ai": return <div style={{ height: "100%" }}><VibeConsole variant="panel" /></div>;
+      case "studio": return <GrudgeStudioPanel />;
       default: return null;
     }
   };

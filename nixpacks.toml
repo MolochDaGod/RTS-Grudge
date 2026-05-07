@@ -1,0 +1,14 @@
+# Nixpacks build config for RTS-Grudge on Railway.
+# Node 20 LTS matches the @types/node version pinned in package.json (20.x).
+
+[phases.setup]
+nixPkgs = ["nodejs_20", "python3", "gcc", "gnumake"]
+
+[phases.install]
+cmds = ["npm ci --prefer-offline"]
+
+[phases.build]
+cmds = ["npm run build"]
+
+[start]
+cmd = "npm start"

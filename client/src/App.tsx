@@ -18,6 +18,7 @@ import CheatsHUD from "./game/cheats/CheatsHUD";
 import { TerrainDebugHUD } from "./game/cheats/TerrainDebugHUD";
 import { StreamedColliderStatsHUD } from "./game/cheats/StreamedColliderDebugOverlay";
 import VibeOverlay from "./game/VibeOverlay";
+import { useGrudgeSession } from "./lib/grudge/useGrudgeSession";
 import "@fontsource/inter";
 
 const GGEEditor = lazy(() => import("./game/editor/GGEEditor"));
@@ -40,6 +41,22 @@ function App() {
     // changes re-trigger the effect but the pathname is already "/" by then
     // so the early-return at the top covers it.
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Pull (or restore) the Grudge Studio session on first mount. If we landed
+  // here from id.grudge-studio.com with `?session=...`, exchange it for our
+  // gw_player cookie first; otherwise hit /api/auth/me directly. Both calls
+  // are no-ops when offline / 401, so this is safe even when running the
+  // game without the central backend.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const consumed = await useGrudgeSession.getState().consumeSessionFromUrl();
+      if (!cancelled && !consumed) {
+        await useGrudgeSession.getState().refresh();
+      }
+    })();
+    return () => { cancelled = true; };
   }, []);
   const { setBackgroundMusic, setHitSound, setSuccessSound, setHeavyImpactSound, setClimbScrapeSound } = useAudio();
 
