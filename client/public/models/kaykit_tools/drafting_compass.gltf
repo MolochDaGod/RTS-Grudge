@@ -1,0 +1,384 @@
+{
+    "asset" : {
+        "generator" : "Khronos glTF Blender I/O v3.4.50",
+        "version" : "2.0"
+    },
+    "scene" : 0,
+    "scenes" : [
+        {
+            "name" : "Scene",
+            "nodes" : [
+                3
+            ]
+        }
+    ],
+    "nodes" : [
+        {
+            "mesh" : 0,
+            "name" : "drafting_compass_legLeft",
+            "translation" : [
+                0.03256034851074219,
+                0,
+                0
+            ]
+        },
+        {
+            "mesh" : 1,
+            "name" : "drafting_compass_legRight",
+            "translation" : [
+                -0.03255939483642578,
+                0,
+                0
+            ]
+        },
+        {
+            "mesh" : 2,
+            "name" : "drafting_compass_wheel",
+            "translation" : [
+                0,
+                -0.27676159143447876,
+                0
+            ]
+        },
+        {
+            "children" : [
+                0,
+                1,
+                2
+            ],
+            "mesh" : 3,
+            "name" : "drafting_compass"
+        }
+    ],
+    "materials" : [
+        {
+            "name" : "tools",
+            "pbrMetallicRoughness" : {
+                "baseColorTexture" : {
+                    "index" : 0
+                },
+                "metallicFactor" : 0,
+                "roughnessFactor" : 0.5
+            }
+        }
+    ],
+    "meshes" : [
+        {
+            "name" : "drafting_compass_legLeft",
+            "primitives" : [
+                {
+                    "attributes" : {
+                        "POSITION" : 0,
+                        "TEXCOORD_0" : 1,
+                        "NORMAL" : 2
+                    },
+                    "indices" : 3,
+                    "material" : 0
+                }
+            ]
+        },
+        {
+            "name" : "drafting_compass_legRight",
+            "primitives" : [
+                {
+                    "attributes" : {
+                        "POSITION" : 4,
+                        "TEXCOORD_0" : 5,
+                        "NORMAL" : 6
+                    },
+                    "indices" : 7,
+                    "material" : 0
+                }
+            ]
+        },
+        {
+            "name" : "drafting_compass_wheel",
+            "primitives" : [
+                {
+                    "attributes" : {
+                        "POSITION" : 8,
+                        "TEXCOORD_0" : 9,
+                        "NORMAL" : 10
+                    },
+                    "indices" : 11,
+                    "material" : 0
+                }
+            ]
+        },
+        {
+            "name" : "drafting_compass",
+            "primitives" : [
+                {
+                    "attributes" : {
+                        "POSITION" : 12,
+                        "TEXCOORD_0" : 13,
+                        "NORMAL" : 14
+                    },
+                    "indices" : 15,
+                    "material" : 0
+                }
+            ]
+        }
+    ],
+    "textures" : [
+        {
+            "sampler" : 0,
+            "source" : 0
+        }
+    ],
+    "images" : [
+        {
+            "mimeType" : "image/png",
+            "name" : "tools_bits_texture",
+            "uri" : "tools_bits_texture.png"
+        }
+    ],
+    "accessors" : [
+        {
+            "bufferView" : 0,
+            "componentType" : 5126,
+            "count" : 437,
+            "max" : [
+                0.19630172848701477,
+                -0.026748662814497948,
+                0.04666662961244583
+            ],
+            "min" : [
+                -0.016444608569145203,
+                -0.6573217511177063,
+                -0.046666618436574936
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 1,
+            "componentType" : 5126,
+            "count" : 437,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 2,
+            "componentType" : 5126,
+            "count" : 437,
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 3,
+            "componentType" : 5123,
+            "count" : 852,
+            "type" : "SCALAR"
+        },
+        {
+            "bufferView" : 4,
+            "componentType" : 5126,
+            "count" : 439,
+            "max" : [
+                0.0164446122944355,
+                -0.0267486609518528,
+                0.046666644513607025
+            ],
+            "min" : [
+                -0.19630172848701477,
+                -0.6573217511177063,
+                -0.04666660353541374
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 5,
+            "componentType" : 5126,
+            "count" : 439,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 6,
+            "componentType" : 5126,
+            "count" : 439,
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 7,
+            "componentType" : 5123,
+            "count" : 852,
+            "type" : "SCALAR"
+        },
+        {
+            "bufferView" : 8,
+            "componentType" : 5126,
+            "count" : 382,
+            "max" : [
+                0.033787403255701065,
+                0.08882157504558563,
+                0.08882158249616623
+            ],
+            "min" : [
+                -0.033787671476602554,
+                -0.08882158249616623,
+                -0.08882157504558563
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 9,
+            "componentType" : 5126,
+            "count" : 382,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 10,
+            "componentType" : 5126,
+            "count" : 382,
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 11,
+            "componentType" : 5123,
+            "count" : 720,
+            "type" : "SCALAR"
+        },
+        {
+            "bufferView" : 12,
+            "componentType" : 5126,
+            "count" : 408,
+            "max" : [
+                0.1812562346458435,
+                0.19685685634613037,
+                0.05031825602054596
+            ],
+            "min" : [
+                -0.18125638365745544,
+                -0.29534462094306946,
+                -0.05031822249293327
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 13,
+            "componentType" : 5126,
+            "count" : 408,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 14,
+            "componentType" : 5126,
+            "count" : 408,
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 15,
+            "componentType" : 5123,
+            "count" : 1008,
+            "type" : "SCALAR"
+        }
+    ],
+    "bufferViews" : [
+        {
+            "buffer" : 0,
+            "byteLength" : 5244,
+            "byteOffset" : 0,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 3496,
+            "byteOffset" : 5244,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 5244,
+            "byteOffset" : 8740,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 1704,
+            "byteOffset" : 13984,
+            "target" : 34963
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 5268,
+            "byteOffset" : 15688,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 3512,
+            "byteOffset" : 20956,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 5268,
+            "byteOffset" : 24468,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 1704,
+            "byteOffset" : 29736,
+            "target" : 34963
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 4584,
+            "byteOffset" : 31440,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 3056,
+            "byteOffset" : 36024,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 4584,
+            "byteOffset" : 39080,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 1440,
+            "byteOffset" : 43664,
+            "target" : 34963
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 4896,
+            "byteOffset" : 45104,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 3264,
+            "byteOffset" : 50000,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 4896,
+            "byteOffset" : 53264,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 2016,
+            "byteOffset" : 58160,
+            "target" : 34963
+        }
+    ],
+    "samplers" : [
+        {
+            "magFilter" : 9729,
+            "minFilter" : 9987
+        }
+    ],
+    "buffers" : [
+        {
+            "byteLength" : 60176,
+            "uri" : "drafting_compass.bin"
+        }
+    ]
+}

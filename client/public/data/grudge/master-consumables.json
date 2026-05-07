@@ -1,0 +1,2745 @@
+{
+  "version": "3.0.0",
+  "generated": "2026-04-23T00:40:34.087Z",
+  "total": 137,
+  "totalConsumables": 137,
+  "items": [
+    {
+      "uuid": "FOOD-20260422194034-000937-88EDEFEC",
+      "baseUuid": "FOOD-20260422194034-000937-88EDEFEC",
+      "name": "Burnt Skewer",
+      "baseName": "Burnt Skewer",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 1,
+      "tier": 1,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_1.png",
+      "emoji": "🍡",
+      "description": "Basic starter food",
+      "stats": {
+        "attack": "+2%"
+      },
+      "buff": "{\"attack\":\"+2%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-00093A-B3B339BB"
+    },
+    {
+      "uuid": "FOOD-20260422194034-00093B-CB776B26",
+      "baseUuid": "FOOD-20260422194034-00093B-CB776B26",
+      "name": "Roasted Rabbit",
+      "baseName": "Roasted Rabbit",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 5,
+      "tier": 1,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_2.png",
+      "emoji": "🐰",
+      "description": "Simple roast",
+      "stats": {
+        "attack": "+4%"
+      },
+      "buff": "{\"attack\":\"+4%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-00093E-71EF04D1"
+    },
+    {
+      "uuid": "FOOD-20260422194034-00093F-E5670D7D",
+      "baseUuid": "FOOD-20260422194034-00093F-E5670D7D",
+      "name": "Grilled Sausage",
+      "baseName": "Grilled Sausage",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 10,
+      "tier": 1,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_3.png",
+      "emoji": "🌭",
+      "description": "Hearty sausage",
+      "stats": {
+        "attack": "+6%"
+      },
+      "buff": "{\"attack\":\"+6%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000942-A616E32D"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000943-BFAB0831",
+      "baseUuid": "FOOD-20260422194034-000943-BFAB0831",
+      "name": "Smoked Haunch",
+      "baseName": "Smoked Haunch",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 15,
+      "tier": 2,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_4.png",
+      "emoji": "🍗",
+      "description": "Smoked meat leg",
+      "stats": {
+        "attack": "+8%"
+      },
+      "buff": "{\"attack\":\"+8%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000945-9AEC7D5D"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000946-26CC8110",
+      "baseUuid": "FOOD-20260422194034-000946-26CC8110",
+      "name": "Grilled Steak",
+      "baseName": "Grilled Steak",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 20,
+      "tier": 2,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_5.png",
+      "emoji": "🥩",
+      "description": "Juicy steak",
+      "stats": {
+        "attack": "+10%"
+      },
+      "buff": "{\"attack\":\"+10%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000949-73BBFE41"
+    },
+    {
+      "uuid": "FOOD-20260422194034-00094A-7C992C41",
+      "baseUuid": "FOOD-20260422194034-00094A-7C992C41",
+      "name": "Bacon Strips",
+      "baseName": "Bacon Strips",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 22,
+      "tier": 2,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_6.png",
+      "emoji": "🥓",
+      "description": "Crispy bacon",
+      "stats": {
+        "attack": "+11%"
+      },
+      "buff": "{\"attack\":\"+11%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-00094C-83957D7B"
+    },
+    {
+      "uuid": "FOOD-20260422194034-00094D-72AA06C4",
+      "baseUuid": "FOOD-20260422194034-00094D-72AA06C4",
+      "name": "Spiced Ribs",
+      "baseName": "Spiced Ribs",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 25,
+      "tier": 3,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_7.png",
+      "emoji": "🍖",
+      "description": "Spiced ribs",
+      "stats": {
+        "attack": "+12%"
+      },
+      "buff": "{\"attack\":\"+12%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000950-D51A15C1"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000951-3432D66E",
+      "baseUuid": "FOOD-20260422194034-000951-3432D66E",
+      "name": "Pepper Steak",
+      "baseName": "Pepper Steak",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 28,
+      "tier": 3,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_8.png",
+      "emoji": "🥩",
+      "description": "Spicy steak",
+      "stats": {
+        "attack": "+13%"
+      },
+      "buff": "{\"attack\":\"+13%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000953-68672AAC"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000954-CE1424E2",
+      "baseUuid": "FOOD-20260422194034-000954-CE1424E2",
+      "name": "Venison Cutlet",
+      "baseName": "Venison Cutlet",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 30,
+      "tier": 3,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_9.png",
+      "emoji": "🦌",
+      "description": "Wild venison",
+      "stats": {
+        "attack": "+14%"
+      },
+      "buff": "{\"attack\":\"+14%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000957-F4803D8C"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000958-952A5263",
+      "baseUuid": "FOOD-20260422194034-000958-952A5263",
+      "name": "Wild Boar Roast",
+      "baseName": "Wild Boar Roast",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 33,
+      "tier": 3,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_10.png",
+      "emoji": "🐗",
+      "description": "Boar roast",
+      "stats": {
+        "attack": "+15%"
+      },
+      "buff": "{\"attack\":\"+15%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-00095A-098F9E2E"
+    },
+    {
+      "uuid": "FOOD-20260422194034-00095B-E15154AD",
+      "baseUuid": "FOOD-20260422194034-00095B-E15154AD",
+      "name": "Braised Lamb",
+      "baseName": "Braised Lamb",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 36,
+      "tier": 3,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_11.png",
+      "emoji": "🐑",
+      "description": "Tender lamb",
+      "stats": {
+        "attack": "+16%"
+      },
+      "buff": "{\"attack\":\"+16%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-00095E-6399FA43"
+    },
+    {
+      "uuid": "FOOD-20260422194034-00095F-C78CB1EE",
+      "baseUuid": "FOOD-20260422194034-00095F-C78CB1EE",
+      "name": "Hunter's Platter",
+      "baseName": "Hunter's Platter",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 40,
+      "tier": 4,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_12.png",
+      "emoji": "🍖",
+      "description": "Mixed game meats",
+      "stats": {
+        "attack": "+18%"
+      },
+      "buff": "{\"attack\":\"+18%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000961-C8DCD15C"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000962-B9373EC4",
+      "baseUuid": "FOOD-20260422194034-000962-B9373EC4",
+      "name": "Inferno Curry",
+      "baseName": "Inferno Curry",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 45,
+      "tier": 4,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_13.png",
+      "emoji": "🥘",
+      "description": "Fiery curry",
+      "stats": {
+        "attack": "+20%",
+        "burn": "+5%"
+      },
+      "buff": "{\"attack\":\"+20%\",\"burn\":\"+5%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000965-DE3B29E9"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000966-F95E1129",
+      "baseUuid": "FOOD-20260422194034-000966-F95E1129",
+      "name": "Flame-Seared Boar",
+      "baseName": "Flame-Seared Boar",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 50,
+      "tier": 5,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_14.png",
+      "emoji": "🔥",
+      "description": "Fire-seared",
+      "stats": {
+        "attack": "+22%",
+        "burn": "+8%"
+      },
+      "buff": "{\"attack\":\"+22%\",\"burn\":\"+8%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000968-F02DE4A0"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000969-EBD5C576",
+      "baseUuid": "FOOD-20260422194034-000969-EBD5C576",
+      "name": "Orcish BBQ Platter",
+      "baseName": "Orcish BBQ Platter",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 55,
+      "tier": 5,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_15.png",
+      "emoji": "🍖",
+      "description": "Massive platter",
+      "stats": {
+        "attack": "+24%"
+      },
+      "buff": "{\"attack\":\"+24%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-00096A-6BA86EA0"
+    },
+    {
+      "uuid": "FOOD-20260422194034-00096B-51988D92",
+      "baseUuid": "FOOD-20260422194034-00096B-51988D92",
+      "name": "Bear Roast",
+      "baseName": "Bear Roast",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 58,
+      "tier": 5,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_16.png",
+      "emoji": "🐻",
+      "description": "Bear meat",
+      "stats": {
+        "attack": "+25%",
+        "str": "+10"
+      },
+      "buff": "{\"attack\":\"+25%\",\"str\":\"+10\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-00096E-D65E3FDD"
+    },
+    {
+      "uuid": "FOOD-20260422194034-00096F-1C26B33A",
+      "baseUuid": "FOOD-20260422194034-00096F-1C26B33A",
+      "name": "Wyvern Wings",
+      "baseName": "Wyvern Wings",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 62,
+      "tier": 6,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_17.png",
+      "emoji": "🦇",
+      "description": "Wyvern wings",
+      "stats": {
+        "attack": "+27%"
+      },
+      "buff": "{\"attack\":\"+27%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000972-A2642E91"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000973-B0F84620",
+      "baseUuid": "FOOD-20260422194034-000973-B0F84620",
+      "name": "Lava Ribs",
+      "baseName": "Lava Ribs",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 65,
+      "tier": 6,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_18.png",
+      "emoji": "🍖",
+      "description": "Volcanic ribs",
+      "stats": {
+        "attack": "+28%",
+        "burn": "+10%"
+      },
+      "buff": "{\"attack\":\"+28%\",\"burn\":\"+10%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000976-0AB4BC45"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000977-FCAD3D9A",
+      "baseUuid": "FOOD-20260422194034-000977-FCAD3D9A",
+      "name": "Hellfire Steak",
+      "baseName": "Hellfire Steak",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 70,
+      "tier": 6,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_19.png",
+      "emoji": "🔥",
+      "description": "Demon beef",
+      "stats": {
+        "attack": "+30%",
+        "burn": "+12%"
+      },
+      "buff": "{\"attack\":\"+30%\",\"burn\":\"+12%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-00097A-00EF392A"
+    },
+    {
+      "uuid": "FOOD-20260422194034-00097B-EF3ADD86",
+      "baseUuid": "FOOD-20260422194034-00097B-EF3ADD86",
+      "name": "Chimera Kebab",
+      "baseName": "Chimera Kebab",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 73,
+      "tier": 7,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_20.png",
+      "emoji": "🍢",
+      "description": "Exotic kebab",
+      "stats": {
+        "attack": "+32%"
+      },
+      "buff": "{\"attack\":\"+32%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-00097E-80947552"
+    },
+    {
+      "uuid": "FOOD-20260422194034-00097F-03B25F84",
+      "baseUuid": "FOOD-20260422194034-00097F-03B25F84",
+      "name": "Dire Wolf Steak",
+      "baseName": "Dire Wolf Steak",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 76,
+      "tier": 7,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_21.png",
+      "emoji": "🐺",
+      "description": "Alpha wolf meat",
+      "stats": {
+        "attack": "+33%",
+        "crit": "+5%"
+      },
+      "buff": "{\"attack\":\"+33%\",\"crit\":\"+5%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000982-A818865C"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000983-D3CC0E26",
+      "baseUuid": "FOOD-20260422194034-000983-D3CC0E26",
+      "name": "Manticore Roast",
+      "baseName": "Manticore Roast",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 78,
+      "tier": 7,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_22.png",
+      "emoji": "🦁",
+      "description": "Dangerous delicacy",
+      "stats": {
+        "attack": "+34%"
+      },
+      "buff": "{\"attack\":\"+34%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000986-BB945B3C"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000987-D890ABEB",
+      "baseUuid": "FOOD-20260422194034-000987-D890ABEB",
+      "name": "Hydra Stew",
+      "baseName": "Hydra Stew",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 80,
+      "tier": 7,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_23.png",
+      "emoji": "🐍",
+      "description": "Multi-headed feast",
+      "stats": {
+        "attack": "+35%",
+        "regen": "+5/s"
+      },
+      "buff": "{\"attack\":\"+35%\",\"regen\":\"+5/s\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-00098A-276A1431"
+    },
+    {
+      "uuid": "FOOD-20260422194034-00098B-9245176A",
+      "baseUuid": "FOOD-20260422194034-00098B-9245176A",
+      "name": "Dragon Steak",
+      "baseName": "Dragon Steak",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 83,
+      "tier": 7,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_24.png",
+      "emoji": "🐉",
+      "description": "Dragon meat!",
+      "stats": {
+        "attack": "+36%",
+        "burn": "+15%"
+      },
+      "buff": "{\"attack\":\"+36%\",\"burn\":\"+15%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-00098E-19E7027D"
+    },
+    {
+      "uuid": "FOOD-20260422194034-00098F-1FCBC2D4",
+      "baseUuid": "FOOD-20260422194034-00098F-1FCBC2D4",
+      "name": "Griffin Feast",
+      "baseName": "Griffin Feast",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 85,
+      "tier": 8,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_25.png",
+      "emoji": "🦅",
+      "description": "Aerial predator",
+      "stats": {
+        "attack": "+37%",
+        "speed": "+5%"
+      },
+      "buff": "{\"attack\":\"+37%\",\"speed\":\"+5%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000992-23D99E03"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000993-E7AAC8A5",
+      "baseUuid": "FOOD-20260422194034-000993-E7AAC8A5",
+      "name": "Behemoth Burger",
+      "baseName": "Behemoth Burger",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 88,
+      "tier": 8,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_26.png",
+      "emoji": "🍔",
+      "description": "Massive burger",
+      "stats": {
+        "attack": "+38%",
+        "hp": "+50"
+      },
+      "buff": "{\"attack\":\"+38%\",\"hp\":\"+50\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000996-E96D3B36"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000997-2C4A9679",
+      "baseUuid": "FOOD-20260422194034-000997-2C4A9679",
+      "name": "Phoenix Roast",
+      "baseName": "Phoenix Roast",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 90,
+      "tier": 8,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_27.png",
+      "emoji": "🔶",
+      "description": "Legendary roast",
+      "stats": {
+        "attack": "+39%",
+        "resurrect": "5%"
+      },
+      "buff": "{\"attack\":\"+39%\",\"resurrect\":\"5%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-00099A-CD072BDB"
+    },
+    {
+      "uuid": "FOOD-20260422194034-00099B-54E7C0A3",
+      "baseUuid": "FOOD-20260422194034-00099B-54E7C0A3",
+      "name": "Colossus Cuts",
+      "baseName": "Colossus Cuts",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 92,
+      "tier": 8,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_28.png",
+      "emoji": "🗿",
+      "description": "Titan portions",
+      "stats": {
+        "attack": "+40%",
+        "str": "+20"
+      },
+      "buff": "{\"attack\":\"+40%\",\"str\":\"+20\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-00099E-9183DF43"
+    },
+    {
+      "uuid": "FOOD-20260422194034-00099F-B139A64C",
+      "baseUuid": "FOOD-20260422194034-00099F-B139A64C",
+      "name": "Leviathan Sashimi",
+      "baseName": "Leviathan Sashimi",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 94,
+      "tier": 8,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_29.png",
+      "emoji": "🐋",
+      "description": "Sea titan raw",
+      "stats": {
+        "attack": "+42%",
+        "armorPen": "+10%"
+      },
+      "buff": "{\"attack\":\"+42%\",\"armorPen\":\"+10%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-0009A2-FD2F28A7"
+    },
+    {
+      "uuid": "FOOD-20260422194034-0009A3-DB824189",
+      "baseUuid": "FOOD-20260422194034-0009A3-DB824189",
+      "name": "Titan's Feast",
+      "baseName": "Titan's Feast",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 95,
+      "tier": 8,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_30.png",
+      "emoji": "⚔️",
+      "description": "Ultimate feast",
+      "stats": {
+        "attack": "+45%",
+        "str": "+25"
+      },
+      "buff": "{\"attack\":\"+45%\",\"str\":\"+25\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-0009A6-9A63034D"
+    },
+    {
+      "uuid": "FOOD-20260422194034-0009A7-EBE1D7CF",
+      "baseUuid": "FOOD-20260422194034-0009A7-EBE1D7CF",
+      "name": "Simple Salad",
+      "baseName": "Simple Salad",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 1,
+      "tier": 1,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_1.png",
+      "emoji": "🥗",
+      "description": "Fresh greens",
+      "stats": {
+        "regen": "+2/s"
+      },
+      "buff": "{\"regen\":\"+2/s\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-0009AA-C8F75AFD"
+    },
+    {
+      "uuid": "FOOD-20260422194034-0009AB-8E7ED29B",
+      "baseUuid": "FOOD-20260422194034-0009AB-8E7ED29B",
+      "name": "Vegetable Soup",
+      "baseName": "Vegetable Soup",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 5,
+      "tier": 1,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_2.png",
+      "emoji": "🥣",
+      "description": "Warm soup",
+      "stats": {
+        "regen": "+4/s"
+      },
+      "buff": "{\"regen\":\"+4/s\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-0009AF-C87E3F1D"
+    },
+    {
+      "uuid": "FOOD-20260422194034-0009B0-2109558E",
+      "baseUuid": "FOOD-20260422194034-0009B0-2109558E",
+      "name": "Herb Bundle",
+      "baseName": "Herb Bundle",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 10,
+      "tier": 1,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_3.png",
+      "emoji": "🌿",
+      "description": "Healing herbs",
+      "stats": {
+        "regen": "+6/s"
+      },
+      "buff": "{\"regen\":\"+6/s\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-0009B1-96A45600"
+    },
+    {
+      "uuid": "FOOD-20260422194034-0009B2-1D63A021",
+      "baseUuid": "FOOD-20260422194034-0009B2-1D63A021",
+      "name": "Stuffed Mushroom",
+      "baseName": "Stuffed Mushroom",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 15,
+      "tier": 2,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_4.png",
+      "emoji": "🍄",
+      "description": "Stuffed shroom",
+      "stats": {
+        "regen": "+8/s"
+      },
+      "buff": "{\"regen\":\"+8/s\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-0009B5-C8DD8785"
+    },
+    {
+      "uuid": "FOOD-20260422194034-0009B6-1DCE2677",
+      "baseUuid": "FOOD-20260422194034-0009B6-1DCE2677",
+      "name": "Garden Medley",
+      "baseName": "Garden Medley",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 20,
+      "tier": 2,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_5.png",
+      "emoji": "🥕",
+      "description": "Mixed veggies",
+      "stats": {
+        "regen": "+10/s"
+      },
+      "buff": "{\"regen\":\"+10/s\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-0009B9-FE4293F7"
+    },
+    {
+      "uuid": "FOOD-20260422194034-0009BA-2BC750FC",
+      "baseUuid": "FOOD-20260422194034-0009BA-2BC750FC",
+      "name": "Cucumber Rolls",
+      "baseName": "Cucumber Rolls",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 23,
+      "tier": 2,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_6.png",
+      "emoji": "🥒",
+      "description": "Fresh rolls",
+      "stats": {
+        "regen": "+11/s"
+      },
+      "buff": "{\"regen\":\"+11/s\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-0009BD-D8D370B8"
+    },
+    {
+      "uuid": "FOOD-20260422194034-0009BE-0973E46E",
+      "baseUuid": "FOOD-20260422194034-0009BE-0973E46E",
+      "name": "Spring Salad",
+      "baseName": "Spring Salad",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 26,
+      "tier": 3,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_7.png",
+      "emoji": "🥬",
+      "description": "Seasonal greens",
+      "stats": {
+        "regen": "+12/s"
+      },
+      "buff": "{\"regen\":\"+12/s\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-0009C1-508FD9F1"
+    },
+    {
+      "uuid": "FOOD-20260422194034-0009C2-BD6A1A94",
+      "baseUuid": "FOOD-20260422194034-0009C2-BD6A1A94",
+      "name": "Elven Greens",
+      "baseName": "Elven Greens",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 30,
+      "tier": 3,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_8.png",
+      "emoji": "🌱",
+      "description": "Elven recipe",
+      "stats": {
+        "regen": "+14/s"
+      },
+      "buff": "{\"regen\":\"+14/s\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-0009C5-FA33B395"
+    },
+    {
+      "uuid": "FOOD-20260422194034-0009C6-8927677D",
+      "baseUuid": "FOOD-20260422194034-0009C6-8927677D",
+      "name": "Healing Herb Tea",
+      "baseName": "Healing Herb Tea",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 33,
+      "tier": 3,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_9.png",
+      "emoji": "🍵",
+      "description": "Healing tea",
+      "stats": {
+        "regen": "+15/s",
+        "heal": "+5%"
+      },
+      "buff": "{\"regen\":\"+15/s\",\"heal\":\"+5%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-0009C9-278EB90D"
+    },
+    {
+      "uuid": "FOOD-20260422194034-0009CA-4AC09ACA",
+      "baseUuid": "FOOD-20260422194034-0009CA-4AC09ACA",
+      "name": "Vitality Wrap",
+      "baseName": "Vitality Wrap",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 36,
+      "tier": 3,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_10.png",
+      "emoji": "🫔",
+      "description": "Stamina wrap",
+      "stats": {
+        "regen": "+16/s"
+      },
+      "buff": "{\"regen\":\"+16/s\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-0009CC-415835C5"
+    },
+    {
+      "uuid": "FOOD-20260422194034-0009CD-918C3C9F",
+      "baseUuid": "FOOD-20260422194034-0009CD-918C3C9F",
+      "name": "Forest Stew",
+      "baseName": "Forest Stew",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 40,
+      "tier": 4,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_11.png",
+      "emoji": "🥬",
+      "description": "Forest recipe",
+      "stats": {
+        "regen": "+18/s"
+      },
+      "buff": "{\"regen\":\"+18/s\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-0009D0-2A022F3B"
+    },
+    {
+      "uuid": "FOOD-20260422194034-0009D1-95031F8E",
+      "baseUuid": "FOOD-20260422194034-0009D1-95031F8E",
+      "name": "Druid's Bowl",
+      "baseName": "Druid's Bowl",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 43,
+      "tier": 4,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_12.png",
+      "emoji": "🥣",
+      "description": "Natural blessing",
+      "stats": {
+        "regen": "+19/s",
+        "nature": "+5%"
+      },
+      "buff": "{\"regen\":\"+19/s\",\"nature\":\"+5%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-0009D4-442D2705"
+    },
+    {
+      "uuid": "FOOD-20260422194034-0009D5-B6DF639E",
+      "baseUuid": "FOOD-20260422194034-0009D5-B6DF639E",
+      "name": "Druid's Feast",
+      "baseName": "Druid's Feast",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 46,
+      "tier": 4,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_13.png",
+      "emoji": "🍀",
+      "description": "Nature blessing",
+      "stats": {
+        "regen": "+20/s",
+        "nature": "+10%"
+      },
+      "buff": "{\"regen\":\"+20/s\",\"nature\":\"+10%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-0009D8-89556591"
+    },
+    {
+      "uuid": "FOOD-20260422194034-0009D9-FAAF7496",
+      "baseUuid": "FOOD-20260422194034-0009D9-FAAF7496",
+      "name": "Regeneration Salve",
+      "baseName": "Regeneration Salve",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 50,
+      "tier": 5,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_14.png",
+      "emoji": "💚",
+      "description": "Healing salve",
+      "stats": {
+        "regen": "+22/s"
+      },
+      "buff": "{\"regen\":\"+22/s\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-0009DC-64737695"
+    },
+    {
+      "uuid": "FOOD-20260422194034-0009DD-814B4302",
+      "baseUuid": "FOOD-20260422194034-0009DD-814B4302",
+      "name": "Treant Bark Tea",
+      "baseName": "Treant Bark Tea",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 54,
+      "tier": 5,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_15.png",
+      "emoji": "🌲",
+      "description": "Ancient tea",
+      "stats": {
+        "regen": "+24/s",
+        "armor": "+10"
+      },
+      "buff": "{\"regen\":\"+24/s\",\"armor\":\"+10\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-0009E0-E47C11A7"
+    },
+    {
+      "uuid": "FOOD-20260422194034-0009E1-9BDA6CE9",
+      "baseUuid": "FOOD-20260422194034-0009E1-9BDA6CE9",
+      "name": "Nature's Blessing",
+      "baseName": "Nature's Blessing",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 58,
+      "tier": 5,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_16.png",
+      "emoji": "🌳",
+      "description": "Blessed food",
+      "stats": {
+        "regen": "+26/s"
+      },
+      "buff": "{\"regen\":\"+26/s\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-0009E4-9D073E4F"
+    },
+    {
+      "uuid": "FOOD-20260422194034-0009E5-ED1A47E5",
+      "baseUuid": "FOOD-20260422194034-0009E5-ED1A47E5",
+      "name": "Moonwell Soup",
+      "baseName": "Moonwell Soup",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 62,
+      "tier": 6,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_17.png",
+      "emoji": "🌙",
+      "description": "Lunar soup",
+      "stats": {
+        "regen": "+28/s",
+        "mana": "+20"
+      },
+      "buff": "{\"regen\":\"+28/s\",\"mana\":\"+20\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-0009E8-19880D5F"
+    },
+    {
+      "uuid": "FOOD-20260422194034-0009E9-DCBAC11F",
+      "baseUuid": "FOOD-20260422194034-0009E9-DCBAC11F",
+      "name": "Fairy Ring Salad",
+      "baseName": "Fairy Ring Salad",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 66,
+      "tier": 6,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_18.png",
+      "emoji": "🧚",
+      "description": "Magical salad",
+      "stats": {
+        "regen": "+30/s"
+      },
+      "buff": "{\"regen\":\"+30/s\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-0009EC-23DAF8A2"
+    },
+    {
+      "uuid": "FOOD-20260422194034-0009ED-B4CDDDD5",
+      "baseUuid": "FOOD-20260422194034-0009ED-B4CDDDD5",
+      "name": "Life Blossom Soup",
+      "baseName": "Life Blossom Soup",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 70,
+      "tier": 6,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_19.png",
+      "emoji": "🌸",
+      "description": "Life soup",
+      "stats": {
+        "regen": "+32/s",
+        "hp": "+50"
+      },
+      "buff": "{\"regen\":\"+32/s\",\"hp\":\"+50\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-0009EF-511FBDEF"
+    },
+    {
+      "uuid": "FOOD-20260422194034-0009F0-BF178C9A",
+      "baseUuid": "FOOD-20260422194034-0009F0-BF178C9A",
+      "name": "Sanctuary Stew",
+      "baseName": "Sanctuary Stew",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 73,
+      "tier": 7,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_20.png",
+      "emoji": "🏛️",
+      "description": "Sacred stew",
+      "stats": {
+        "regen": "+33/s",
+        "heal": "+10%"
+      },
+      "buff": "{\"regen\":\"+33/s\",\"heal\":\"+10%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-0009F3-8D248A63"
+    },
+    {
+      "uuid": "FOOD-20260422194034-0009F4-B8667018",
+      "baseUuid": "FOOD-20260422194034-0009F4-B8667018",
+      "name": "Verdant Feast",
+      "baseName": "Verdant Feast",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 76,
+      "tier": 7,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_21.png",
+      "emoji": "🌿",
+      "description": "Ancient recipe",
+      "stats": {
+        "regen": "+34/s",
+        "nature": "+15%"
+      },
+      "buff": "{\"regen\":\"+34/s\",\"nature\":\"+15%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-0009F7-CC08D45D"
+    },
+    {
+      "uuid": "FOOD-20260422194034-0009F8-28587DF4",
+      "baseUuid": "FOOD-20260422194034-0009F8-28587DF4",
+      "name": "Ambrosia Salad",
+      "baseName": "Ambrosia Salad",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 78,
+      "tier": 7,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_22.png",
+      "emoji": "✨",
+      "description": "Divine salad",
+      "stats": {
+        "regen": "+35/s"
+      },
+      "buff": "{\"regen\":\"+35/s\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-0009FB-5894CE15"
+    },
+    {
+      "uuid": "FOOD-20260422194034-0009FC-DA055229",
+      "baseUuid": "FOOD-20260422194034-0009FC-DA055229",
+      "name": "Phoenix Feather Soup",
+      "baseName": "Phoenix Feather Soup",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 80,
+      "tier": 7,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_23.png",
+      "emoji": "🔥",
+      "description": "Resurrection soup",
+      "stats": {
+        "regen": "+36/s",
+        "resurrect": "3%"
+      },
+      "buff": "{\"regen\":\"+36/s\",\"resurrect\":\"3%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-0009FF-2521FA13"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A00-9EAD8225",
+      "baseUuid": "FOOD-20260422194034-000A00-9EAD8225",
+      "name": "Eternal Spring Mix",
+      "baseName": "Eternal Spring Mix",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 83,
+      "tier": 7,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_24.png",
+      "emoji": "🌺",
+      "description": "Eternal youth",
+      "stats": {
+        "regen": "+37/s"
+      },
+      "buff": "{\"regen\":\"+37/s\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A03-DCA45481"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A04-6ADDE34E",
+      "baseUuid": "FOOD-20260422194034-000A04-6ADDE34E",
+      "name": "Yggdrasil Fruit",
+      "baseName": "Yggdrasil Fruit",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 85,
+      "tier": 8,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_25.png",
+      "emoji": "🍎",
+      "description": "World tree gift",
+      "stats": {
+        "regen": "+38/s",
+        "all": "+3%"
+      },
+      "buff": "{\"regen\":\"+38/s\",\"all\":\"+3%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A06-4020F8EE"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A07-77843C5A",
+      "baseUuid": "FOOD-20260422194034-000A07-77843C5A",
+      "name": "Celestial Greens",
+      "baseName": "Celestial Greens",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 88,
+      "tier": 8,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_26.png",
+      "emoji": "⭐",
+      "description": "Heavenly vegetables",
+      "stats": {
+        "regen": "+39/s",
+        "mana": "+30"
+      },
+      "buff": "{\"regen\":\"+39/s\",\"mana\":\"+30\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A0A-FCF64834"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A0B-0F253488",
+      "baseUuid": "FOOD-20260422194034-000A0B-0F253488",
+      "name": "World Tree Nectar",
+      "baseName": "World Tree Nectar",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 90,
+      "tier": 8,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_27.png",
+      "emoji": "🌳",
+      "description": "Sacred nectar",
+      "stats": {
+        "regen": "+40/s",
+        "all": "+5%"
+      },
+      "buff": "{\"regen\":\"+40/s\",\"all\":\"+5%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A0E-41F7CCDC"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A0F-3E848E4D",
+      "baseUuid": "FOOD-20260422194034-000A0F-3E848E4D",
+      "name": "Eden's Garden",
+      "baseName": "Eden's Garden",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 92,
+      "tier": 8,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_28.png",
+      "emoji": "🏞️",
+      "description": "Paradise bounty",
+      "stats": {
+        "regen": "+42/s",
+        "heal": "+15%"
+      },
+      "buff": "{\"regen\":\"+42/s\",\"heal\":\"+15%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A12-F57972AC"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A13-1E7F4548",
+      "baseUuid": "FOOD-20260422194034-000A13-1E7F4548",
+      "name": "Immortal's Salad",
+      "baseName": "Immortal's Salad",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 94,
+      "tier": 8,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_29.png",
+      "emoji": "♾️",
+      "description": "Eternal life",
+      "stats": {
+        "regen": "+44/s",
+        "hp": "+100"
+      },
+      "buff": "{\"regen\":\"+44/s\",\"hp\":\"+100\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A16-A158D6C5"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A17-97AAB094",
+      "baseUuid": "FOOD-20260422194034-000A17-97AAB094",
+      "name": "Divine Restoration",
+      "baseName": "Divine Restoration",
+      "category": "greenFoods",
+      "type": "food",
+      "requiredLevel": 95,
+      "tier": 8,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/greenFoods_30.png",
+      "emoji": "💎",
+      "description": "Ultimate heal",
+      "stats": {
+        "regen": "+50/s",
+        "heal": "+25%"
+      },
+      "buff": "{\"regen\":\"+50/s\",\"heal\":\"+25%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A19-11A660F4"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A1A-9AF02772",
+      "baseUuid": "FOOD-20260422194034-000A1A-9AF02772",
+      "name": "Basic Broth",
+      "baseName": "Basic Broth",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 1,
+      "tier": 1,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_1.png",
+      "emoji": "🥣",
+      "description": "Simple broth",
+      "stats": {
+        "mana": "+10"
+      },
+      "buff": "{\"mana\":\"+10\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A1B-1684089C"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A1C-E5593721",
+      "baseUuid": "FOOD-20260422194034-000A1C-E5593721",
+      "name": "Wheat Bread",
+      "baseName": "Wheat Bread",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 5,
+      "tier": 1,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_2.png",
+      "emoji": "🍞",
+      "description": "Fresh bread",
+      "stats": {
+        "mana": "+20"
+      },
+      "buff": "{\"mana\":\"+20\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A1E-8DF48BC2"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A1F-AAE865A5",
+      "baseUuid": "FOOD-20260422194034-000A1F-AAE865A5",
+      "name": "Stamina Brew",
+      "baseName": "Stamina Brew",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 10,
+      "tier": 1,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_3.png",
+      "emoji": "🍺",
+      "description": "Energy drink",
+      "stats": {
+        "mana": "+30",
+        "stamina": "+10"
+      },
+      "buff": "{\"mana\":\"+30\",\"stamina\":\"+10\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A22-6FBF9CB4"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A23-521EBFAA",
+      "baseUuid": "FOOD-20260422194034-000A23-521EBFAA",
+      "name": "Warrior's Bread",
+      "baseName": "Warrior's Bread",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 15,
+      "tier": 2,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_4.png",
+      "emoji": "🥖",
+      "description": "Hearty bread",
+      "stats": {
+        "mana": "+40"
+      },
+      "buff": "{\"mana\":\"+40\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A24-8E6ADC79"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A25-15507E84",
+      "baseUuid": "FOOD-20260422194034-000A25-15507E84",
+      "name": "Fish Stew",
+      "baseName": "Fish Stew",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 20,
+      "tier": 2,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_5.png",
+      "emoji": "🐟",
+      "description": "Seafood stew",
+      "stats": {
+        "mana": "+50"
+      },
+      "buff": "{\"mana\":\"+50\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A27-0DBE4FC4"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A28-20566D7A",
+      "baseUuid": "FOOD-20260422194034-000A28-20566D7A",
+      "name": "Hearty Stew",
+      "baseName": "Hearty Stew",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 23,
+      "tier": 2,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_6.png",
+      "emoji": "🍲",
+      "description": "Filling stew",
+      "stats": {
+        "mana": "+55"
+      },
+      "buff": "{\"mana\":\"+55\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A29-06A741A0"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A2A-F6D5587D",
+      "baseUuid": "FOOD-20260422194034-000A2A-F6D5587D",
+      "name": "Mage's Biscuit",
+      "baseName": "Mage's Biscuit",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 26,
+      "tier": 3,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_7.png",
+      "emoji": "🍪",
+      "description": "Arcane snack",
+      "stats": {
+        "mana": "+60"
+      },
+      "buff": "{\"mana\":\"+60\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A2D-552F4C3F"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A2E-177CA712",
+      "baseUuid": "FOOD-20260422194034-000A2E-177CA712",
+      "name": "Honey Bread",
+      "baseName": "Honey Bread",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 30,
+      "tier": 3,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_8.png",
+      "emoji": "🍯",
+      "description": "Sweet bread",
+      "stats": {
+        "mana": "+70"
+      },
+      "buff": "{\"mana\":\"+70\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A2F-209837CB"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A30-4F6E5FA2",
+      "baseUuid": "FOOD-20260422194034-000A30-4F6E5FA2",
+      "name": "Mana Soup",
+      "baseName": "Mana Soup",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 33,
+      "tier": 3,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_9.png",
+      "emoji": "🔮",
+      "description": "Magical soup",
+      "stats": {
+        "mana": "+80",
+        "manaRegen": "+5/s"
+      },
+      "buff": "{\"mana\":\"+80\",\"manaRegen\":\"+5/s\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A33-8020DAAF"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A34-D6C446DD",
+      "baseUuid": "FOOD-20260422194034-000A34-D6C446DD",
+      "name": "Sailor's Chowder",
+      "baseName": "Sailor's Chowder",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 36,
+      "tier": 3,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_10.png",
+      "emoji": "🦐",
+      "description": "Seafood chowder",
+      "stats": {
+        "mana": "+90"
+      },
+      "buff": "{\"mana\":\"+90\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A37-D62EC348"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A38-2431DC2A",
+      "baseUuid": "FOOD-20260422194034-000A38-2431DC2A",
+      "name": "Mystic Gumbo",
+      "baseName": "Mystic Gumbo",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 40,
+      "tier": 4,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_11.png",
+      "emoji": "🫕",
+      "description": "Arcane gumbo",
+      "stats": {
+        "mana": "+100"
+      },
+      "buff": "{\"mana\":\"+100\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A3B-C31D4828"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A3C-76B1AB69",
+      "baseUuid": "FOOD-20260422194034-000A3C-76B1AB69",
+      "name": "Enchanted Pastry",
+      "baseName": "Enchanted Pastry",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 43,
+      "tier": 4,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_12.png",
+      "emoji": "🥐",
+      "description": "Magic pastry",
+      "stats": {
+        "mana": "+105",
+        "spell": "+3%"
+      },
+      "buff": "{\"mana\":\"+105\",\"spell\":\"+3%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A3E-C9FB9DA3"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A3F-A02871BE",
+      "baseUuid": "FOOD-20260422194034-000A3F-A02871BE",
+      "name": "Arcane Pastry",
+      "baseName": "Arcane Pastry",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 46,
+      "tier": 4,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_13.png",
+      "emoji": "🥧",
+      "description": "Magic pastry",
+      "stats": {
+        "mana": "+110",
+        "spell": "+5%"
+      },
+      "buff": "{\"mana\":\"+110\",\"spell\":\"+5%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A40-A830EC05"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A41-62ADE693",
+      "baseUuid": "FOOD-20260422194034-000A41-62ADE693",
+      "name": "Grog of Courage",
+      "baseName": "Grog of Courage",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 50,
+      "tier": 5,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_14.png",
+      "emoji": "🍻",
+      "description": "Brave brew",
+      "stats": {
+        "mana": "+120",
+        "courage": "+10%"
+      },
+      "buff": "{\"mana\":\"+120\",\"courage\":\"+10%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A44-097BE918"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A45-ACE51ED9",
+      "baseUuid": "FOOD-20260422194034-000A45-ACE51ED9",
+      "name": "Wizard's Stew",
+      "baseName": "Wizard's Stew",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 54,
+      "tier": 5,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_15.png",
+      "emoji": "🧙",
+      "description": "Arcane stew",
+      "stats": {
+        "mana": "+130"
+      },
+      "buff": "{\"mana\":\"+130\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A48-425FF708"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A49-8F4335FF",
+      "baseUuid": "FOOD-20260422194034-000A49-8F4335FF",
+      "name": "Enchanted Pie",
+      "baseName": "Enchanted Pie",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 58,
+      "tier": 5,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_16.png",
+      "emoji": "🥮",
+      "description": "Magic pie",
+      "stats": {
+        "mana": "+140"
+      },
+      "buff": "{\"mana\":\"+140\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A4C-E0D8C690"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A4D-7AE90535",
+      "baseUuid": "FOOD-20260422194034-000A4D-7AE90535",
+      "name": "Ley Line Soup",
+      "baseName": "Ley Line Soup",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 62,
+      "tier": 6,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_17.png",
+      "emoji": "✨",
+      "description": "Power lines",
+      "stats": {
+        "mana": "+150",
+        "manaRegen": "+8/s"
+      },
+      "buff": "{\"mana\":\"+150\",\"manaRegen\":\"+8/s\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A4F-43B3EEA9"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A50-DEEA553D",
+      "baseUuid": "FOOD-20260422194034-000A50-DEEA553D",
+      "name": "Astral Soup",
+      "baseName": "Astral Soup",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 66,
+      "tier": 6,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_18.png",
+      "emoji": "🌌",
+      "description": "Cosmic soup",
+      "stats": {
+        "mana": "+160",
+        "spell": "+10%"
+      },
+      "buff": "{\"mana\":\"+160\",\"spell\":\"+10%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A53-6A56FF29"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A54-D8DAE1FF",
+      "baseUuid": "FOOD-20260422194034-000A54-D8DAE1FF",
+      "name": "Void Bisque",
+      "baseName": "Void Bisque",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 70,
+      "tier": 6,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_19.png",
+      "emoji": "🌑",
+      "description": "Void energy",
+      "stats": {
+        "mana": "+170"
+      },
+      "buff": "{\"mana\":\"+170\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A57-30F59B81"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A58-BFC8021F",
+      "baseUuid": "FOOD-20260422194034-000A58-BFC8021F",
+      "name": "Ethereal Cake",
+      "baseName": "Ethereal Cake",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 73,
+      "tier": 7,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_20.png",
+      "emoji": "🎂",
+      "description": "Spirit cake",
+      "stats": {
+        "mana": "+175",
+        "spell": "+12%"
+      },
+      "buff": "{\"mana\":\"+175\",\"spell\":\"+12%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A5B-33BC8BE1"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A5C-E6504E9C",
+      "baseUuid": "FOOD-20260422194034-000A5C-E6504E9C",
+      "name": "Celestial Cake",
+      "baseName": "Celestial Cake",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 76,
+      "tier": 7,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_21.png",
+      "emoji": "🎂",
+      "description": "Heavenly cake",
+      "stats": {
+        "mana": "+180"
+      },
+      "buff": "{\"mana\":\"+180\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A5F-8372C06E"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A60-0D3A1BD9",
+      "baseUuid": "FOOD-20260422194034-000A60-0D3A1BD9",
+      "name": "Planar Stew",
+      "baseName": "Planar Stew",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 78,
+      "tier": 7,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_22.png",
+      "emoji": "🌀",
+      "description": "Cross-dimensional",
+      "stats": {
+        "mana": "+185",
+        "manaRegen": "+10/s"
+      },
+      "buff": "{\"mana\":\"+185\",\"manaRegen\":\"+10/s\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A63-CEBBF4D4"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A64-02E4285B",
+      "baseUuid": "FOOD-20260422194034-000A64-02E4285B",
+      "name": "Cosmic Brew",
+      "baseName": "Cosmic Brew",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 80,
+      "tier": 7,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_23.png",
+      "emoji": "🌠",
+      "description": "Starlight brew",
+      "stats": {
+        "mana": "+190",
+        "spell": "+15%"
+      },
+      "buff": "{\"mana\":\"+190\",\"spell\":\"+15%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A67-62558F9F"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A68-86A38C85",
+      "baseUuid": "FOOD-20260422194034-000A68-86A38C85",
+      "name": "Astral Pie",
+      "baseName": "Astral Pie",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 83,
+      "tier": 7,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_24.png",
+      "emoji": "🥧",
+      "description": "Space pastry",
+      "stats": {
+        "mana": "+195"
+      },
+      "buff": "{\"mana\":\"+195\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A6B-792D0F3B"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A6C-576E8722",
+      "baseUuid": "FOOD-20260422194034-000A6C-576E8722",
+      "name": "Eternal Cake",
+      "baseName": "Eternal Cake",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 85,
+      "tier": 8,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_25.png",
+      "emoji": "🍰",
+      "description": "Never spoils",
+      "stats": {
+        "mana": "+200"
+      },
+      "buff": "{\"mana\":\"+200\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A6F-AB9971D7"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A70-26CB142D",
+      "baseUuid": "FOOD-20260422194034-000A70-26CB142D",
+      "name": "Infinity Stew",
+      "baseName": "Infinity Stew",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 88,
+      "tier": 8,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_26.png",
+      "emoji": "♾️",
+      "description": "Limitless energy",
+      "stats": {
+        "mana": "+210",
+        "manaRegen": "+12/s"
+      },
+      "buff": "{\"mana\":\"+210\",\"manaRegen\":\"+12/s\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A73-29E14106"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A74-02DE1736",
+      "baseUuid": "FOOD-20260422194034-000A74-02DE1736",
+      "name": "Divine Bread",
+      "baseName": "Divine Bread",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 90,
+      "tier": 8,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_27.png",
+      "emoji": "🍞",
+      "description": "Blessed bread",
+      "stats": {
+        "mana": "+220",
+        "all": "+5%"
+      },
+      "buff": "{\"mana\":\"+220\",\"all\":\"+5%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A76-E86C54F9"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A77-9BA9BEA2",
+      "baseUuid": "FOOD-20260422194034-000A77-9BA9BEA2",
+      "name": "Omniscient Soup",
+      "baseName": "Omniscient Soup",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 92,
+      "tier": 8,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_28.png",
+      "emoji": "👁️",
+      "description": "All-knowing",
+      "stats": {
+        "mana": "+230",
+        "spell": "+18%"
+      },
+      "buff": "{\"mana\":\"+230\",\"spell\":\"+18%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A7A-CAC7AF64"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A7B-0DDDDCA5",
+      "baseUuid": "FOOD-20260422194034-000A7B-0DDDDCA5",
+      "name": "Creator's Feast",
+      "baseName": "Creator's Feast",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 94,
+      "tier": 8,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_29.png",
+      "emoji": "🌟",
+      "description": "Godly meal",
+      "stats": {
+        "mana": "+240",
+        "all": "+8%"
+      },
+      "buff": "{\"mana\":\"+240\",\"all\":\"+8%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A7D-47EB0AA3"
+    },
+    {
+      "uuid": "FOOD-20260422194034-000A7E-D9DDBDE1",
+      "baseUuid": "FOOD-20260422194034-000A7E-D9DDBDE1",
+      "name": "Nectar of Gods",
+      "baseName": "Nectar of Gods",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 95,
+      "tier": 8,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_30.png",
+      "emoji": "🍷",
+      "description": "Divine ambrosia",
+      "stats": {
+        "mana": "+250",
+        "all": "+10%"
+      },
+      "buff": "{\"mana\":\"+250\",\"all\":\"+10%\"}",
+      "craftedBy": "Chef",
+      "recipeUuid": "RECP-20260422194034-000A7F-2BBF7D8A"
+    },
+    {
+      "uuid": "POTN-20260422194034-000A80-62AE01CF",
+      "baseUuid": "POTN-20260422194034-000A80-62AE01CF",
+      "name": "Minor Health Potion",
+      "baseName": "Minor Health Potion",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 1,
+      "tier": 1,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_1.png",
+      "emoji": "❤️",
+      "description": "Restores 50 HP",
+      "stats": {
+        "heal": "50 HP"
+      },
+      "buff": "{\"heal\":\"50 HP\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000A82-7F8F41B0"
+    },
+    {
+      "uuid": "POTN-20260422194034-000A83-0B264F31",
+      "baseUuid": "POTN-20260422194034-000A83-0B264F31",
+      "name": "Minor Mana Potion",
+      "baseName": "Minor Mana Potion",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 1,
+      "tier": 1,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_2.png",
+      "emoji": "💙",
+      "description": "Restores 30 MP",
+      "stats": {
+        "mana": "30 MP"
+      },
+      "buff": "{\"mana\":\"30 MP\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000A85-9B57DD0E"
+    },
+    {
+      "uuid": "POTN-20260422194034-000A86-18A98518",
+      "baseUuid": "POTN-20260422194034-000A86-18A98518",
+      "name": "Minor Stamina Potion",
+      "baseName": "Minor Stamina Potion",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 5,
+      "tier": 1,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_3.png",
+      "emoji": "💛",
+      "description": "Restores stamina",
+      "stats": {
+        "stamina": "50"
+      },
+      "buff": "{\"stamina\":\"50\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000A88-69EB1188"
+    },
+    {
+      "uuid": "POTN-20260422194034-000A89-14649E34",
+      "baseUuid": "POTN-20260422194034-000A89-14649E34",
+      "name": "Antidote",
+      "baseName": "Antidote",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 10,
+      "tier": 1,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_4.png",
+      "emoji": "💜",
+      "description": "Cures poison",
+      "stats": {
+        "cure": "poison"
+      },
+      "buff": "{\"cure\":\"poison\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000A8B-6811730D"
+    },
+    {
+      "uuid": "POTN-20260422194034-000A8C-C2AFF491",
+      "baseUuid": "POTN-20260422194034-000A8C-C2AFF491",
+      "name": "Health Potion",
+      "baseName": "Health Potion",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 15,
+      "tier": 2,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_5.png",
+      "emoji": "❤️",
+      "description": "Restores 150 HP",
+      "stats": {
+        "heal": "150 HP"
+      },
+      "buff": "{\"heal\":\"150 HP\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000A8F-2BE4E8CB"
+    },
+    {
+      "uuid": "POTN-20260422194034-000A90-280C7EC0",
+      "baseUuid": "POTN-20260422194034-000A90-280C7EC0",
+      "name": "Mana Potion",
+      "baseName": "Mana Potion",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 15,
+      "tier": 2,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_6.png",
+      "emoji": "💙",
+      "description": "Restores 100 MP",
+      "stats": {
+        "mana": "100 MP"
+      },
+      "buff": "{\"mana\":\"100 MP\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000A92-3DF837CF"
+    },
+    {
+      "uuid": "POTN-20260422194034-000A93-CAD61403",
+      "baseUuid": "POTN-20260422194034-000A93-CAD61403",
+      "name": "Swiftness Potion",
+      "baseName": "Swiftness Potion",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 20,
+      "tier": 2,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_7.png",
+      "emoji": "💨",
+      "description": "+20% move speed",
+      "stats": {
+        "speed": "+20%"
+      },
+      "buff": "{\"speed\":\"+20%\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000A96-3BED9C9D"
+    },
+    {
+      "uuid": "POTN-20260422194034-000A97-B54A1FF2",
+      "baseUuid": "POTN-20260422194034-000A97-B54A1FF2",
+      "name": "Rage Potion",
+      "baseName": "Rage Potion",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 25,
+      "tier": 3,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_8.png",
+      "emoji": "🔴",
+      "description": "+25% damage",
+      "stats": {
+        "damage": "+25%"
+      },
+      "buff": "{\"damage\":\"+25%\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000A9A-1E459299"
+    },
+    {
+      "uuid": "POTN-20260422194034-000A9B-482D9950",
+      "baseUuid": "POTN-20260422194034-000A9B-482D9950",
+      "name": "Speed Potion",
+      "baseName": "Speed Potion",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 30,
+      "tier": 3,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_9.png",
+      "emoji": "⚡",
+      "description": "+30% speed",
+      "stats": {
+        "speed": "+30%"
+      },
+      "buff": "{\"speed\":\"+30%\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000A9C-280A4D10"
+    },
+    {
+      "uuid": "POTN-20260422194034-000A9D-DF94F7C8",
+      "baseUuid": "POTN-20260422194034-000A9D-DF94F7C8",
+      "name": "Defense Potion",
+      "baseName": "Defense Potion",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 35,
+      "tier": 3,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_10.png",
+      "emoji": "🛡️",
+      "description": "+20 armor",
+      "stats": {
+        "armor": "+20"
+      },
+      "buff": "{\"armor\":\"+20\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000AA0-63C43114"
+    },
+    {
+      "uuid": "POTN-20260422194034-000AA1-CD79AE56",
+      "baseUuid": "POTN-20260422194034-000AA1-CD79AE56",
+      "name": "Greater Health Potion",
+      "baseName": "Greater Health Potion",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 40,
+      "tier": 4,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_11.png",
+      "emoji": "❤️",
+      "description": "Restores 300 HP",
+      "stats": {
+        "heal": "300 HP"
+      },
+      "buff": "{\"heal\":\"300 HP\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000AA3-56EECE06"
+    },
+    {
+      "uuid": "POTN-20260422194034-000AA4-E4E3B4E2",
+      "baseUuid": "POTN-20260422194034-000AA4-E4E3B4E2",
+      "name": "Greater Mana Potion",
+      "baseName": "Greater Mana Potion",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 40,
+      "tier": 4,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_12.png",
+      "emoji": "💙",
+      "description": "Restores 200 MP",
+      "stats": {
+        "mana": "200 MP"
+      },
+      "buff": "{\"mana\":\"200 MP\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000AA6-5E0B674C"
+    },
+    {
+      "uuid": "POTN-20260422194034-000AA7-18439B93",
+      "baseUuid": "POTN-20260422194034-000AA7-18439B93",
+      "name": "Strength Potion",
+      "baseName": "Strength Potion",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 45,
+      "tier": 4,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_13.png",
+      "emoji": "💪",
+      "description": "+30 strength",
+      "stats": {
+        "str": "+30"
+      },
+      "buff": "{\"str\":\"+30\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000AA9-7FB4E44C"
+    },
+    {
+      "uuid": "POTN-20260422194034-000AAA-7D85668F",
+      "baseUuid": "POTN-20260422194034-000AAA-7D85668F",
+      "name": "Invisibility Potion",
+      "baseName": "Invisibility Potion",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 50,
+      "tier": 5,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_14.png",
+      "emoji": "👻",
+      "description": "30s invisibility",
+      "stats": {
+        "stealth": "30s"
+      },
+      "buff": "{\"stealth\":\"30s\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000AAD-C4D9A04B"
+    },
+    {
+      "uuid": "POTN-20260422194034-000AAE-94B4AC0C",
+      "baseUuid": "POTN-20260422194034-000AAE-94B4AC0C",
+      "name": "Fire Resistance",
+      "baseName": "Fire Resistance",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 55,
+      "tier": 5,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_15.png",
+      "emoji": "🔥",
+      "description": "+50% fire resist",
+      "stats": {
+        "fireRes": "+50%"
+      },
+      "buff": "{\"fireRes\":\"+50%\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000AB1-2D4A8630"
+    },
+    {
+      "uuid": "POTN-20260422194034-000AB2-0193122C",
+      "baseUuid": "POTN-20260422194034-000AB2-0193122C",
+      "name": "Frost Resistance",
+      "baseName": "Frost Resistance",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 55,
+      "tier": 5,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_16.png",
+      "emoji": "❄️",
+      "description": "+50% frost resist",
+      "stats": {
+        "frostRes": "+50%"
+      },
+      "buff": "{\"frostRes\":\"+50%\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000AB4-4E9E62F4"
+    },
+    {
+      "uuid": "POTN-20260422194034-000AB5-4C22CCA2",
+      "baseUuid": "POTN-20260422194034-000AB5-4C22CCA2",
+      "name": "Super Health Potion",
+      "baseName": "Super Health Potion",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 60,
+      "tier": 5,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_17.png",
+      "emoji": "❤️",
+      "description": "Restores 500 HP",
+      "stats": {
+        "heal": "500 HP"
+      },
+      "buff": "{\"heal\":\"500 HP\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000AB8-FC90B3A5"
+    },
+    {
+      "uuid": "POTN-20260422194034-000AB9-AC2608FF",
+      "baseUuid": "POTN-20260422194034-000AB9-AC2608FF",
+      "name": "Super Mana Potion",
+      "baseName": "Super Mana Potion",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 60,
+      "tier": 5,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_18.png",
+      "emoji": "💙",
+      "description": "Restores 400 MP",
+      "stats": {
+        "mana": "400 MP"
+      },
+      "buff": "{\"mana\":\"400 MP\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000ABB-47CC3CD4"
+    },
+    {
+      "uuid": "POTN-20260422194034-000ABC-DEF19F63",
+      "baseUuid": "POTN-20260422194034-000ABC-DEF19F63",
+      "name": "Lightning Resistance",
+      "baseName": "Lightning Resistance",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 60,
+      "tier": 5,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_19.png",
+      "emoji": "⚡",
+      "description": "+50% lightning resist",
+      "stats": {
+        "lightningRes": "+50%"
+      },
+      "buff": "{\"lightningRes\":\"+50%\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000ABE-B298B7EC"
+    },
+    {
+      "uuid": "POTN-20260422194034-000ABF-692691F6",
+      "baseUuid": "POTN-20260422194034-000ABF-692691F6",
+      "name": "Poison Resistance",
+      "baseName": "Poison Resistance",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 60,
+      "tier": 5,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_20.png",
+      "emoji": "☠️",
+      "description": "+75% poison resist",
+      "stats": {
+        "poisonRes": "+75%"
+      },
+      "buff": "{\"poisonRes\":\"+75%\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000AC2-B2D3CD8E"
+    },
+    {
+      "uuid": "POTN-20260422194034-000AC3-5DBA7FFE",
+      "baseUuid": "POTN-20260422194034-000AC3-5DBA7FFE",
+      "name": "Berserker Elixir",
+      "baseName": "Berserker Elixir",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 70,
+      "tier": 6,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_21.png",
+      "emoji": "💢",
+      "description": "Glass cannon",
+      "stats": {
+        "damage": "+50%",
+        "defense": "-20%"
+      },
+      "buff": "{\"damage\":\"+50%\",\"defense\":\"-20%\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000AC6-15A3AF98"
+    },
+    {
+      "uuid": "POTN-20260422194034-000AC7-3D25845D",
+      "baseUuid": "POTN-20260422194034-000AC7-3D25845D",
+      "name": "Elemental Ward",
+      "baseName": "Elemental Ward",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 75,
+      "tier": 7,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_22.png",
+      "emoji": "🌈",
+      "description": "+30% all resist",
+      "stats": {
+        "allRes": "+30%"
+      },
+      "buff": "{\"allRes\":\"+30%\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000ACA-2241957E"
+    },
+    {
+      "uuid": "POTN-20260422194034-000ACB-94B1A310",
+      "baseUuid": "POTN-20260422194034-000ACB-94B1A310",
+      "name": "Titan Strength",
+      "baseName": "Titan Strength",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 80,
+      "tier": 7,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_23.png",
+      "emoji": "💪",
+      "description": "+100 strength",
+      "stats": {
+        "str": "+100"
+      },
+      "buff": "{\"str\":\"+100\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000ACE-3AC2CB46"
+    },
+    {
+      "uuid": "POTN-20260422194034-000ACF-3F7DC75D",
+      "baseUuid": "POTN-20260422194034-000ACF-3F7DC75D",
+      "name": "Mega Health Potion",
+      "baseName": "Mega Health Potion",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 80,
+      "tier": 7,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_24.png",
+      "emoji": "❤️",
+      "description": "Restores 750 HP",
+      "stats": {
+        "heal": "750 HP"
+      },
+      "buff": "{\"heal\":\"750 HP\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000AD1-586D0F02"
+    },
+    {
+      "uuid": "POTN-20260422194034-000AD2-8FED0D03",
+      "baseUuid": "POTN-20260422194034-000AD2-8FED0D03",
+      "name": "Mega Mana Potion",
+      "baseName": "Mega Mana Potion",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 80,
+      "tier": 7,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_25.png",
+      "emoji": "💙",
+      "description": "Restores 600 MP",
+      "stats": {
+        "mana": "600 MP"
+      },
+      "buff": "{\"mana\":\"600 MP\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000AD5-334D8839"
+    },
+    {
+      "uuid": "POTN-20260422194034-000AD6-041E1851",
+      "baseUuid": "POTN-20260422194034-000AD6-041E1851",
+      "name": "Invulnerability Potion",
+      "baseName": "Invulnerability Potion",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 85,
+      "tier": 8,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_26.png",
+      "emoji": "🛡️",
+      "description": "5s immunity",
+      "stats": {
+        "invuln": "5s"
+      },
+      "buff": "{\"invuln\":\"5s\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000AD9-B477A2F4"
+    },
+    {
+      "uuid": "POTN-20260422194034-000ADA-72E3DB3C",
+      "baseUuid": "POTN-20260422194034-000ADA-72E3DB3C",
+      "name": "Divine Health",
+      "baseName": "Divine Health",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 90,
+      "tier": 8,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_27.png",
+      "emoji": "❤️",
+      "description": "Full heal",
+      "stats": {
+        "heal": "Full"
+      },
+      "buff": "{\"heal\":\"Full\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000ADC-29F3D502"
+    },
+    {
+      "uuid": "POTN-20260422194034-000ADD-7F3911DE",
+      "baseUuid": "POTN-20260422194034-000ADD-7F3911DE",
+      "name": "Divine Mana",
+      "baseName": "Divine Mana",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 90,
+      "tier": 8,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_28.png",
+      "emoji": "💙",
+      "description": "Full mana restore",
+      "stats": {
+        "mana": "Full"
+      },
+      "buff": "{\"mana\":\"Full\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000ADF-4775060F"
+    },
+    {
+      "uuid": "POTN-20260422194034-000AE0-286E8CBB",
+      "baseUuid": "POTN-20260422194034-000AE0-286E8CBB",
+      "name": "Ultimate Elixir",
+      "baseName": "Ultimate Elixir",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 93,
+      "tier": 8,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_29.png",
+      "emoji": "🌟",
+      "description": "+25% all stats",
+      "stats": {
+        "all": "+25%"
+      },
+      "buff": "{\"all\":\"+25%\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000AE2-C8F2B8CF"
+    },
+    {
+      "uuid": "POTN-20260422194034-000AE3-A0C3262B",
+      "baseUuid": "POTN-20260422194034-000AE3-A0C3262B",
+      "name": "Elixir of Immortality",
+      "baseName": "Elixir of Immortality",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 95,
+      "tier": 8,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_30.png",
+      "emoji": "✨",
+      "description": "Prevents death once",
+      "stats": {
+        "immortal": "1x"
+      },
+      "buff": "{\"immortal\":\"1x\"}",
+      "craftedBy": "Mystic",
+      "recipeUuid": "RECP-20260422194034-000AE5-4EE716B2"
+    },
+    {
+      "uuid": "CONS-20260422194034-000AE6-C251622F",
+      "baseUuid": "CONS-20260422194034-000AE6-C251622F",
+      "name": "Bandage",
+      "baseName": "Bandage",
+      "category": "engineerConsumables",
+      "type": "consumable",
+      "requiredLevel": 1,
+      "tier": 1,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/engineerConsumables_1.png",
+      "emoji": "🩹",
+      "description": "First aid",
+      "stats": {
+        "heal": "50 HP over 5s"
+      },
+      "buff": "{\"heal\":\"50 HP over 5s\"}",
+      "craftedBy": "Engineer",
+      "recipeUuid": "RECP-20260422194034-000AE8-8CE118FB"
+    },
+    {
+      "uuid": "CONS-20260422194034-000AE9-07E2C2EF",
+      "baseUuid": "CONS-20260422194034-000AE9-07E2C2EF",
+      "name": "Heavy Bandage",
+      "baseName": "Heavy Bandage",
+      "category": "engineerConsumables",
+      "type": "consumable",
+      "requiredLevel": 20,
+      "tier": 2,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/engineerConsumables_2.png",
+      "emoji": "🩹",
+      "description": "Better bandage",
+      "stats": {
+        "heal": "150 HP over 5s"
+      },
+      "buff": "{\"heal\":\"150 HP over 5s\"}",
+      "craftedBy": "Engineer",
+      "recipeUuid": "RECP-20260422194034-000AEC-951A333D"
+    },
+    {
+      "uuid": "CONS-20260422194034-000AED-6A684875",
+      "baseUuid": "CONS-20260422194034-000AED-6A684875",
+      "name": "Medkit",
+      "baseName": "Medkit",
+      "category": "engineerConsumables",
+      "type": "consumable",
+      "requiredLevel": 40,
+      "tier": 4,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/engineerConsumables_3.png",
+      "emoji": "🧰",
+      "description": "Emergency medkit",
+      "stats": {
+        "heal": "300 HP"
+      },
+      "buff": "{\"heal\":\"300 HP\"}",
+      "craftedBy": "Engineer",
+      "recipeUuid": "RECP-20260422194034-000AF1-48DA2181"
+    },
+    {
+      "uuid": "CONS-20260422194034-000AF2-A7D395BE",
+      "baseUuid": "CONS-20260422194034-000AF2-A7D395BE",
+      "name": "Smoke Grenade",
+      "baseName": "Smoke Grenade",
+      "category": "engineerConsumables",
+      "type": "consumable",
+      "requiredLevel": 15,
+      "tier": 2,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/engineerConsumables_4.png",
+      "emoji": "💨",
+      "description": "Obscures vision",
+      "stats": {
+        "blind": "5s AoE"
+      },
+      "buff": "{\"blind\":\"5s AoE\"}",
+      "craftedBy": "Engineer",
+      "recipeUuid": "RECP-20260422194034-000AF5-D9E5B3D9"
+    },
+    {
+      "uuid": "CONS-20260422194034-000AF6-4667018C",
+      "baseUuid": "CONS-20260422194034-000AF6-4667018C",
+      "name": "Flashbang",
+      "baseName": "Flashbang",
+      "category": "engineerConsumables",
+      "type": "consumable",
+      "requiredLevel": 25,
+      "tier": 3,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/engineerConsumables_5.png",
+      "emoji": "💥",
+      "description": "Stuns enemies",
+      "stats": {
+        "stun": "2s AoE"
+      },
+      "buff": "{\"stun\":\"2s AoE\"}",
+      "craftedBy": "Engineer",
+      "recipeUuid": "RECP-20260422194034-000AF8-E06B4B5C"
+    },
+    {
+      "uuid": "CONS-20260422194034-000AF9-6A03BF52",
+      "baseUuid": "CONS-20260422194034-000AF9-6A03BF52",
+      "name": "Frag Grenade",
+      "baseName": "Frag Grenade",
+      "category": "engineerConsumables",
+      "type": "consumable",
+      "requiredLevel": 35,
+      "tier": 3,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/engineerConsumables_6.png",
+      "emoji": "💣",
+      "description": "Explosive damage",
+      "stats": {
+        "damage": "200 AoE"
+      },
+      "buff": "{\"damage\":\"200 AoE\"}",
+      "craftedBy": "Engineer",
+      "recipeUuid": "RECP-20260422194034-000AFC-687021E1"
+    },
+    {
+      "uuid": "CONS-20260422194034-000AFD-DB576C7B",
+      "baseUuid": "CONS-20260422194034-000AFD-DB576C7B",
+      "name": "Incendiary Grenade",
+      "baseName": "Incendiary Grenade",
+      "category": "engineerConsumables",
+      "type": "consumable",
+      "requiredLevel": 45,
+      "tier": 4,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/engineerConsumables_7.png",
+      "emoji": "🔥",
+      "description": "Fire AoE",
+      "stats": {
+        "burn": "50 DPS for 5s"
+      },
+      "buff": "{\"burn\":\"50 DPS for 5s\"}",
+      "craftedBy": "Engineer",
+      "recipeUuid": "RECP-20260422194034-000AFF-90E75427"
+    },
+    {
+      "uuid": "CONS-20260422194034-000B00-5393821F",
+      "baseUuid": "CONS-20260422194034-000B00-5393821F",
+      "name": "EMP Grenade",
+      "baseName": "EMP Grenade",
+      "category": "engineerConsumables",
+      "type": "consumable",
+      "requiredLevel": 55,
+      "tier": 5,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/engineerConsumables_8.png",
+      "emoji": "⚡",
+      "description": "Disables magic",
+      "stats": {
+        "silence": "4s AoE"
+      },
+      "buff": "{\"silence\":\"4s AoE\"}",
+      "craftedBy": "Engineer",
+      "recipeUuid": "RECP-20260422194034-000B03-18433126"
+    },
+    {
+      "uuid": "CONS-20260422194034-000B04-C448B01C",
+      "baseUuid": "CONS-20260422194034-000B04-C448B01C",
+      "name": "Fishing Lure (Basic)",
+      "baseName": "Fishing Lure (Basic)",
+      "category": "engineerConsumables",
+      "type": "consumable",
+      "requiredLevel": 10,
+      "tier": 1,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/engineerConsumables_9.png",
+      "emoji": "🎣",
+      "description": "Attracts fish",
+      "stats": {
+        "fishQuality": "+10%"
+      },
+      "buff": "{\"fishQuality\":\"+10%\"}",
+      "craftedBy": "Engineer",
+      "recipeUuid": "RECP-20260422194034-000B07-AE9FE2CA"
+    },
+    {
+      "uuid": "CONS-20260422194034-000B08-1E7542F5",
+      "baseUuid": "CONS-20260422194034-000B08-1E7542F5",
+      "name": "Fishing Lure (Rare)",
+      "baseName": "Fishing Lure (Rare)",
+      "category": "engineerConsumables",
+      "type": "consumable",
+      "requiredLevel": 30,
+      "tier": 3,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/engineerConsumables_10.png",
+      "emoji": "🎣",
+      "description": "Rare fish",
+      "stats": {
+        "fishQuality": "+25%"
+      },
+      "buff": "{\"fishQuality\":\"+25%\"}",
+      "craftedBy": "Engineer",
+      "recipeUuid": "RECP-20260422194034-000B0A-2F9058DF"
+    },
+    {
+      "uuid": "CONS-20260422194034-000B0B-0C587A77",
+      "baseUuid": "CONS-20260422194034-000B0B-0C587A77",
+      "name": "Portable Turret",
+      "baseName": "Portable Turret",
+      "category": "engineerConsumables",
+      "type": "consumable",
+      "requiredLevel": 50,
+      "tier": 5,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/engineerConsumables_11.png",
+      "emoji": "🤖",
+      "description": "Auto-turret",
+      "stats": {
+        "damage": "50 DPS for 30s"
+      },
+      "buff": "{\"damage\":\"50 DPS for 30s\"}",
+      "craftedBy": "Engineer",
+      "recipeUuid": "RECP-20260422194034-000B0E-65EC0A42"
+    },
+    {
+      "uuid": "CONS-20260422194034-000B0F-3CE78F01",
+      "baseUuid": "CONS-20260422194034-000B0F-3CE78F01",
+      "name": "Repair Kit",
+      "baseName": "Repair Kit",
+      "category": "engineerConsumables",
+      "type": "consumable",
+      "requiredLevel": 35,
+      "tier": 3,
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/engineerConsumables_12.png",
+      "emoji": "🔧",
+      "description": "Repairs equipment",
+      "stats": {
+        "repair": "50%"
+      },
+      "buff": "{\"repair\":\"50%\"}",
+      "craftedBy": "Engineer",
+      "recipeUuid": "RECP-20260422194034-000B10-86EB90EB"
+    },
+    {
+      "uuid": "POTN-20260423030000-00012D-054B9B0C",
+      "baseUuid": "POTN-20260423030000-00012D-054B9B0C",
+      "name": "Weak Health Potion",
+      "baseName": "Weak Health Potion",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 1,
+      "tier": 0,
+      "tierLabel": "Starter",
+      "tierColor": "#6b7280",
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_t0_health.png",
+      "emoji": "🧪",
+      "description": "A crude brew that tastes of bitter roots.",
+      "effect": "Restores 25 HP",
+      "stats": {
+        "heal": "25 HP"
+      },
+      "buff": "{\"heal\":\"25 HP\"}",
+      "craftedBy": "Mystic",
+      "craftingRecipe": {
+        "profession": null,
+        "station": "Campfire",
+        "materials": [
+          {
+            "id": "wild-herb",
+            "quantity": 2
+          },
+          {
+            "id": "water-flask",
+            "quantity": 1
+          }
+        ],
+        "craftTime": 5,
+        "gold": 0
+      },
+      "source": "starter"
+    },
+    {
+      "uuid": "POTN-20260423030000-00012E-21385B1E",
+      "baseUuid": "POTN-20260423030000-00012E-21385B1E",
+      "name": "Weak Mana Potion",
+      "baseName": "Weak Mana Potion",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 1,
+      "tier": 0,
+      "tierLabel": "Starter",
+      "tierColor": "#6b7280",
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_t0_mana.png",
+      "emoji": "🧪",
+      "description": "A shimmering sip that cools the mind.",
+      "effect": "Restores 15 MP",
+      "stats": {
+        "mana": "15 MP"
+      },
+      "buff": "{\"mana\":\"15 MP\"}",
+      "craftedBy": "Mystic",
+      "craftingRecipe": {
+        "profession": null,
+        "station": "Campfire",
+        "materials": [
+          {
+            "id": "wild-herb",
+            "quantity": 2
+          },
+          {
+            "id": "water-flask",
+            "quantity": 1
+          }
+        ],
+        "craftTime": 5,
+        "gold": 0
+      },
+      "source": "starter"
+    },
+    {
+      "uuid": "POTN-20260423030000-00012F-EB5E2F08",
+      "baseUuid": "POTN-20260423030000-00012F-EB5E2F08",
+      "name": "Weak Stamina Potion",
+      "baseName": "Weak Stamina Potion",
+      "category": "mysticPotions",
+      "type": "potion",
+      "requiredLevel": 1,
+      "tier": 0,
+      "tierLabel": "Starter",
+      "tierColor": "#6b7280",
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/mysticPotions_t0_stamina.png",
+      "emoji": "🧪",
+      "description": "A gritty draught that jolts the legs.",
+      "effect": "Restores 20 Stamina",
+      "stats": {
+        "stamina": "20"
+      },
+      "buff": "{\"stamina\":\"20\"}",
+      "craftedBy": "Mystic",
+      "craftingRecipe": {
+        "profession": null,
+        "station": "Campfire",
+        "materials": [
+          {
+            "id": "wild-herb",
+            "quantity": 2
+          },
+          {
+            "id": "water-flask",
+            "quantity": 1
+          }
+        ],
+        "craftTime": 5,
+        "gold": 0
+      },
+      "source": "starter"
+    },
+    {
+      "uuid": "FOOD-20260423030000-000130-E81CFF15",
+      "baseUuid": "FOOD-20260423030000-000130-E81CFF15",
+      "name": "Charred Meat",
+      "baseName": "Charred Meat",
+      "category": "redFoods",
+      "type": "food",
+      "requiredLevel": 1,
+      "tier": 0,
+      "tierLabel": "Starter",
+      "tierColor": "#6b7280",
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/redFoods_t0.png",
+      "emoji": "🍖",
+      "description": "Barely edible but filling enough to keep going.",
+      "effect": "Restores 10 HP, +2 Stamina Regen for 30s",
+      "stats": {
+        "heal": "10 HP",
+        "staminaRegen": "+2/s 30s"
+      },
+      "buff": "{\"heal\":\"10 HP\",\"staminaRegen\":\"+2/s 30s\"}",
+      "craftedBy": "Chef",
+      "craftingRecipe": {
+        "profession": null,
+        "station": "Campfire",
+        "materials": [
+          {
+            "id": "raw-meat",
+            "quantity": 1
+          }
+        ],
+        "craftTime": 5,
+        "gold": 0
+      },
+      "source": "starter"
+    },
+    {
+      "uuid": "FOOD-20260423030000-000131-40B9F7AB",
+      "baseUuid": "FOOD-20260423030000-000131-40B9F7AB",
+      "name": "Smoked Fish",
+      "baseName": "Smoked Fish",
+      "category": "blueFoods",
+      "type": "food",
+      "requiredLevel": 1,
+      "tier": 0,
+      "tierLabel": "Starter",
+      "tierColor": "#6b7280",
+      "iconUrl": "https://molochdagod.github.io/ObjectStore/icons/consumables/blueFoods_t0.png",
+      "emoji": "🍖",
+      "description": "Simple preserved fish, calming and clear-headed.",
+      "effect": "Restores 8 HP, +3 Mana Regen for 30s",
+      "stats": {
+        "heal": "8 HP",
+        "manaRegen": "+3/s 30s"
+      },
+      "buff": "{\"heal\":\"8 HP\",\"manaRegen\":\"+3/s 30s\"}",
+      "craftedBy": "Chef",
+      "craftingRecipe": {
+        "profession": null,
+        "station": "Campfire",
+        "materials": [
+          {
+            "id": "raw-fish",
+            "quantity": 1
+          }
+        ],
+        "craftTime": 5,
+        "gold": 0
+      },
+      "source": "starter"
+    }
+  ]
+}

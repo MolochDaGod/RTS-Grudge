@@ -1,0 +1,161 @@
+import { useEffect, lazy, Suspense } from "react";
+import { useGame } from "./lib/stores/useGame";
+import { useAudio } from "./lib/stores/useAudio";
+import GameScene from "./game/GameScene";
+import BakedDungeonScene from "./game/dungeon/BakedDungeonScene";
+import HousingScene from "./game/housing/HousingScene";
+import TutorialIslandScene from "./game/islands/TutorialIslandScene";
+import MenuScreen from "./game/MenuScreen";
+import CharacterSelectScreen from "./game/CharacterSelectScreen";
+import LoadingScreen from "./game/LoadingScreen";
+import IntroCutscene from "./game/IntroCutscene";
+import DeathScreen from "./game/DeathScreen";
+import PauseMenu from "./game/PauseMenu";
+import AdminPanel from "./admin/AdminPanel";
+import { AutoSaveController } from "./lib/save/useAutoSave";
+import WeaponOffsetTuner from "./game/WeaponOffsetTuner";
+import CheatsHUD from "./game/cheats/CheatsHUD";
+import { TerrainDebugHUD } from "./game/cheats/TerrainDebugHUD";
+import { StreamedColliderStatsHUD } from "./game/cheats/StreamedColliderDebugOverlay";
+import VibeOverlay from "./game/VibeOverlay";
+import "@fontsource/inter";
+
+const GGEEditor = lazy(() => import("./game/editor/GGEEditor"));
+const ControllerPage = lazy(() => import("./game/controller/ControllerPage"));
+
+function App() {
+  const { phase, togglePanel, closePanel, pause, resume, inDungeon, inHousing, inTutorialIsland, restart, goToController } = useGame();
+
+  // Direct-URL entry for the Controller Lab. Visiting `/controller` (e.g.
+  // bookmarked or shared) jumps straight in instead of going through the
+  // main menu. We don't add a real router; just sniff the pathname once
+  // on mount and rewrite to "/" so refresh-with-changes-applied behaves.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.location.pathname === "/controller" && phase !== "controller") {
+      goToController();
+      window.history.replaceState({}, "", "/");
+    }
+    // We only ever want to do this on the very first mount; further phase
+    // changes re-trigger the effect but the pathname is already "/" by then
+    // so the early-return at the top covers it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const { setBackgroundMusic, setHitSound, setSuccessSound, setHeavyImpactSound, setClimbScrapeSound } = useAudio();
+
+  useEffect(() => {
+    const bgMusic = new Audio("/sounds/background.mp3");
+    bgMusic.loop = true;
+    bgMusic.volume = 0.2;
+    setBackgroundMusic(bgMusic);
+
+    const hitSfx = new Audio("/sounds/hit.mp3");
+    hitSfx.volume = 0.3;
+    setHitSound(hitSfx);
+
+    const successSfx = new Audio("/sounds/success.mp3");
+    successSfx.volume = 0.5;
+    setSuccessSound(successSfx);
+
+    // Heavy impact sample for charge-strike (and other "big hit") releases.
+    // Reuses the bundled thunder clip — a deep, weighty boom that feels
+    // distinct from the regular hit.mp3 swing impact.
+    const heavyImpactSfx = new Audio("/sounds/threejs-games/thunder.mp3");
+    heavyImpactSfx.volume = 0.55;
+    setHeavyImpactSound(heavyImpactSfx);
+
+    // Soft scrape loop for active climbing. Dedicated cloth/leather-on-stone
+    // sample (synthesized procedurally, seamless loop) — useAudio runs it at
+    // near-natural playbackRate with a subtle wobble + lateral tint applied
+    // per-frame so the loop doesn't sit on a single flat tone.
+    const climbScrapeSfx = new Audio("/sounds/climb-scrape.wav");
+    setClimbScrapeSound(climbScrapeSfx);
+  }, [setBackgroundMusic, setHitSound, setSuccessSound, setHeavyImpactSound, setClimbScrapeSound]);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (phase !== "playing" && phase !== "paused") return;
+      if (e.code === "KeyC" && phase === "playing") {
+        togglePanel("combat");
+      }
+      if (e.code === "KeyI" && phase === "playing") {
+        togglePanel("inventory");
+      }
+      if (e.code === "KeyK" && phase === "playing") {
+        togglePanel("skills");
+      }
+      if (e.code === "Escape") {
+        const { activePanel, showCrafting } = useGame.getState();
+        if (activePanel || showCrafting) {
+          closePanel();
+          return;
+        }
+        if (phase === "playing") {
+          pause();
+        } else if (phase === "paused") {
+          resume();
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [phase, togglePanel, closePanel, pause, resume]);
+
+  return (
+    <div style={{ width: "100vw", height: "100vh", position: "relative", overflow: "hidden" }}>
+      <AutoSaveController />
+      {phase === "menu" && <MenuScreen />}
+      {phase === "characterSelect" && <CharacterSelectScreen />}
+      {phase === "loading" && <LoadingScreen />}
+      {phase === "intro" && <IntroCutscene />}
+      {(phase === "playing" || phase === "paused") && !inDungeon && !inHousing && !inTutorialIsland && <GameScene />}
+      {(phase === "playing" || phase === "paused") && inDungeon && <BakedDungeonScene />}
+      {(phase === "playing" || phase === "paused") && inHousing && <HousingScene />}
+      {(phase === "playing" || phase === "paused") && inTutorialIsland && <TutorialIslandScene />}
+      {(phase === "playing" || phase === "paused") && <WeaponOffsetTuner />}
+      {/*
+        F8 dev panel + its terrain debug overlay are mounted at the
+        very top level so they remain reachable from EVERY phase —
+        menu, character select, loading screen, intro, dead, paused,
+        AND the dedicated dev surfaces (admin / gge / controller).
+        The HUD itself short-circuits to `null` until F8 is pressed,
+        so the cost when nobody's using it is one zustand subscriber.
+      */}
+      <CheatsHUD />
+      <VibeOverlay />
+      {(phase === "playing" || phase === "paused") && <TerrainDebugHUD />}
+      {(phase === "playing" || phase === "paused") && <StreamedColliderStatsHUD />}
+      {phase === "paused" && <PauseMenu />}
+      {phase === "dead" && <DeathScreen />}
+      {phase === "admin" && <AdminPanel onClose={restart} />}
+      {phase === "gge" && (
+        <Suspense fallback={
+          <div style={{
+            position: "fixed", inset: 0, background: "#0d1117",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: "#8b949e", fontSize: 14, fontFamily: "Inter, sans-serif",
+          }}>
+            Loading GGE Editor...
+          </div>
+        }>
+          <GGEEditor />
+        </Suspense>
+      )}
+      {phase === "controller" && (
+        <Suspense fallback={
+          <div style={{
+            position: "fixed", inset: 0, background: "#0d1117",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            color: "#8b949e", fontSize: 14, fontFamily: "Inter, sans-serif",
+          }}>
+            Loading Controller Lab...
+          </div>
+        }>
+          <ControllerPage />
+        </Suspense>
+      )}
+    </div>
+  );
+}
+
+export default App;

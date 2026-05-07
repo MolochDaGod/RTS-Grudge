@@ -1,0 +1,5069 @@
+{
+  "version": "2.0.0",
+  "generated": "2026-04-23T00:40:34.087Z",
+  "totalWeaponTypes": 17,
+  "totalSkills": 207,
+  "generatedAt": "2026-04-13T23:32:26.058Z",
+  "classRestrictions": {
+    "Warrior": [
+      "SWORD",
+      "AXE",
+      "HAMMER",
+      "SHIELD",
+      "GREATSWORD",
+      "GREATAXE",
+      "SCYTHE"
+    ],
+    "Mage": [
+      "STAFF",
+      "TOME",
+      "MACE",
+      "WAND",
+      "OFFHAND_RELIC"
+    ],
+    "Ranger": [
+      "BOW",
+      "CROSSBOW",
+      "GUN",
+      "DAGGER",
+      "GREATSWORD",
+      "SPEAR"
+    ],
+    "Worge": [
+      "STAFF",
+      "SPEAR",
+      "DAGGER",
+      "BOW",
+      "HAMMER",
+      "MACE",
+      "OFFHAND_RELIC",
+      "SCYTHE"
+    ]
+  },
+  "weaponTypes": [
+    {
+      "id": "SWORD",
+      "name": "Sword",
+      "icon": "/icons/pack/weapons/Sword_01.png",
+      "classes": [],
+      "totalSkills": 13,
+      "slots": [
+        {
+          "type": "primary",
+          "label": "PRIMARY",
+          "unlockTier": 1,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000BFA-4F4C05A1",
+              "id": "sword_vengeful_slash",
+              "name": "Vengeful Slash",
+              "description": "Single-target slash, builds 1 Grudge Mark stack, max 3",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Sword_01.png",
+              "tier": 1,
+              "damage": 45,
+              "cooldown": 0,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Builds Grudge Mark"
+              ],
+              "originalIcon": "/icons/pack/weapons/Sword_01.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000BFB-76C7BD70",
+              "id": "sword_lunging_strike",
+              "name": "Lunging Strike",
+              "description": "Ranged thrust attack",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Sword_02.png",
+              "tier": 2,
+              "damage": 55,
+              "cooldown": 2,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Extended Range"
+              ],
+              "originalIcon": "/icons/pack/weapons/Sword_02.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000BFC-1A027341",
+              "id": "sword_fearful_swipe",
+              "name": "Fearful Swipe",
+              "description": "AoE fear attack",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Chaos.png",
+              "tier": 3,
+              "damage": 40,
+              "cooldown": 4,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "AoE Fear 2s"
+              ],
+              "originalIcon": "/icons/pack/misc/Chaos.png"
+            }
+          ]
+        },
+        {
+          "type": "secondary",
+          "label": "SECONDARY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000BFD-A8E71FD0",
+              "id": "sword_blood_rush",
+              "name": "Blood Rush",
+              "description": "Dash forward 8m, AoE damage",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Flow.png",
+              "tier": 1,
+              "damage": 35,
+              "cooldown": 8,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Dash 8m",
+                "AoE Damage"
+              ],
+              "originalIcon": "/icons/pack/misc/Flow.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000BFE-919D0B08",
+              "id": "sword_iron_grudge",
+              "name": "Iron Grudge",
+              "description": "3s damage reduction + reflect",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/shield_01.png",
+              "tier": 2,
+              "damage": 0,
+              "cooldown": 12,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "30% DR",
+                "Reflect 20%"
+              ],
+              "originalIcon": "/icons/pack/weapons/shield_01.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000BFF-617365B5",
+              "id": "sword_clan_charge",
+              "name": "Clan Charge",
+              "description": "Gap-closer charge + 1s stun",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Power.png",
+              "tier": 3,
+              "damage": 40,
+              "cooldown": 10,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Charge",
+                "Stun 1s"
+              ],
+              "originalIcon": "/icons/pack/misc/Power.png"
+            }
+          ]
+        },
+        {
+          "type": "ability",
+          "label": "ABILITY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C00-77C36ED2",
+              "id": "sword_heroic_cleave",
+              "name": "Heroic Cleave",
+              "description": "Cone AoE clear",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Slash_07.png",
+              "tier": 1,
+              "damage": 60,
+              "cooldown": 6,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Cone AoE"
+              ],
+              "originalIcon": "/icons/pack/misc/Slash_07.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C01-A9841826",
+              "id": "sword_parry_counter",
+              "name": "Parry Counter",
+              "description": "Block + counter damage",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Electro.png",
+              "tier": 2,
+              "damage": 80,
+              "cooldown": 8,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Block",
+                "Counter Attack"
+              ],
+              "originalIcon": "/icons/pack/misc/Electro.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C02-7581D3CF",
+              "id": "sword_deep_wound",
+              "name": "Deep Wound",
+              "description": "Apply bleed stack",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Burns.png",
+              "tier": 3,
+              "damage": 30,
+              "cooldown": 4,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Bleed 5s"
+              ],
+              "originalIcon": "/icons/pack/misc/Burns.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C03-8C1209AA",
+              "id": "sword_shadow_edge",
+              "name": "Shadow Edge",
+              "description": "Dash + stun",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/smoke.png",
+              "tier": 4,
+              "damage": 55,
+              "cooldown": 10,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Dash",
+                "Stun 1.5s"
+              ],
+              "originalIcon": "/icons/pack/misc/smoke.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C04-36FAD317",
+              "id": "sword_execute",
+              "name": "Execute",
+              "description": "Bonus dmg below 30% HP",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Chaos_2.png",
+              "tier": 5,
+              "damage": 150,
+              "cooldown": 15,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "2x dmg <30% HP"
+              ],
+              "originalIcon": "/icons/pack/misc/Chaos_2.png"
+            }
+          ]
+        },
+        {
+          "type": "ultimate",
+          "label": "ULTIMATE",
+          "unlockTier": 3,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C05-075FC123",
+              "id": "sword_crimson_reprisal",
+              "name": "Crimson Reprisal",
+              "description": "Large AoE slash, heals per enemy hit",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Effect.png",
+              "tier": 1,
+              "damage": 150,
+              "cooldown": 45,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Large AoE",
+                "Lifesteal"
+              ],
+              "originalIcon": "/icons/pack/misc/Effect.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C06-D0BFC81B",
+              "id": "sword_nights_judgment",
+              "name": "Night's Judgment",
+              "description": "Teleport behind + bleed DoT",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Glow.png",
+              "tier": 4,
+              "damage": 200,
+              "cooldown": 60,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Teleport",
+                "Bleed DoT"
+              ],
+              "originalIcon": "/icons/pack/misc/Glow.png"
+            }
+          ]
+        }
+      ],
+      "uuid": "ITEM-20260422194034-000BF9-2CBF897F"
+    },
+    {
+      "id": "AXE",
+      "name": "Axe",
+      "icon": "/icons/pack/weapons/Axe_01.png",
+      "classes": [],
+      "totalSkills": 12,
+      "slots": [
+        {
+          "type": "primary",
+          "label": "PRIMARY",
+          "unlockTier": 1,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C08-D53F0FE7",
+              "id": "axe_rending_chop",
+              "name": "Rending Chop",
+              "description": "Single target, applies Bleed stack",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Axe_01.png",
+              "tier": 1,
+              "damage": 50,
+              "cooldown": 0,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Applies Bleed"
+              ],
+              "originalIcon": "/icons/pack/weapons/Axe_01.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C09-A2D1E7E7",
+              "id": "axe_lunging_chop",
+              "name": "Lunging Chop",
+              "description": "Extended range chop",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Axe_02.png",
+              "tier": 2,
+              "damage": 55,
+              "cooldown": 2,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Extended Range"
+              ],
+              "originalIcon": "/icons/pack/weapons/Axe_02.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C0A-18B73161",
+              "id": "axe_ground_slam",
+              "name": "Ground Slam",
+              "description": "AoE slow attack",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Power.png",
+              "tier": 3,
+              "damage": 45,
+              "cooldown": 4,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "AoE Slow 30%"
+              ],
+              "originalIcon": "/icons/pack/misc/Power.png"
+            }
+          ]
+        },
+        {
+          "type": "secondary",
+          "label": "SECONDARY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C0B-8965613B",
+              "id": "axe_adrenaline_surge",
+              "name": "Adrenaline Surge",
+              "description": "+Attack speed buff",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Electro.png",
+              "tier": 1,
+              "damage": 0,
+              "cooldown": 15,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "+30% Atk Speed 5s"
+              ],
+              "originalIcon": "/icons/pack/misc/Electro.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C0C-FDFC8A0F",
+              "id": "axe_whirl_pain",
+              "name": "Whirl of Pain",
+              "description": "Channeled AoE spin",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Flow.png",
+              "tier": 2,
+              "damage": 80,
+              "cooldown": 10,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Channel 3s",
+                "360° AoE"
+              ],
+              "originalIcon": "/icons/pack/misc/Flow.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C0D-BA5311D7",
+              "id": "axe_bloodletting",
+              "name": "Bloodletting",
+              "description": "AoE bleed apply",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Burns.png",
+              "tier": 3,
+              "damage": 40,
+              "cooldown": 8,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "AoE Bleed 6s"
+              ],
+              "originalIcon": "/icons/pack/misc/Burns.png"
+            }
+          ]
+        },
+        {
+          "type": "ability",
+          "label": "ABILITY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C0E-59A0FBB9",
+              "id": "axe_carnage_spin",
+              "name": "Carnage Spin",
+              "description": "360 AoE refresh bleed",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Effect.png",
+              "tier": 1,
+              "damage": 70,
+              "cooldown": 12,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Refresh all bleeds"
+              ],
+              "originalIcon": "/icons/pack/misc/Effect.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C0F-B581B9CF",
+              "id": "axe_headcracker",
+              "name": "Headcracker",
+              "description": "Single stun attack",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Hammer_01.png",
+              "tier": 2,
+              "damage": 65,
+              "cooldown": 8,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Stun 2s"
+              ],
+              "originalIcon": "/icons/pack/weapons/Hammer_01.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C10-308B7202",
+              "id": "axe_veinreaver",
+              "name": "Veinreaver",
+              "description": "AoE lifesteal attack",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Life.png",
+              "tier": 3,
+              "damage": 55,
+              "cooldown": 10,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Lifesteal 25%"
+              ],
+              "originalIcon": "/icons/pack/misc/Life.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C11-E53A3165",
+              "id": "axe_frenzied_chop",
+              "name": "Frenzied Chop",
+              "description": "High burst, self-damage",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Chaos.png",
+              "tier": 4,
+              "damage": 120,
+              "cooldown": 15,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Take 10% max HP"
+              ],
+              "originalIcon": "/icons/pack/misc/Chaos.png"
+            }
+          ]
+        },
+        {
+          "type": "ultimate",
+          "label": "ULTIMATE",
+          "unlockTier": 3,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C12-1F3D449C",
+              "id": "axe_apocalypse_cleave",
+              "name": "Apocalypse Cleave",
+              "description": "Large knockback AoE",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Chaos_2.png",
+              "tier": 1,
+              "damage": 180,
+              "cooldown": 50,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Huge AoE",
+                "Knockback"
+              ],
+              "originalIcon": "/icons/pack/misc/Chaos_2.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C13-E4568F98",
+              "id": "axe_blood_harvest",
+              "name": "Blood Harvest",
+              "description": "AoE heal on hit",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Burns.png",
+              "tier": 4,
+              "damage": 150,
+              "cooldown": 60,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Heal 30% per hit"
+              ],
+              "originalIcon": "/icons/pack/misc/Burns.png"
+            }
+          ]
+        }
+      ],
+      "uuid": "ITEM-20260422194034-000C07-61748703"
+    },
+    {
+      "id": "BOW",
+      "name": "Bow",
+      "icon": "/icons/pack/weapons/Bow_01.png",
+      "classes": [],
+      "totalSkills": 10,
+      "slots": [
+        {
+          "type": "primary",
+          "label": "PRIMARY",
+          "unlockTier": 1,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C15-0828884C",
+              "id": "bow_quick_shot",
+              "name": "Quick Shot",
+              "description": "Basic arrow shot",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Arrow_01.png",
+              "tier": 1,
+              "damage": 45,
+              "cooldown": 0,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Range 25m"
+              ],
+              "originalIcon": "/icons/pack/weapons/Arrow_01.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C16-0CF743B1",
+              "id": "bow_aimed_shot",
+              "name": "Aimed Shot",
+              "description": "Charged precision shot",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Arrow_04.png",
+              "tier": 2,
+              "damage": 80,
+              "cooldown": 2,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Guaranteed Crit"
+              ],
+              "originalIcon": "/icons/pack/weapons/Arrow_04.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C17-3C69F61E",
+              "id": "bow_fire_arrow",
+              "name": "Fire Arrow",
+              "description": "Ignites target for DoT",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Fires.png",
+              "tier": 3,
+              "damage": 40,
+              "cooldown": 10,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Burn 6s"
+              ],
+              "originalIcon": "/icons/pack/misc/Fires.png"
+            }
+          ]
+        },
+        {
+          "type": "secondary",
+          "label": "SECONDARY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C18-D67D3C79",
+              "id": "bow_multishot",
+              "name": "Multishot",
+              "description": "Fire 3 arrows at once",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Arrow_05.png",
+              "tier": 1,
+              "damage": 35,
+              "cooldown": 8,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "3 Arrows",
+                "Cone"
+              ],
+              "originalIcon": "/icons/pack/weapons/Arrow_05.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C19-339DEEEA",
+              "id": "bow_piercing",
+              "name": "Piercing Shot",
+              "description": "Arrow pierces through enemies",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Arrow_06.png",
+              "tier": 3,
+              "damage": 60,
+              "cooldown": 6,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Pierce All"
+              ],
+              "originalIcon": "/icons/pack/weapons/Arrow_06.png"
+            }
+          ]
+        },
+        {
+          "type": "ability",
+          "label": "ABILITY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C1A-5D2F2C55",
+              "id": "bow_bear_trap",
+              "name": "Bear Trap",
+              "description": "Place trap that roots enemies",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Effect.png",
+              "tier": 1,
+              "damage": 20,
+              "cooldown": 15,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Root 3s"
+              ],
+              "originalIcon": "/icons/pack/misc/Effect.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C1B-E52BA32D",
+              "id": "bow_swift_quiver",
+              "name": "Swift Quiver",
+              "description": "+50% attack speed for 6s",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Electro.png",
+              "tier": 4,
+              "damage": 0,
+              "cooldown": 20,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "+50% Atk Speed"
+              ],
+              "originalIcon": "/icons/pack/misc/Electro.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C1C-215EA259",
+              "id": "bow_poison_arrow",
+              "name": "Poison Arrow",
+              "description": "Spread poison DoT",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Naturecircle.png",
+              "tier": 5,
+              "damage": 30,
+              "cooldown": 12,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Poison 8s"
+              ],
+              "originalIcon": "/icons/pack/misc/Naturecircle.png"
+            }
+          ]
+        },
+        {
+          "type": "ultimate",
+          "label": "ULTIMATE",
+          "unlockTier": 3,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C1D-413D1CDB",
+              "id": "bow_arrow_rain",
+              "name": "Arrow Rain",
+              "description": "Rain arrows on large area",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Arrow_08.png",
+              "tier": 1,
+              "damage": 150,
+              "cooldown": 45,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "AoE 10m",
+                "5s Duration"
+              ],
+              "originalIcon": "/icons/pack/weapons/Arrow_08.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C1E-B6BCEEEB",
+              "id": "bow_sniper_shot",
+              "name": "Sniper Shot",
+              "description": "Long range massive damage",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Bow_05.png",
+              "tier": 4,
+              "damage": 350,
+              "cooldown": 60,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "50m Range",
+                "Ignore Armor"
+              ],
+              "originalIcon": "/icons/pack/weapons/Bow_05.png"
+            }
+          ]
+        }
+      ],
+      "uuid": "ITEM-20260422194034-000C14-6CB9CD2D"
+    },
+    {
+      "id": "CROSSBOW",
+      "name": "Crossbow",
+      "icon": "/icons/pack/weapons/Crossbow_01.png",
+      "classes": [],
+      "totalSkills": 12,
+      "slots": [
+        {
+          "type": "primary",
+          "label": "PRIMARY",
+          "unlockTier": 1,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C20-4E1AF87E",
+              "id": "xbow_heavy_bolt",
+              "name": "Heavy Bolt",
+              "description": "Single shot, builds Mark",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Bolt_01.png",
+              "tier": 1,
+              "damage": 55,
+              "cooldown": 0,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Builds Mark"
+              ],
+              "originalIcon": "/icons/pack/weapons/Bolt_01.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C21-B781CCD0",
+              "id": "xbow_rapid_fire",
+              "name": "Rapid Fire",
+              "description": "Quick successive shots",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Electro.png",
+              "tier": 2,
+              "damage": 30,
+              "cooldown": 3,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "3 Rapid Shots"
+              ],
+              "originalIcon": "/icons/pack/misc/Electro.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C22-2BF333EE",
+              "id": "xbow_explosive_round",
+              "name": "Explosive Round",
+              "description": "AoE explosion on hit",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/fire_05.png",
+              "tier": 3,
+              "damage": 50,
+              "cooldown": 6,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "AoE 3m"
+              ],
+              "originalIcon": "/icons/pack/misc/fire_05.png"
+            }
+          ]
+        },
+        {
+          "type": "secondary",
+          "label": "SECONDARY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C23-D7F82342",
+              "id": "xbow_knockback_bolt",
+              "name": "Knockback Bolt",
+              "description": "Push enemy back",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Flow.png",
+              "tier": 1,
+              "damage": 40,
+              "cooldown": 8,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Knockback 5m"
+              ],
+              "originalIcon": "/icons/pack/misc/Flow.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C24-68969D2A",
+              "id": "xbow_trap_bolt",
+              "name": "Trap Bolt",
+              "description": "Root trap on ground",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Effect.png",
+              "tier": 2,
+              "damage": 25,
+              "cooldown": 12,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Root 2s"
+              ],
+              "originalIcon": "/icons/pack/misc/Effect.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C25-BD8FC3A6",
+              "id": "xbow_sniper_shot",
+              "name": "Sniper Shot",
+              "description": "Long range precision",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Crossbow_05.png",
+              "tier": 3,
+              "damage": 90,
+              "cooldown": 10,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "30m Range"
+              ],
+              "originalIcon": "/icons/pack/weapons/Crossbow_05.png"
+            }
+          ]
+        },
+        {
+          "type": "ability",
+          "label": "ABILITY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C26-3FD326E0",
+              "id": "xbow_barrage",
+              "name": "Barrage of Vengeance",
+              "description": "Channeled 5 bolts",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Bolt_05.png",
+              "tier": 1,
+              "damage": 120,
+              "cooldown": 15,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Channel 2s"
+              ],
+              "originalIcon": "/icons/pack/weapons/Bolt_05.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C27-2BC0A17B",
+              "id": "xbow_headshot",
+              "name": "Headshot",
+              "description": "Silence single target",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Crossbow_03.png",
+              "tier": 2,
+              "damage": 80,
+              "cooldown": 10,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Silence 3s"
+              ],
+              "originalIcon": "/icons/pack/weapons/Crossbow_03.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C28-CF01FB9A",
+              "id": "xbow_crimson_bolt",
+              "name": "Crimson Bolt",
+              "description": "Bleed AoE damage",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Burns.png",
+              "tier": 3,
+              "damage": 45,
+              "cooldown": 8,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Bleed AoE"
+              ],
+              "originalIcon": "/icons/pack/misc/Burns.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C29-1E73FC13",
+              "id": "xbow_shrapnel",
+              "name": "Shrapnel Burst",
+              "description": "Armor break AoE",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Chaos.png",
+              "tier": 4,
+              "damage": 70,
+              "cooldown": 12,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "-30% Armor 6s"
+              ],
+              "originalIcon": "/icons/pack/misc/Chaos.png"
+            }
+          ]
+        },
+        {
+          "type": "ultimate",
+          "label": "ULTIMATE",
+          "unlockTier": 3,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C2A-C055AF71",
+              "id": "xbow_sweeping_bolt",
+              "name": "Sweeping Bolt",
+              "description": "Piercing AoE line",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Bolt_08.png",
+              "tier": 1,
+              "damage": 200,
+              "cooldown": 50,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Pierce Line",
+                "Full Width"
+              ],
+              "originalIcon": "/icons/pack/weapons/Bolt_08.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C2B-2CCDDC4F",
+              "id": "xbow_noise_eraser",
+              "name": "Noise Eraser",
+              "description": "Massive silence burst",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/smoke.png",
+              "tier": 4,
+              "damage": 180,
+              "cooldown": 60,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "AoE Silence 5s"
+              ],
+              "originalIcon": "/icons/pack/misc/smoke.png"
+            }
+          ]
+        }
+      ],
+      "uuid": "ITEM-20260422194034-000C1F-E418E1DA"
+    },
+    {
+      "id": "GUN",
+      "name": "Gun",
+      "icon": "/icons/weapons/blackpowder.png",
+      "classes": [
+        "Ranger"
+      ],
+      "totalSkills": 12,
+      "slots": [
+        {
+          "type": "primary",
+          "label": "PRIMARY",
+          "unlockTier": 1,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C2D-B6D2C520",
+              "id": "gun_grudge_shot",
+              "name": "Grudge Shot",
+              "description": "Single shot, builds Powder Mark. Hitscan 30m range.",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/weapons/blackpowder.png",
+              "tier": 1,
+              "damage": 60,
+              "cooldown": 0,
+              "castTime": 0.3,
+              "range": 30,
+              "projectile": "bullet",
+              "damageType": "physical",
+              "animation": "gun_fire",
+              "physics": null,
+              "effects": [
+                "Builds Powder Mark",
+                "Hitscan 30m"
+              ],
+              "originalIcon": "/icons/weapons/blackpowder.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C2E-39332D32",
+              "id": "gun_quick_reload",
+              "name": "Quick Reload",
+              "description": "Rapidly cycle the chamber, +40% attack speed for 4s",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/weapons/ironstorm.png",
+              "tier": 2,
+              "damage": 0,
+              "cooldown": 15,
+              "castTime": 0,
+              "range": 0,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "gun_reload",
+              "physics": null,
+              "effects": [
+                "+40% Atk Speed 4s",
+                "Self-Buff"
+              ],
+              "originalIcon": "/icons/weapons/ironstorm.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C2F-F17A10C0",
+              "id": "gun_smoke_shot",
+              "name": "Smoke Shot",
+              "description": "Fire a flashbang round, blinding enemies in 4m",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/smoke.png",
+              "tier": 3,
+              "damage": 30,
+              "cooldown": 12,
+              "castTime": 0.2,
+              "range": 25,
+              "projectile": "bullet",
+              "damageType": "physical",
+              "animation": "gun_fire",
+              "physics": "blind",
+              "effects": [
+                "Blind 3s",
+                "AoE 4m"
+              ],
+              "originalIcon": "/icons/pack/misc/smoke.png"
+            }
+          ]
+        },
+        {
+          "type": "secondary",
+          "label": "SECONDARY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C30-414F1CC1",
+              "id": "gun_explosive_round",
+              "name": "Explosive Round",
+              "description": "Fire incendiary shell that explodes on impact",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/weapons/emberrifle.png",
+              "tier": 1,
+              "damage": 70,
+              "cooldown": 8,
+              "castTime": 0.4,
+              "range": 25,
+              "projectile": "shell",
+              "damageType": "fire",
+              "animation": "gun_heavy_fire",
+              "physics": "knockback",
+              "effects": [
+                "AoE 4m",
+                "Knockback 2m",
+                "Burn 3s"
+              ],
+              "originalIcon": "/icons/weapons/emberrifle.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C31-C5DAD8C7",
+              "id": "gun_flame_burst",
+              "name": "Flame Burst",
+              "description": "Spray ignited powder in a cone, setting ground ablaze",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Fires.png",
+              "tier": 2,
+              "damage": 50,
+              "cooldown": 10,
+              "castTime": 0.3,
+              "range": 8,
+              "projectile": null,
+              "damageType": "fire",
+              "animation": "gun_spray",
+              "physics": null,
+              "effects": [
+                "Cone 8m",
+                "Burn 5s",
+                "Ground Fire 4s"
+              ],
+              "originalIcon": "/icons/pack/misc/Fires.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C32-CC82075F",
+              "id": "gun_sniper_round",
+              "name": "Sniper Round",
+              "description": "Steady aim, charged shot that pierces armor at extreme range",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/weapons/duskblaster.png",
+              "tier": 3,
+              "damage": 120,
+              "cooldown": 12,
+              "castTime": 1.2,
+              "range": 50,
+              "projectile": "bullet",
+              "damageType": "physical",
+              "animation": "gun_aim_fire",
+              "physics": null,
+              "effects": [
+                "50m Range",
+                "Ignore 50% Armor",
+                "Guaranteed Crit"
+              ],
+              "originalIcon": "/icons/weapons/duskblaster.png"
+            }
+          ]
+        },
+        {
+          "type": "ability",
+          "label": "ABILITY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C33-0D44DE98",
+              "id": "gun_hellfire_barrage",
+              "name": "Hellfire Barrage",
+              "description": "Unload entire magazine in sustained fire, AoE incendiary",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/weapons/bloodcannon.png",
+              "tier": 1,
+              "damage": 100,
+              "cooldown": 18,
+              "castTime": 0,
+              "range": 20,
+              "projectile": "bullet",
+              "damageType": "fire",
+              "animation": "gun_channel_fire",
+              "physics": null,
+              "effects": [
+                "Channel 3s",
+                "AoE 6m",
+                "12 Rounds",
+                "Burn 4s"
+              ],
+              "originalIcon": "/icons/weapons/bloodcannon.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C34-51F3CE8D",
+              "id": "gun_crimson_blast",
+              "name": "Crimson Blast",
+              "description": "Blood-infused shell that heals on hit, AoE splash",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Burns.png",
+              "tier": 2,
+              "damage": 80,
+              "cooldown": 15,
+              "castTime": 0.5,
+              "range": 20,
+              "projectile": "shell",
+              "damageType": "shadow",
+              "animation": "gun_heavy_fire",
+              "physics": null,
+              "effects": [
+                "Lifesteal 30%",
+                "AoE 5m",
+                "Bleed 4s"
+              ],
+              "originalIcon": "/icons/pack/misc/Burns.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C35-7B3FEC5A",
+              "id": "gun_shadow_shot",
+              "name": "Shadow Shot",
+              "description": "Void-touched round that silences on impact and leaves darkness",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/smoke.png",
+              "tier": 3,
+              "damage": 60,
+              "cooldown": 12,
+              "castTime": 0.3,
+              "range": 30,
+              "projectile": "bullet",
+              "damageType": "shadow",
+              "animation": "gun_fire",
+              "physics": null,
+              "effects": [
+                "Silence 4s",
+                "AoE 4m",
+                "Darkness Zone 3s"
+              ],
+              "originalIcon": "/icons/pack/misc/smoke.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C36-A175CA40",
+              "id": "gun_cannon_execute",
+              "name": "Cannon Execute",
+              "description": "Overcharged shot that deals 3x damage to targets below 25% HP",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/weapons/wraithbarrel.png",
+              "tier": 4,
+              "damage": 200,
+              "cooldown": 20,
+              "castTime": 0.8,
+              "range": 25,
+              "projectile": "shell",
+              "damageType": "physical",
+              "animation": "gun_aim_fire",
+              "physics": "knockback",
+              "effects": [
+                "3x dmg <25% HP",
+                "Knockback 6m",
+                "Armor Break"
+              ],
+              "originalIcon": "/icons/weapons/wraithbarrel.png"
+            }
+          ]
+        },
+        {
+          "type": "ultimate",
+          "label": "ULTIMATE",
+          "unlockTier": 3,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C37-86509BB1",
+              "id": "gun_demon_blast",
+              "name": "Demon Blast",
+              "description": "Channel dark energy into the barrel, releasing a massive explosion that sends enemies flying",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/weapons/bloodcannon.png",
+              "tier": 1,
+              "damage": 250,
+              "cooldown": 55,
+              "castTime": 0.8,
+              "range": 15,
+              "projectile": "shell",
+              "damageType": "fire",
+              "animation": "gun_ultimate_fire",
+              "physics": "knockback",
+              "effects": [
+                "Knockback 10m",
+                "AoE 8m",
+                "Burn 6s",
+                "Stagger All"
+              ],
+              "originalIcon": "/icons/weapons/bloodcannon.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C38-D3AE28DD",
+              "id": "gun_thunder_blast",
+              "name": "Thunder Blast",
+              "description": "Summon a lightning storm through the barrel, chain-electrocuting all enemies in range",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Lighting.png",
+              "tier": 4,
+              "damage": 300,
+              "cooldown": 70,
+              "castTime": 1,
+              "range": 20,
+              "projectile": "beam",
+              "damageType": "lightning",
+              "animation": "gun_storm_channel",
+              "physics": "stun",
+              "effects": [
+                "Lightning Storm 6s",
+                "Chain x5",
+                "Stun 2s",
+                "AoE 12m"
+              ],
+              "originalIcon": "/icons/pack/misc/Lighting.png"
+            }
+          ]
+        }
+      ],
+      "uuid": "ITEM-20260422194034-000C2C-685330B4"
+    },
+    {
+      "id": "DAGGER",
+      "name": "Dagger",
+      "icon": "/icons/pack/weapons/Dagger_01.png",
+      "classes": [],
+      "totalSkills": 13,
+      "slots": [
+        {
+          "type": "primary",
+          "label": "PRIMARY",
+          "unlockTier": 1,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C3A-F2B6141D",
+              "id": "dagger_shadow_stab",
+              "name": "Shadow Stab",
+              "description": "Single stab, builds Mark",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Dagger_01.png",
+              "tier": 1,
+              "damage": 40,
+              "cooldown": 0,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Builds Mark"
+              ],
+              "originalIcon": "/icons/pack/weapons/Dagger_01.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C3B-C8E9B373",
+              "id": "dagger_chain_slash",
+              "name": "Chain Slash",
+              "description": "Rapid burst combo",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Dagger_02.png",
+              "tier": 2,
+              "damage": 35,
+              "cooldown": 3,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "3 Hit Combo"
+              ],
+              "originalIcon": "/icons/pack/weapons/Dagger_02.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C3C-F970D877",
+              "id": "dagger_poison_shiv",
+              "name": "Poison Shiv",
+              "description": "Apply DoT poison",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Naturecircle.png",
+              "tier": 3,
+              "damage": 25,
+              "cooldown": 6,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Poison 8s"
+              ],
+              "originalIcon": "/icons/pack/misc/Naturecircle.png"
+            }
+          ]
+        },
+        {
+          "type": "secondary",
+          "label": "SECONDARY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C3D-11871A6A",
+              "id": "dagger_phantom_dash",
+              "name": "Phantom Dash",
+              "description": "Dash through enemies",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Flow.png",
+              "tier": 1,
+              "damage": 45,
+              "cooldown": 8,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Dash 6m",
+                "Invincible"
+              ],
+              "originalIcon": "/icons/pack/misc/Flow.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C3E-11528F71",
+              "id": "dagger_assassin_focus",
+              "name": "Assassin's Focus",
+              "description": "+Attack speed buff",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Glow.png",
+              "tier": 2,
+              "damage": 0,
+              "cooldown": 15,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "+50% Atk Speed 5s"
+              ],
+              "originalIcon": "/icons/pack/misc/Glow.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C3F-05C124AA",
+              "id": "dagger_lunging_stabs",
+              "name": "Lunging Stabs",
+              "description": "Burst mobility combo",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Dagger_03.png",
+              "tier": 3,
+              "damage": 60,
+              "cooldown": 10,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Dash + 4 Stabs"
+              ],
+              "originalIcon": "/icons/pack/weapons/Dagger_03.png"
+            }
+          ]
+        },
+        {
+          "type": "ability",
+          "label": "ABILITY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C40-3695C007",
+              "id": "dagger_vengeful_ambush",
+              "name": "Vengeful Ambush",
+              "description": "Teleport behind burst",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/smoke.png",
+              "tier": 1,
+              "damage": 80,
+              "cooldown": 12,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Teleport Behind",
+                "+50% Dmg"
+              ],
+              "originalIcon": "/icons/pack/misc/smoke.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C41-94B8E42D",
+              "id": "dagger_crimson_stab",
+              "name": "Crimson Stab",
+              "description": "Heavy bleed burst",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Burns.png",
+              "tier": 2,
+              "damage": 50,
+              "cooldown": 8,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Bleed 6s",
+                "High DoT"
+              ],
+              "originalIcon": "/icons/pack/misc/Burns.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C42-841761F5",
+              "id": "dagger_shadow_strike",
+              "name": "Shadow Strike",
+              "description": "AoE silence attack",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/smokes_01.png",
+              "tier": 3,
+              "damage": 55,
+              "cooldown": 10,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Silence 3s",
+                "AoE"
+              ],
+              "originalIcon": "/icons/pack/misc/smokes_01.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C43-03C0DAD3",
+              "id": "dagger_flame_dagger",
+              "name": "Flame Dagger",
+              "description": "DoT AoE fire",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Fires.png",
+              "tier": 4,
+              "damage": 40,
+              "cooldown": 8,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Burn 5s",
+                "AoE"
+              ],
+              "originalIcon": "/icons/pack/misc/Fires.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C44-ACDB8131",
+              "id": "dagger_bloodletter_rage",
+              "name": "Bloodletter Rage",
+              "description": "Heal burst frenzy",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Chaos.png",
+              "tier": 5,
+              "damage": 100,
+              "cooldown": 18,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Heal 40%",
+                "Frenzy"
+              ],
+              "originalIcon": "/icons/pack/misc/Chaos.png"
+            }
+          ]
+        },
+        {
+          "type": "ultimate",
+          "label": "ULTIMATE",
+          "unlockTier": 3,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C45-0569C435",
+              "id": "dagger_deathgiver",
+              "name": "Deathgiver's Fatal",
+              "description": "Execute low HP targets",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Chaos_2.png",
+              "tier": 1,
+              "damage": 200,
+              "cooldown": 50,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Instant Kill <20%"
+              ],
+              "originalIcon": "/icons/pack/misc/Chaos_2.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C46-DC86DF88",
+              "id": "dagger_death_blossom",
+              "name": "Death Blossom",
+              "description": "360 spin attack",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/NatureFlower.png",
+              "tier": 4,
+              "damage": 180,
+              "cooldown": 45,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "360° AoE",
+                "Rapid Hits"
+              ],
+              "originalIcon": "/icons/pack/misc/NatureFlower.png"
+            }
+          ]
+        }
+      ],
+      "uuid": "ITEM-20260422194034-000C39-98CFFC6C"
+    },
+    {
+      "id": "STAFF",
+      "name": "Staff",
+      "icon": "/icons/pack/weapons/staff_1.png",
+      "classes": [],
+      "totalSkills": 13,
+      "slots": [
+        {
+          "type": "primary",
+          "label": "PRIMARY",
+          "unlockTier": 1,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C48-3FAA8258",
+              "id": "staff_fire_bolt",
+              "name": "Fire Bolt",
+              "description": "Single-target, builds Burn stack",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/fire_05.png",
+              "tier": 1,
+              "damage": 50,
+              "cooldown": 0,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Builds Burn Stack"
+              ],
+              "originalIcon": "/icons/pack/misc/fire_05.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C49-14F3EC8A",
+              "id": "staff_frost_bolt",
+              "name": "Frost Bolt",
+              "description": "Single-target, builds Chill",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/frozen.png",
+              "tier": 2,
+              "damage": 45,
+              "cooldown": 0,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Slow 30%"
+              ],
+              "originalIcon": "/icons/pack/misc/frozen.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C4A-30E5FBC9",
+              "id": "staff_holy_light",
+              "name": "Holy Light",
+              "description": "Heal single ally",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Glow.png",
+              "tier": 3,
+              "damage": -60,
+              "cooldown": 2,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Heal Ally"
+              ],
+              "originalIcon": "/icons/pack/misc/Glow.png"
+            }
+          ]
+        },
+        {
+          "type": "secondary",
+          "label": "SECONDARY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C4B-5C5ACEC8",
+              "id": "staff_flame_wave",
+              "name": "Flame Wave",
+              "description": "Cone AoE DoT",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Fires.png",
+              "tier": 1,
+              "damage": 60,
+              "cooldown": 8,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Cone",
+                "Burn 4s"
+              ],
+              "originalIcon": "/icons/pack/misc/Fires.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C4C-CA8AD67D",
+              "id": "staff_ice_nova",
+              "name": "Ice Nova",
+              "description": "AoE slow around caster",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/frozen.png",
+              "tier": 2,
+              "damage": 55,
+              "cooldown": 10,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "AoE 6m",
+                "Slow 50%"
+              ],
+              "originalIcon": "/icons/pack/misc/frozen.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C4D-CD6B5812",
+              "id": "staff_divine_wave",
+              "name": "Divine Wave",
+              "description": "AoE heal allies",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Lights.png",
+              "tier": 3,
+              "damage": -80,
+              "cooldown": 12,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Heal All Allies"
+              ],
+              "originalIcon": "/icons/pack/misc/Lights.png"
+            }
+          ]
+        },
+        {
+          "type": "ability",
+          "label": "ABILITY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C4E-C89561AD",
+              "id": "staff_inferno_shield",
+              "name": "Inferno Shield",
+              "description": "Reflect damage",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Firestar.png",
+              "tier": 1,
+              "damage": 0,
+              "cooldown": 15,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Absorb 200",
+                "Reflect 30%"
+              ],
+              "originalIcon": "/icons/pack/misc/Firestar.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C4F-9D350C28",
+              "id": "staff_glacial_shield",
+              "name": "Glacial Shield",
+              "description": "Absorb + slow attackers",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/AquaCore.png",
+              "tier": 2,
+              "damage": 0,
+              "cooldown": 15,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Absorb 250",
+                "Slow Attackers"
+              ],
+              "originalIcon": "/icons/pack/misc/AquaCore.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C50-FCD31859",
+              "id": "staff_meteor_strike",
+              "name": "Meteor Strike",
+              "description": "Delayed massive burst",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Lava.png",
+              "tier": 3,
+              "damage": 150,
+              "cooldown": 18,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Delay 1.5s",
+                "AoE 5m"
+              ],
+              "originalIcon": "/icons/pack/misc/Lava.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C51-8D99172F",
+              "id": "staff_blizzard",
+              "name": "Blizzard",
+              "description": "Channeled freeze zone",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/AquaCircle.png",
+              "tier": 4,
+              "damage": 100,
+              "cooldown": 20,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Channel",
+                "Freeze Chance"
+              ],
+              "originalIcon": "/icons/pack/misc/AquaCircle.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C52-4FB6BECF",
+              "id": "staff_radiant_heal",
+              "name": "Radiant Salvation",
+              "description": "AoE heal + cleanse",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Life.png",
+              "tier": 5,
+              "damage": -120,
+              "cooldown": 25,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Cleanse Debuffs"
+              ],
+              "originalIcon": "/icons/pack/misc/Life.png"
+            }
+          ]
+        },
+        {
+          "type": "ultimate",
+          "label": "ULTIMATE",
+          "unlockTier": 3,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C53-6412A6A3",
+              "id": "staff_hellstorm",
+              "name": "Hellstorm",
+              "description": "Large AoE DoT",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Lava.png",
+              "tier": 1,
+              "damage": 250,
+              "cooldown": 50,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "AoE 12m",
+                "Burn 8s"
+              ],
+              "originalIcon": "/icons/pack/misc/Lava.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C54-0E4743E7",
+              "id": "staff_absolute_zero",
+              "name": "Absolute Zero",
+              "description": "Mass freeze all enemies",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/CircleW.png",
+              "tier": 4,
+              "damage": 180,
+              "cooldown": 60,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Freeze 4s",
+                "AoE 15m"
+              ],
+              "originalIcon": "/icons/pack/misc/CircleW.png"
+            }
+          ]
+        }
+      ],
+      "uuid": "ITEM-20260422194034-000C47-ABFCCBCF"
+    },
+    {
+      "id": "HAMMER",
+      "name": "Hammer",
+      "icon": "/icons/pack/weapons/Hammer_01.png",
+      "classes": [],
+      "totalSkills": 12,
+      "slots": [
+        {
+          "type": "primary",
+          "label": "PRIMARY",
+          "unlockTier": 1,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C56-C21105D6",
+              "id": "hammer_earthshatter",
+              "name": "Earthshatter",
+              "description": "AoE, applies Slow",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Hammer_01.png",
+              "tier": 1,
+              "damage": 55,
+              "cooldown": 0,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Slow 30%",
+                "AoE 3m"
+              ],
+              "originalIcon": "/icons/pack/weapons/Hammer_01.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C57-D0C34ED8",
+              "id": "hammer_skullbash",
+              "name": "Skullbash",
+              "description": "Single target slow",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Hammer_02.png",
+              "tier": 2,
+              "damage": 60,
+              "cooldown": 2,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Slow 50%"
+              ],
+              "originalIcon": "/icons/pack/weapons/Hammer_02.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C58-48780BB7",
+              "id": "hammer_ground_pound",
+              "name": "Ground Pound",
+              "description": "Armor break attack",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Power.png",
+              "tier": 3,
+              "damage": 50,
+              "cooldown": 4,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "-25% Armor 5s"
+              ],
+              "originalIcon": "/icons/pack/misc/Power.png"
+            }
+          ]
+        },
+        {
+          "type": "secondary",
+          "label": "SECONDARY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C59-23D52DD6",
+              "id": "hammer_thunderous_charge",
+              "name": "Thunderous Charge",
+              "description": "Charge stun",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Electro.png",
+              "tier": 1,
+              "damage": 45,
+              "cooldown": 10,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Charge 8m",
+                "Stun 1.5s"
+              ],
+              "originalIcon": "/icons/pack/misc/Electro.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C5A-5370D474",
+              "id": "hammer_quake_strike",
+              "name": "Quake Strike",
+              "description": "Knockup AoE",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Effect.png",
+              "tier": 2,
+              "damage": 70,
+              "cooldown": 12,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Knockup 1s",
+                "AoE 4m"
+              ],
+              "originalIcon": "/icons/pack/misc/Effect.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C5B-02D12BBC",
+              "id": "hammer_iron_skin",
+              "name": "Iron Skin",
+              "description": "Damage reduction",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/shield_01.png",
+              "tier": 3,
+              "damage": 0,
+              "cooldown": 18,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "40% DR 5s"
+              ],
+              "originalIcon": "/icons/pack/weapons/shield_01.png"
+            }
+          ]
+        },
+        {
+          "type": "ability",
+          "label": "ABILITY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C5C-F2796EDA",
+              "id": "hammer_cataclysm_blow",
+              "name": "Cataclysm Blow",
+              "description": "AoE stun attack",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Lighting.png",
+              "tier": 1,
+              "damage": 80,
+              "cooldown": 15,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Stun 2s",
+                "AoE 5m"
+              ],
+              "originalIcon": "/icons/pack/misc/Lighting.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C5D-23F11071",
+              "id": "hammer_crimson_smash",
+              "name": "Crimson Smash",
+              "description": "Bleed AoE",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Burns.png",
+              "tier": 2,
+              "damage": 65,
+              "cooldown": 10,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Bleed 5s",
+                "AoE"
+              ],
+              "originalIcon": "/icons/pack/misc/Burns.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C5E-808A70E1",
+              "id": "hammer_shockwave",
+              "name": "Shockwave",
+              "description": "Knockback AoE",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Flow.png",
+              "tier": 3,
+              "damage": 55,
+              "cooldown": 12,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Knockback 6m",
+                "AoE 6m"
+              ],
+              "originalIcon": "/icons/pack/misc/Flow.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C5F-F68DC026",
+              "id": "hammer_titan_crush",
+              "name": "Titan Crush",
+              "description": "Massive single target",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Hammer_05.png",
+              "tier": 4,
+              "damage": 150,
+              "cooldown": 18,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Armor Break 50%"
+              ],
+              "originalIcon": "/icons/pack/weapons/Hammer_05.png"
+            }
+          ]
+        },
+        {
+          "type": "ultimate",
+          "label": "ULTIMATE",
+          "unlockTier": 3,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C60-C6788520",
+              "id": "hammer_seismic_slam",
+              "name": "Seismic Slam",
+              "description": "Large stun AoE",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Chaos.png",
+              "tier": 1,
+              "damage": 220,
+              "cooldown": 55,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Stun 3s",
+                "AoE 10m"
+              ],
+              "originalIcon": "/icons/pack/misc/Chaos.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C61-CA64515F",
+              "id": "hammer_mjolnir_strike",
+              "name": "Mjolnir Strike",
+              "description": "Lightning AoE storm",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Lighting.png",
+              "tier": 4,
+              "damage": 280,
+              "cooldown": 65,
+              "castTime": null,
+              "range": null,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": null,
+              "physics": null,
+              "effects": [
+                "Lightning Storm",
+                "Chain"
+              ],
+              "originalIcon": "/icons/pack/misc/Lighting.png"
+            }
+          ]
+        }
+      ],
+      "uuid": "ITEM-20260422194034-000C55-023F315A"
+    },
+    {
+      "id": "SHIELD",
+      "name": "Shield",
+      "icon": "/icons/pack/weapons/shield_01.png",
+      "classes": [
+        "Warrior"
+      ],
+      "totalSkills": 12,
+      "slots": [
+        {
+          "type": "primary",
+          "label": "PRIMARY",
+          "unlockTier": 1,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C63-7A7B5F06",
+              "id": "shield_bash",
+              "name": "Shield Bash",
+              "description": "Slam shield into target, dazes for 1s",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/shield_01.png",
+              "tier": 1,
+              "damage": 35,
+              "cooldown": 0,
+              "castTime": 0,
+              "range": 2,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "shield_bash",
+              "physics": "daze",
+              "effects": [
+                "Daze 1s",
+                "Builds Block"
+              ],
+              "originalIcon": "/icons/pack/weapons/shield_01.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C64-CE2FCA2F",
+              "id": "shield_slam",
+              "name": "Shield Slam",
+              "description": "Heavy overhead slam, stuns briefly",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/shield_03.png",
+              "tier": 2,
+              "damage": 50,
+              "cooldown": 3,
+              "castTime": 0.3,
+              "range": 2,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "shield_slam",
+              "physics": "stun",
+              "effects": [
+                "Stun 0.8s",
+                "Threat+"
+              ],
+              "originalIcon": "/icons/pack/weapons/shield_03.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C65-CED08E5A",
+              "id": "shield_concussive",
+              "name": "Concussive Strike",
+              "description": "AoE bash that slows all nearby",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/shield_05.png",
+              "tier": 3,
+              "damage": 40,
+              "cooldown": 5,
+              "castTime": 0.2,
+              "range": 3,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "shield_sweep",
+              "physics": "slow",
+              "effects": [
+                "AoE 3m",
+                "Slow 40% 3s"
+              ],
+              "originalIcon": "/icons/pack/weapons/shield_05.png"
+            }
+          ]
+        },
+        {
+          "type": "secondary",
+          "label": "SECONDARY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C66-A32D7A96",
+              "id": "shield_wall",
+              "name": "Shield Wall",
+              "description": "Raise shield, block 60% damage for 4s",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/shield_10.png",
+              "tier": 1,
+              "damage": 0,
+              "cooldown": 18,
+              "castTime": 0,
+              "range": 0,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "shield_raise",
+              "physics": null,
+              "effects": [
+                "60% DR 4s",
+                "Immobile"
+              ],
+              "originalIcon": "/icons/pack/weapons/shield_10.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C67-51D1592F",
+              "id": "shield_charge",
+              "name": "Bulwark Charge",
+              "description": "Charge forward 8m, knockback targets",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Flow.png",
+              "tier": 2,
+              "damage": 45,
+              "cooldown": 12,
+              "castTime": 0,
+              "range": 8,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "shield_charge",
+              "physics": "knockback",
+              "effects": [
+                "Charge 8m",
+                "Knockback 4m"
+              ],
+              "originalIcon": "/icons/pack/misc/Flow.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C68-49A2922F",
+              "id": "shield_reflect",
+              "name": "Aegis Reflect",
+              "description": "Reflect next 3 projectiles back",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/shield_15.png",
+              "tier": 3,
+              "damage": 0,
+              "cooldown": 15,
+              "castTime": 0,
+              "range": 0,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "shield_parry",
+              "physics": null,
+              "effects": [
+                "Reflect 3 Projectiles"
+              ],
+              "originalIcon": "/icons/pack/weapons/shield_15.png"
+            }
+          ]
+        },
+        {
+          "type": "ability",
+          "label": "ABILITY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C69-E7B013B6",
+              "id": "shield_phalanx",
+              "name": "Phalanx Guard",
+              "description": "Allies behind you gain 25% DR",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/shield_20.png",
+              "tier": 1,
+              "damage": 0,
+              "cooldown": 20,
+              "castTime": 0,
+              "range": 6,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "shield_stance",
+              "physics": null,
+              "effects": [
+                "25% DR Allies 6s",
+                "Cone Behind"
+              ],
+              "originalIcon": "/icons/pack/weapons/shield_20.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C6A-24A25D15",
+              "id": "shield_throw",
+              "name": "Shield Throw",
+              "description": "Hurl shield, bounces to 3 targets",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/shield_25.png",
+              "tier": 2,
+              "damage": 60,
+              "cooldown": 10,
+              "castTime": 0.4,
+              "range": 15,
+              "projectile": "thrown",
+              "damageType": "physical",
+              "animation": "shield_throw",
+              "physics": "stun",
+              "effects": [
+                "Bounces x3",
+                "Stun 0.5s each"
+              ],
+              "originalIcon": "/icons/pack/weapons/shield_25.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C6B-57E7611C",
+              "id": "shield_taunt",
+              "name": "Grudge Taunt",
+              "description": "Force all enemies in 8m to target you",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Power.png",
+              "tier": 3,
+              "damage": 0,
+              "cooldown": 15,
+              "castTime": 0,
+              "range": 8,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "war_cry",
+              "physics": null,
+              "effects": [
+                "AoE Taunt 4s",
+                "10% DR self"
+              ],
+              "originalIcon": "/icons/pack/misc/Power.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C6C-E4EB8E86",
+              "id": "shield_bastion",
+              "name": "Iron Bastion",
+              "description": "Plant shield, create AoE barrier zone",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/shield_30.png",
+              "tier": 4,
+              "damage": 0,
+              "cooldown": 25,
+              "castTime": 0.5,
+              "range": 0,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "shield_plant",
+              "physics": null,
+              "effects": [
+                "40% DR Zone 5m",
+                "8s Duration"
+              ],
+              "originalIcon": "/icons/pack/weapons/shield_30.png"
+            }
+          ]
+        },
+        {
+          "type": "ultimate",
+          "label": "ULTIMATE",
+          "unlockTier": 3,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C6D-FBBD6989",
+              "id": "shield_unbreakable",
+              "name": "Unbreakable",
+              "description": "Become immune for 3s, then AoE knockback",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/shield_40.png",
+              "tier": 1,
+              "damage": 100,
+              "cooldown": 55,
+              "castTime": 0,
+              "range": 6,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "shield_ultimate",
+              "physics": "knockback",
+              "effects": [
+                "Immune 3s",
+                "AoE Knockback 6m"
+              ],
+              "originalIcon": "/icons/pack/weapons/shield_40.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C6E-4ACDB4A7",
+              "id": "shield_titan_bulwark",
+              "name": "Titan's Bulwark",
+              "description": "Group invincibility shield for 4s",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/shield_50.png",
+              "tier": 4,
+              "damage": 0,
+              "cooldown": 90,
+              "castTime": 0.5,
+              "range": 8,
+              "projectile": null,
+              "damageType": "holy",
+              "animation": "shield_divine",
+              "physics": null,
+              "effects": [
+                "Group Invincible 4s",
+                "AoE 8m"
+              ],
+              "originalIcon": "/icons/pack/weapons/shield_50.png"
+            }
+          ]
+        }
+      ],
+      "uuid": "ITEM-20260422194034-000C62-40883D2E"
+    },
+    {
+      "id": "GREATSWORD",
+      "name": "Greatsword",
+      "icon": "/icons/pack/weapons/Sword_27.png",
+      "classes": [
+        "Warrior",
+        "Ranger"
+      ],
+      "totalSkills": 12,
+      "slots": [
+        {
+          "type": "primary",
+          "label": "PRIMARY",
+          "unlockTier": 1,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C70-A11C4F75",
+              "id": "gs_cleave",
+              "name": "Cleaving Strike",
+              "description": "Wide arc slash hitting all in front",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Sword_27.png",
+              "tier": 1,
+              "damage": 55,
+              "cooldown": 0,
+              "castTime": 0.4,
+              "range": 3,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "2h_slash",
+              "physics": null,
+              "effects": [
+                "180° Arc",
+                "Builds Momentum"
+              ],
+              "originalIcon": "/icons/pack/weapons/Sword_27.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C71-C4C20FE4",
+              "id": "gs_overhead",
+              "name": "Overhead Slash",
+              "description": "Slow powerful downward strike",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Sword_33.png",
+              "tier": 2,
+              "damage": 80,
+              "cooldown": 3,
+              "castTime": 0.6,
+              "range": 3,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "2h_overhead",
+              "physics": "stagger",
+              "effects": [
+                "Stagger 1s",
+                "+50% vs Armor"
+              ],
+              "originalIcon": "/icons/pack/weapons/Sword_33.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C72-2B1BDED7",
+              "id": "gs_executioner",
+              "name": "Executioner's Swing",
+              "description": "Massive hit, bonus on low HP targets",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Sword_55.png",
+              "tier": 3,
+              "damage": 70,
+              "cooldown": 5,
+              "castTime": 0.7,
+              "range": 3,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "2h_execute",
+              "physics": null,
+              "effects": [
+                "2x dmg <30% HP",
+                "Armor Break"
+              ],
+              "originalIcon": "/icons/pack/weapons/Sword_55.png"
+            }
+          ]
+        },
+        {
+          "type": "secondary",
+          "label": "SECONDARY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C73-21D6DF8A",
+              "id": "gs_whirlwind",
+              "name": "Whirlwind Slash",
+              "description": "360° spin dealing AoE damage",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Slash_07.png",
+              "tier": 1,
+              "damage": 65,
+              "cooldown": 8,
+              "castTime": 0,
+              "range": 4,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "2h_spin",
+              "physics": null,
+              "effects": [
+                "360° AoE 4m",
+                "Mobile"
+              ],
+              "originalIcon": "/icons/pack/misc/Slash_07.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C74-EA0D9D98",
+              "id": "gs_impale",
+              "name": "Impaling Thrust",
+              "description": "Lunge forward, pin target",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Sword_45.png",
+              "tier": 2,
+              "damage": 70,
+              "cooldown": 10,
+              "castTime": 0.3,
+              "range": 6,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "2h_thrust",
+              "physics": "root",
+              "effects": [
+                "Lunge 6m",
+                "Root 1.5s"
+              ],
+              "originalIcon": "/icons/pack/weapons/Sword_45.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C75-49C0C7A4",
+              "id": "gs_giant_reach",
+              "name": "Giant's Reach",
+              "description": "Extended range wave slash",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Flow.png",
+              "tier": 3,
+              "damage": 60,
+              "cooldown": 8,
+              "castTime": 0.5,
+              "range": 8,
+              "projectile": "wave",
+              "damageType": "physical",
+              "animation": "2h_wave",
+              "physics": null,
+              "effects": [
+                "Line 8m",
+                "Pierce All"
+              ],
+              "originalIcon": "/icons/pack/misc/Flow.png"
+            }
+          ]
+        },
+        {
+          "type": "ability",
+          "label": "ABILITY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C76-9753C67D",
+              "id": "gs_bladestorm",
+              "name": "Blade Storm",
+              "description": "Channeled rapid spin, 3s",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Effect.png",
+              "tier": 1,
+              "damage": 120,
+              "cooldown": 15,
+              "castTime": 0,
+              "range": 4,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "2h_channel_spin",
+              "physics": null,
+              "effects": [
+                "Channel 3s",
+                "360° AoE",
+                "Mobile"
+              ],
+              "originalIcon": "/icons/pack/misc/Effect.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C77-4108092E",
+              "id": "gs_colossus",
+              "name": "Colossus Cleave",
+              "description": "Overhead slam creating shockwave",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Power.png",
+              "tier": 2,
+              "damage": 90,
+              "cooldown": 12,
+              "castTime": 0.8,
+              "range": 6,
+              "projectile": "wave",
+              "damageType": "physical",
+              "animation": "2h_slam",
+              "physics": "knockup",
+              "effects": [
+                "Cone 6m",
+                "Knockup 1s"
+              ],
+              "originalIcon": "/icons/pack/misc/Power.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C78-C6DBA0C5",
+              "id": "gs_sunder",
+              "name": "Sundering Strike",
+              "description": "Break target armor permanently",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Chaos.png",
+              "tier": 3,
+              "damage": 75,
+              "cooldown": 10,
+              "castTime": 0.5,
+              "range": 3,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "2h_heavy",
+              "physics": null,
+              "effects": [
+                "-40% Armor 10s",
+                "Cannot Stack"
+              ],
+              "originalIcon": "/icons/pack/misc/Chaos.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C79-6B0E09E6",
+              "id": "gs_judgement",
+              "name": "Judgement Cut",
+              "description": "Teleport slash through enemies in line",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Glow.png",
+              "tier": 4,
+              "damage": 110,
+              "cooldown": 18,
+              "castTime": 0.3,
+              "range": 12,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "2h_teleport_slash",
+              "physics": null,
+              "effects": [
+                "Teleport 12m",
+                "Line AoE",
+                "Bleed 4s"
+              ],
+              "originalIcon": "/icons/pack/misc/Glow.png"
+            }
+          ]
+        },
+        {
+          "type": "ultimate",
+          "label": "ULTIMATE",
+          "unlockTier": 3,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C7A-3B947BEA",
+              "id": "gs_apocalypse",
+              "name": "Apocalypse Edge",
+              "description": "Massive AoE ground slam with shockwave",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Chaos_2.png",
+              "tier": 1,
+              "damage": 220,
+              "cooldown": 55,
+              "castTime": 1,
+              "range": 8,
+              "projectile": "wave",
+              "damageType": "physical",
+              "animation": "2h_ultimate_slam",
+              "physics": "knockup",
+              "effects": [
+                "AoE 8m",
+                "Knockup 2s",
+                "Armor Break"
+              ],
+              "originalIcon": "/icons/pack/misc/Chaos_2.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C7B-A3939D94",
+              "id": "gs_rift",
+              "name": "Dimensional Rift",
+              "description": "Tear reality with blade, pulling enemies",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/ChaosCircle.png",
+              "tier": 4,
+              "damage": 280,
+              "cooldown": 70,
+              "castTime": 1.2,
+              "range": 10,
+              "projectile": "wave",
+              "damageType": "shadow",
+              "animation": "2h_rift",
+              "physics": "pull",
+              "effects": [
+                "Pull 10m",
+                "AoE",
+                "Shadow DoT 6s"
+              ],
+              "originalIcon": "/icons/pack/misc/ChaosCircle.png"
+            }
+          ]
+        }
+      ],
+      "uuid": "ITEM-20260422194034-000C6F-F2B6B5B1"
+    },
+    {
+      "id": "GREATAXE",
+      "name": "Greataxe",
+      "icon": "/icons/pack/weapons/Axe_30.png",
+      "classes": [
+        "Warrior"
+      ],
+      "totalSkills": 12,
+      "slots": [
+        {
+          "type": "primary",
+          "label": "PRIMARY",
+          "unlockTier": 1,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C7D-BC827A37",
+              "id": "ga_brutal",
+              "name": "Brutal Chop",
+              "description": "Slow powerful cleave with bleed",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Axe_30.png",
+              "tier": 1,
+              "damage": 60,
+              "cooldown": 0,
+              "castTime": 0.5,
+              "range": 3,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "2h_axe_chop",
+              "physics": null,
+              "effects": [
+                "Bleed 4s",
+                "180° Arc"
+              ],
+              "originalIcon": "/icons/pack/weapons/Axe_30.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C7E-6362B4E3",
+              "id": "ga_rending",
+              "name": "Rending Swing",
+              "description": "Wide arc, amplifies existing bleeds",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Axe_35.png",
+              "tier": 2,
+              "damage": 55,
+              "cooldown": 2,
+              "castTime": 0.4,
+              "range": 3,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "2h_axe_swing",
+              "physics": null,
+              "effects": [
+                "Refresh Bleeds",
+                "+25% Bleed DMG"
+              ],
+              "originalIcon": "/icons/pack/weapons/Axe_35.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C7F-3DFBBB49",
+              "id": "ga_skull_split",
+              "name": "Skull Splitter",
+              "description": "Overhead smash, ignores 50% armor",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Axe_40.png",
+              "tier": 3,
+              "damage": 85,
+              "cooldown": 5,
+              "castTime": 0.7,
+              "range": 3,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "2h_axe_overhead",
+              "physics": "stagger",
+              "effects": [
+                "Ignore 50% Armor",
+                "Stagger 1.5s"
+              ],
+              "originalIcon": "/icons/pack/weapons/Axe_40.png"
+            }
+          ]
+        },
+        {
+          "type": "secondary",
+          "label": "SECONDARY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C80-BC7F9DDD",
+              "id": "ga_primal_rage",
+              "name": "Primal Rage",
+              "description": "Enter rage, +40% damage, take 15% more",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Burns.png",
+              "tier": 1,
+              "damage": 0,
+              "cooldown": 20,
+              "castTime": 0,
+              "range": 0,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "war_cry",
+              "physics": null,
+              "effects": [
+                "+40% DMG 8s",
+                "+15% DMG Taken"
+              ],
+              "originalIcon": "/icons/pack/misc/Burns.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C81-05BC786D",
+              "id": "ga_berserker_charge",
+              "name": "Berserker Charge",
+              "description": "Unstoppable charge, cleave on arrival",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Flow.png",
+              "tier": 2,
+              "damage": 70,
+              "cooldown": 12,
+              "castTime": 0,
+              "range": 10,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "2h_charge",
+              "physics": "knockback",
+              "effects": [
+                "Charge 10m",
+                "Unstoppable",
+                "Knockback 3m"
+              ],
+              "originalIcon": "/icons/pack/misc/Flow.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C82-07901E2D",
+              "id": "ga_war_cry",
+              "name": "War Cry",
+              "description": "AoE fear, allies gain attack speed",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Electro.png",
+              "tier": 3,
+              "damage": 0,
+              "cooldown": 18,
+              "castTime": 0,
+              "range": 8,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "war_cry",
+              "physics": null,
+              "effects": [
+                "Fear 2s 8m",
+                "Allies +20% Atk Speed"
+              ],
+              "originalIcon": "/icons/pack/misc/Electro.png"
+            }
+          ]
+        },
+        {
+          "type": "ability",
+          "label": "ABILITY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C83-C4201037",
+              "id": "ga_devastate",
+              "name": "Devastate",
+              "description": "3-hit combo finishing with slam",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Axe_45.png",
+              "tier": 1,
+              "damage": 100,
+              "cooldown": 12,
+              "castTime": 0,
+              "range": 3,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "2h_axe_combo",
+              "physics": "knockdown",
+              "effects": [
+                "3-Hit Combo",
+                "Knockdown 1.5s"
+              ],
+              "originalIcon": "/icons/pack/weapons/Axe_45.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C84-448AE0C1",
+              "id": "ga_guillotine",
+              "name": "Guillotine",
+              "description": "Leap slam, massive single target",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Chaos.png",
+              "tier": 2,
+              "damage": 130,
+              "cooldown": 15,
+              "castTime": 0.3,
+              "range": 6,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "2h_leap_slam",
+              "physics": "knockdown",
+              "effects": [
+                "Leap 6m",
+                "AoE 3m",
+                "Knockdown"
+              ],
+              "originalIcon": "/icons/pack/misc/Chaos.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C85-A65EA9A5",
+              "id": "ga_earthshaker",
+              "name": "Earthshaker",
+              "description": "Ground slam creating quake line",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Lighting.png",
+              "tier": 3,
+              "damage": 80,
+              "cooldown": 12,
+              "castTime": 0.6,
+              "range": 10,
+              "projectile": "wave",
+              "damageType": "physical",
+              "animation": "2h_ground_slam",
+              "physics": "knockup",
+              "effects": [
+                "Line 10m",
+                "Knockup 1s",
+                "Slow 3s"
+              ],
+              "originalIcon": "/icons/pack/misc/Lighting.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C86-E0456A18",
+              "id": "ga_blood_frenzy",
+              "name": "Blood Frenzy",
+              "description": "Each hit heals, speed increases",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Burns.png",
+              "tier": 4,
+              "damage": 60,
+              "cooldown": 20,
+              "castTime": 0,
+              "range": 3,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "2h_frenzy",
+              "physics": null,
+              "effects": [
+                "Lifesteal 35% 6s",
+                "+10% Speed/hit"
+              ],
+              "originalIcon": "/icons/pack/misc/Burns.png"
+            }
+          ]
+        },
+        {
+          "type": "ultimate",
+          "label": "ULTIMATE",
+          "unlockTier": 3,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C87-3F551D96",
+              "id": "ga_ragnarok",
+              "name": "Ragnarok Cleave",
+              "description": "Massive 360° spin into ground slam",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Axe_48.png",
+              "tier": 1,
+              "damage": 240,
+              "cooldown": 55,
+              "castTime": 0.8,
+              "range": 6,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "2h_ultimate_spin",
+              "physics": "knockback",
+              "effects": [
+                "360° AoE 6m",
+                "Knockback 8m",
+                "Bleed 8s"
+              ],
+              "originalIcon": "/icons/pack/weapons/Axe_48.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C88-8C4639DA",
+              "id": "ga_blood_reaper",
+              "name": "Blood Reaper",
+              "description": "Become death incarnate, chain kills reset CD",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Chaos_2.png",
+              "tier": 4,
+              "damage": 180,
+              "cooldown": 70,
+              "castTime": 0,
+              "range": 4,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "2h_reaper",
+              "physics": null,
+              "effects": [
+                "Kill = CD Reset",
+                "+60% DMG 10s",
+                "Lifesteal 50%"
+              ],
+              "originalIcon": "/icons/pack/misc/Chaos_2.png"
+            }
+          ]
+        }
+      ],
+      "uuid": "ITEM-20260422194034-000C7C-B180841A"
+    },
+    {
+      "id": "SPEAR",
+      "name": "Spear",
+      "icon": "/icons/pack/weapons/Spear_01.png",
+      "classes": [
+        "Ranger",
+        "Worge"
+      ],
+      "totalSkills": 12,
+      "slots": [
+        {
+          "type": "primary",
+          "label": "PRIMARY",
+          "unlockTier": 1,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C8A-4AF50BA4",
+              "id": "spear_thrust",
+              "name": "Quick Thrust",
+              "description": "Fast jab with extended reach",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Spear_01.png",
+              "tier": 1,
+              "damage": 40,
+              "cooldown": 0,
+              "castTime": 0.2,
+              "range": 4,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "spear_thrust",
+              "physics": null,
+              "effects": [
+                "Range 4m",
+                "Builds Mark"
+              ],
+              "originalIcon": "/icons/pack/weapons/Spear_01.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C8B-676BF5BC",
+              "id": "spear_lunge",
+              "name": "Piercing Lunge",
+              "description": "Lunge forward with armor-piercing stab",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Spear_05.png",
+              "tier": 2,
+              "damage": 55,
+              "cooldown": 3,
+              "castTime": 0.3,
+              "range": 6,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "spear_lunge",
+              "physics": null,
+              "effects": [
+                "Lunge 3m",
+                "Ignore 30% Armor"
+              ],
+              "originalIcon": "/icons/pack/weapons/Spear_05.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C8C-E75B9548",
+              "id": "spear_sweep",
+              "name": "Sweeping Stab",
+              "description": "Low sweep knocking enemies off balance",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Spear_10.png",
+              "tier": 3,
+              "damage": 45,
+              "cooldown": 4,
+              "castTime": 0.3,
+              "range": 4,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "spear_sweep",
+              "physics": "knockdown",
+              "effects": [
+                "180° Arc",
+                "Knockdown 1s"
+              ],
+              "originalIcon": "/icons/pack/weapons/Spear_10.png"
+            }
+          ]
+        },
+        {
+          "type": "secondary",
+          "label": "SECONDARY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C8D-C4F25E01",
+              "id": "spear_javelin",
+              "name": "Javelin Throw",
+              "description": "Hurl spear as ranged projectile",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Spear_15.png",
+              "tier": 1,
+              "damage": 65,
+              "cooldown": 8,
+              "castTime": 0.5,
+              "range": 20,
+              "projectile": "thrown",
+              "damageType": "physical",
+              "animation": "spear_throw",
+              "physics": null,
+              "effects": [
+                "Range 20m",
+                "Pierce First Target"
+              ],
+              "originalIcon": "/icons/pack/weapons/Spear_15.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C8E-2673E2A7",
+              "id": "spear_vault",
+              "name": "Vaulting Strike",
+              "description": "Pole-vault over, strike from above",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Spear_20.png",
+              "tier": 2,
+              "damage": 70,
+              "cooldown": 10,
+              "castTime": 0.3,
+              "range": 8,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "spear_vault",
+              "physics": "stun",
+              "effects": [
+                "Vault 8m",
+                "Stun 1s",
+                "AoE 3m"
+              ],
+              "originalIcon": "/icons/pack/weapons/Spear_20.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C8F-85E86ECF",
+              "id": "spear_wall",
+              "name": "Wall of Spears",
+              "description": "Plant spears creating damage zone",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Spear_25.png",
+              "tier": 3,
+              "damage": 40,
+              "cooldown": 15,
+              "castTime": 0.5,
+              "range": 6,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "spear_plant",
+              "physics": "slow",
+              "effects": [
+                "Zone 6m",
+                "Slow 50%",
+                "8s Duration"
+              ],
+              "originalIcon": "/icons/pack/weapons/Spear_25.png"
+            }
+          ]
+        },
+        {
+          "type": "ability",
+          "label": "ABILITY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C90-B9CC793D",
+              "id": "spear_impale",
+              "name": "Impale",
+              "description": "Pin target, dealing DoT",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Spear_30.png",
+              "tier": 1,
+              "damage": 50,
+              "cooldown": 10,
+              "castTime": 0.4,
+              "range": 4,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "spear_impale",
+              "physics": "root",
+              "effects": [
+                "Root 2s",
+                "Bleed 6s"
+              ],
+              "originalIcon": "/icons/pack/weapons/Spear_30.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C91-CCFFDE93",
+              "id": "spear_cyclone",
+              "name": "Cyclone Sweep",
+              "description": "Rapid spinning sweep",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Flow.png",
+              "tier": 2,
+              "damage": 80,
+              "cooldown": 12,
+              "castTime": 0,
+              "range": 4,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "spear_spin",
+              "physics": "knockback",
+              "effects": [
+                "360° AoE",
+                "Knockback 4m"
+              ],
+              "originalIcon": "/icons/pack/misc/Flow.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C92-BA28CFDF",
+              "id": "spear_dragon",
+              "name": "Dragon Strike",
+              "description": "Charged thrust with fire damage",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Fires.png",
+              "tier": 3,
+              "damage": 100,
+              "cooldown": 14,
+              "castTime": 0.8,
+              "range": 6,
+              "projectile": null,
+              "damageType": "fire",
+              "animation": "spear_dragon",
+              "physics": null,
+              "effects": [
+                "Fire DMG",
+                "Burn 5s",
+                "Pierce"
+              ],
+              "originalIcon": "/icons/pack/misc/Fires.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C93-8651838E",
+              "id": "spear_phantom",
+              "name": "Phantom Lance",
+              "description": "Create spectral spear copies",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Glow.png",
+              "tier": 4,
+              "damage": 90,
+              "cooldown": 16,
+              "castTime": 0.5,
+              "range": 12,
+              "projectile": "spell",
+              "damageType": "shadow",
+              "animation": "spear_phantom",
+              "physics": null,
+              "effects": [
+                "3 Phantom Spears",
+                "Homing",
+                "Pierce"
+              ],
+              "originalIcon": "/icons/pack/misc/Glow.png"
+            }
+          ]
+        },
+        {
+          "type": "ultimate",
+          "label": "ULTIMATE",
+          "unlockTier": 3,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C94-A484B700",
+              "id": "spear_storm",
+              "name": "Storm of Spears",
+              "description": "Rain spectral spears on area",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Spear_35.png",
+              "tier": 1,
+              "damage": 200,
+              "cooldown": 50,
+              "castTime": 0.5,
+              "range": 10,
+              "projectile": "spell",
+              "damageType": "physical",
+              "animation": "spear_rain",
+              "physics": "slow",
+              "effects": [
+                "AoE 10m",
+                "5s Rain",
+                "Slow 60%"
+              ],
+              "originalIcon": "/icons/pack/weapons/Spear_35.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C95-D0ADEAC5",
+              "id": "spear_dragontail",
+              "name": "Dragontail Sweep",
+              "description": "360° sweep launching into air combo",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Spear_40.png",
+              "tier": 4,
+              "damage": 260,
+              "cooldown": 60,
+              "castTime": 0.3,
+              "range": 6,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "spear_ultimate",
+              "physics": "knockup",
+              "effects": [
+                "360° Sweep",
+                "Knockup 3s",
+                "Air Combo"
+              ],
+              "originalIcon": "/icons/pack/weapons/Spear_40.png"
+            }
+          ]
+        }
+      ],
+      "uuid": "ITEM-20260422194034-000C89-4BC1F1E4"
+    },
+    {
+      "id": "TOME",
+      "name": "Tome",
+      "icon": "/icons/pack/weapons/Book_1.png",
+      "classes": [
+        "Mage"
+      ],
+      "totalSkills": 13,
+      "slots": [
+        {
+          "type": "primary",
+          "label": "PRIMARY",
+          "unlockTier": 1,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C97-9DDC5001",
+              "id": "tome_arcane_bolt",
+              "name": "Arcane Bolt",
+              "description": "Homing arcane projectile",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Book_1.png",
+              "tier": 1,
+              "damage": 45,
+              "cooldown": 0,
+              "castTime": 0.5,
+              "range": 25,
+              "projectile": "spell",
+              "damageType": "arcane",
+              "animation": "cast_bolt",
+              "physics": null,
+              "effects": [
+                "Homing",
+                "Range 25m"
+              ],
+              "originalIcon": "/icons/pack/weapons/Book_1.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C98-D2AAE0A7",
+              "id": "tome_elemental",
+              "name": "Elemental Blast",
+              "description": "Charged elemental projectile",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Book_5.png",
+              "tier": 2,
+              "damage": 65,
+              "cooldown": 2,
+              "castTime": 0.8,
+              "range": 20,
+              "projectile": "spell",
+              "damageType": "arcane",
+              "animation": "cast_charge",
+              "physics": null,
+              "effects": [
+                "AoE 3m on Impact",
+                "Element Varies"
+              ],
+              "originalIcon": "/icons/pack/weapons/Book_5.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C99-7DA69822",
+              "id": "tome_spirit_surge",
+              "name": "Spirit Surge",
+              "description": "Channel spirits from tome pages",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Book_10.png",
+              "tier": 3,
+              "damage": 55,
+              "cooldown": 4,
+              "castTime": 0.6,
+              "range": 15,
+              "projectile": "spell",
+              "damageType": "holy",
+              "animation": "cast_channel",
+              "physics": null,
+              "effects": [
+                "Heal Allies 30",
+                "DMG Enemies 55"
+              ],
+              "originalIcon": "/icons/pack/weapons/Book_10.png"
+            }
+          ]
+        },
+        {
+          "type": "secondary",
+          "label": "SECONDARY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C9A-0FFFB332",
+              "id": "tome_mana_shield",
+              "name": "Mana Shield",
+              "description": "Convert mana to damage absorption",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Book_15.png",
+              "tier": 1,
+              "damage": 0,
+              "cooldown": 15,
+              "castTime": 0.3,
+              "range": 0,
+              "projectile": null,
+              "damageType": "arcane",
+              "animation": "cast_shield",
+              "physics": null,
+              "effects": [
+                "Absorb 300",
+                "Drains Mana"
+              ],
+              "originalIcon": "/icons/pack/weapons/Book_15.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C9B-BA5EFC53",
+              "id": "tome_runic_ward",
+              "name": "Runic Ward",
+              "description": "Place ward that heals allies in zone",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/runic_tablet_03.png",
+              "tier": 2,
+              "damage": -50,
+              "cooldown": 18,
+              "castTime": 0.8,
+              "range": 12,
+              "projectile": null,
+              "damageType": "holy",
+              "animation": "cast_ward",
+              "physics": null,
+              "effects": [
+                "Heal Zone 6m",
+                "10s Duration"
+              ],
+              "originalIcon": "/icons/pack/misc/runic_tablet_03.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C9C-A83AE6B3",
+              "id": "tome_knowledge_drain",
+              "name": "Knowledge Drain",
+              "description": "Steal mana and buff from target",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Book_20.png",
+              "tier": 3,
+              "damage": 40,
+              "cooldown": 12,
+              "castTime": 0.6,
+              "range": 15,
+              "projectile": "spell",
+              "damageType": "shadow",
+              "animation": "cast_drain",
+              "physics": null,
+              "effects": [
+                "Steal 1 Buff",
+                "Mana Drain 50"
+              ],
+              "originalIcon": "/icons/pack/weapons/Book_20.png"
+            }
+          ]
+        },
+        {
+          "type": "ability",
+          "label": "ABILITY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000C9D-266191CB",
+              "id": "tome_grimoire",
+              "name": "Grimoire Burst",
+              "description": "Open tome, release stored energy",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Book_7.png",
+              "tier": 1,
+              "damage": 90,
+              "cooldown": 14,
+              "castTime": 0.5,
+              "range": 8,
+              "projectile": "spell",
+              "damageType": "arcane",
+              "animation": "cast_burst",
+              "physics": "knockback",
+              "effects": [
+                "AoE 8m",
+                "Knockback 4m"
+              ],
+              "originalIcon": "/icons/pack/weapons/Book_7.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C9E-0C1D6F5E",
+              "id": "tome_forbidden",
+              "name": "Forbidden Page",
+              "description": "Read forbidden text, massive DoT",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Book_12.png",
+              "tier": 2,
+              "damage": 120,
+              "cooldown": 16,
+              "castTime": 1,
+              "range": 15,
+              "projectile": "spell",
+              "damageType": "shadow",
+              "animation": "cast_dark",
+              "physics": null,
+              "effects": [
+                "Shadow DoT 8s",
+                "Self-Damage 5%"
+              ],
+              "originalIcon": "/icons/pack/weapons/Book_12.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000C9F-63028006",
+              "id": "tome_soul_bind",
+              "name": "Soul Bind",
+              "description": "Link to target, share damage taken",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Life.png",
+              "tier": 3,
+              "damage": 0,
+              "cooldown": 20,
+              "castTime": 0.5,
+              "range": 20,
+              "projectile": "spell",
+              "damageType": "shadow",
+              "animation": "cast_link",
+              "physics": "root",
+              "effects": [
+                "Share 50% DMG 6s",
+                "Root Both 1s"
+              ],
+              "originalIcon": "/icons/pack/misc/Life.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CA0-8D27896B",
+              "id": "tome_reality_tear",
+              "name": "Reality Tear",
+              "description": "Tear space, creating void zone",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/ChaosCircle.png",
+              "tier": 4,
+              "damage": 80,
+              "cooldown": 22,
+              "castTime": 1.2,
+              "range": 15,
+              "projectile": null,
+              "damageType": "shadow",
+              "animation": "cast_void",
+              "physics": "pull",
+              "effects": [
+                "Void Zone 5m",
+                "Pull",
+                "DoT 6s"
+              ],
+              "originalIcon": "/icons/pack/misc/ChaosCircle.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CA1-26593B3A",
+              "id": "tome_ancient",
+              "name": "Ancient Knowledge",
+              "description": "Buff all allies with stats",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Book_25.png",
+              "tier": 5,
+              "damage": 0,
+              "cooldown": 30,
+              "castTime": 1,
+              "range": 12,
+              "projectile": null,
+              "damageType": "holy",
+              "animation": "cast_buff",
+              "physics": null,
+              "effects": [
+                "+15% All Stats",
+                "10s",
+                "AoE 12m"
+              ],
+              "originalIcon": "/icons/pack/weapons/Book_25.png"
+            }
+          ]
+        },
+        {
+          "type": "ultimate",
+          "label": "ULTIMATE",
+          "unlockTier": 3,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000CA2-00D9C0C8",
+              "id": "tome_apocalypse",
+              "name": "Apocalypse Tome",
+              "description": "Unleash all pages, massive AoE",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Book_22.png",
+              "tier": 1,
+              "damage": 250,
+              "cooldown": 55,
+              "castTime": 1.5,
+              "range": 12,
+              "projectile": "spell",
+              "damageType": "arcane",
+              "animation": "cast_ultimate",
+              "physics": "knockup",
+              "effects": [
+                "AoE 12m",
+                "Multi-Element",
+                "Knockup 2s"
+              ],
+              "originalIcon": "/icons/pack/weapons/Book_22.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CA3-3B8726C0",
+              "id": "tome_genesis",
+              "name": "Genesis",
+              "description": "Rewrite reality, full heal allies",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Lights.png",
+              "tier": 4,
+              "damage": -500,
+              "cooldown": 120,
+              "castTime": 2,
+              "range": 15,
+              "projectile": null,
+              "damageType": "holy",
+              "animation": "cast_divine",
+              "physics": null,
+              "effects": [
+                "Full Heal Allies",
+                "Cleanse All",
+                "AoE 15m"
+              ],
+              "originalIcon": "/icons/pack/misc/Lights.png"
+            }
+          ]
+        }
+      ],
+      "uuid": "ITEM-20260422194034-000C96-02C68CF9"
+    },
+    {
+      "id": "MACE",
+      "name": "Mace",
+      "icon": "/icons/pack/weapons/Hammer_21.png",
+      "classes": [
+        "Mage",
+        "Worge"
+      ],
+      "totalSkills": 12,
+      "slots": [
+        {
+          "type": "primary",
+          "label": "PRIMARY",
+          "unlockTier": 1,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000CA5-25CE8D46",
+              "id": "mace_holy_strike",
+              "name": "Holy Strike",
+              "description": "Mace hit infused with holy energy",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Hammer_21.png",
+              "tier": 1,
+              "damage": 45,
+              "cooldown": 0,
+              "castTime": 0.3,
+              "range": 2,
+              "projectile": null,
+              "damageType": "holy",
+              "animation": "1h_mace_swing",
+              "physics": null,
+              "effects": [
+                "Holy DMG",
+                "Builds Devotion"
+              ],
+              "originalIcon": "/icons/pack/weapons/Hammer_21.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CA6-5C7303F7",
+              "id": "mace_crushing",
+              "name": "Crushing Blow",
+              "description": "Overhead smash, stuns briefly",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Hammer_23.png",
+              "tier": 2,
+              "damage": 60,
+              "cooldown": 3,
+              "castTime": 0.4,
+              "range": 2,
+              "projectile": null,
+              "damageType": "physical",
+              "animation": "1h_mace_overhead",
+              "physics": "stun",
+              "effects": [
+                "Stun 1s",
+                "-20% Armor 4s"
+              ],
+              "originalIcon": "/icons/pack/weapons/Hammer_23.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CA7-DD1261BD",
+              "id": "mace_judgement",
+              "name": "Judgement Smite",
+              "description": "Holy-empowered strike with splash",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Hammer_25.png",
+              "tier": 3,
+              "damage": 55,
+              "cooldown": 4,
+              "castTime": 0.4,
+              "range": 3,
+              "projectile": null,
+              "damageType": "holy",
+              "animation": "1h_mace_smite",
+              "physics": null,
+              "effects": [
+                "Holy Splash 3m",
+                "Heal Self 20"
+              ],
+              "originalIcon": "/icons/pack/weapons/Hammer_25.png"
+            }
+          ]
+        },
+        {
+          "type": "secondary",
+          "label": "SECONDARY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000CA8-3C819C43",
+              "id": "mace_sanctify",
+              "name": "Sanctify",
+              "description": "Bless ground, heal allies in zone",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Lights.png",
+              "tier": 1,
+              "damage": -60,
+              "cooldown": 12,
+              "castTime": 0.5,
+              "range": 8,
+              "projectile": null,
+              "damageType": "holy",
+              "animation": "cast_ground",
+              "physics": null,
+              "effects": [
+                "Heal Zone 6m",
+                "6s Duration"
+              ],
+              "originalIcon": "/icons/pack/misc/Lights.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CA9-E3B7FD68",
+              "id": "mace_divine_rush",
+              "name": "Divine Rush",
+              "description": "Dash empowered with holy energy",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Glow.png",
+              "tier": 2,
+              "damage": 50,
+              "cooldown": 10,
+              "castTime": 0,
+              "range": 8,
+              "projectile": null,
+              "damageType": "holy",
+              "animation": "1h_charge",
+              "physics": "knockback",
+              "effects": [
+                "Dash 8m",
+                "Knockback 3m",
+                "Heal 30"
+              ],
+              "originalIcon": "/icons/pack/misc/Glow.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CAA-500DB6A1",
+              "id": "mace_consecrate",
+              "name": "Consecrate",
+              "description": "Create holy ground damaging undead",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Life.png",
+              "tier": 3,
+              "damage": 70,
+              "cooldown": 15,
+              "castTime": 0.6,
+              "range": 0,
+              "projectile": null,
+              "damageType": "holy",
+              "animation": "cast_consecrate",
+              "physics": null,
+              "effects": [
+                "AoE 8m",
+                "2x vs Undead",
+                "8s"
+              ],
+              "originalIcon": "/icons/pack/misc/Life.png"
+            }
+          ]
+        },
+        {
+          "type": "ability",
+          "label": "ABILITY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000CAB-E84087D9",
+              "id": "mace_smite",
+              "name": "Smite",
+              "description": "Call down holy bolt on target",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Lighting.png",
+              "tier": 1,
+              "damage": 80,
+              "cooldown": 10,
+              "castTime": 0.6,
+              "range": 20,
+              "projectile": "spell",
+              "damageType": "holy",
+              "animation": "cast_smite",
+              "physics": "stun",
+              "effects": [
+                "Range 20m",
+                "Stun 1s"
+              ],
+              "originalIcon": "/icons/pack/misc/Lighting.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CAC-55A122ED",
+              "id": "mace_holy_ground",
+              "name": "Holy Ground",
+              "description": "Create persistent heal/damage zone",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/NautreLight.png",
+              "tier": 2,
+              "damage": 50,
+              "cooldown": 18,
+              "castTime": 0.8,
+              "range": 12,
+              "projectile": null,
+              "damageType": "holy",
+              "animation": "cast_zone",
+              "physics": null,
+              "effects": [
+                "Heal Allies 40/s",
+                "DMG Enemies 50/s",
+                "8s"
+              ],
+              "originalIcon": "/icons/pack/misc/NautreLight.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CAD-75C91843",
+              "id": "mace_purify",
+              "name": "Purifying Light",
+              "description": "Cleanse debuffs and heal burst",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Glow.png",
+              "tier": 3,
+              "damage": -100,
+              "cooldown": 15,
+              "castTime": 0.5,
+              "range": 10,
+              "projectile": null,
+              "damageType": "holy",
+              "animation": "cast_cleanse",
+              "physics": null,
+              "effects": [
+                "Cleanse All Debuffs",
+                "Heal 100",
+                "AoE 10m"
+              ],
+              "originalIcon": "/icons/pack/misc/Glow.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CAE-05831631",
+              "id": "mace_retribution",
+              "name": "Retribution",
+              "description": "Store damage taken, release as holy burst",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Effect.png",
+              "tier": 4,
+              "damage": 150,
+              "cooldown": 20,
+              "castTime": 0,
+              "range": 6,
+              "projectile": null,
+              "damageType": "holy",
+              "animation": "1h_mace_burst",
+              "physics": "knockback",
+              "effects": [
+                "Stored DMG x2",
+                "AoE 6m",
+                "Knockback"
+              ],
+              "originalIcon": "/icons/pack/misc/Effect.png"
+            }
+          ]
+        },
+        {
+          "type": "ultimate",
+          "label": "ULTIMATE",
+          "unlockTier": 3,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000CAF-11E7177B",
+              "id": "mace_divine_wrath",
+              "name": "Divine Wrath",
+              "description": "Massive holy explosion",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Lights.png",
+              "tier": 1,
+              "damage": 200,
+              "cooldown": 55,
+              "castTime": 1,
+              "range": 10,
+              "projectile": null,
+              "damageType": "holy",
+              "animation": "cast_divine_wrath",
+              "physics": "knockup",
+              "effects": [
+                "AoE 10m",
+                "Knockup 2s",
+                "Heal Allies Full"
+              ],
+              "originalIcon": "/icons/pack/misc/Lights.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CB0-C83B43B6",
+              "id": "mace_armageddon",
+              "name": "Armageddon",
+              "description": "Rain holy fire from sky",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Lava.png",
+              "tier": 4,
+              "damage": 300,
+              "cooldown": 75,
+              "castTime": 1.5,
+              "range": 12,
+              "projectile": "spell",
+              "damageType": "holy",
+              "animation": "cast_armageddon",
+              "physics": null,
+              "effects": [
+                "AoE 12m",
+                "Holy Fire 8s",
+                "6s Rain"
+              ],
+              "originalIcon": "/icons/pack/misc/Lava.png"
+            }
+          ]
+        }
+      ],
+      "uuid": "ITEM-20260422194034-000CA4-927FBD68"
+    },
+    {
+      "id": "WAND",
+      "name": "Wand",
+      "icon": "/icons/pack/weapons/staff_34.png",
+      "classes": [
+        "Mage"
+      ],
+      "totalSkills": 13,
+      "slots": [
+        {
+          "type": "primary",
+          "label": "PRIMARY",
+          "unlockTier": 1,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000CB2-8F86F24D",
+              "id": "wand_missile",
+              "name": "Magic Missile",
+              "description": "3 homing arcane bolts",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/staff_34.png",
+              "tier": 1,
+              "damage": 40,
+              "cooldown": 0,
+              "castTime": 0.3,
+              "range": 25,
+              "projectile": "spell",
+              "damageType": "arcane",
+              "animation": "wand_cast",
+              "physics": null,
+              "effects": [
+                "3 Missiles",
+                "Homing",
+                "Range 25m"
+              ],
+              "originalIcon": "/icons/pack/weapons/staff_34.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CB3-419EFF81",
+              "id": "wand_pulse",
+              "name": "Arcane Pulse",
+              "description": "Charged pulse with AoE splash",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/staff_46.png",
+              "tier": 2,
+              "damage": 55,
+              "cooldown": 2,
+              "castTime": 0.5,
+              "range": 20,
+              "projectile": "spell",
+              "damageType": "arcane",
+              "animation": "wand_charge",
+              "physics": null,
+              "effects": [
+                "AoE 3m Splash",
+                "Mana Efficient"
+              ],
+              "originalIcon": "/icons/pack/weapons/staff_46.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CB4-ECDB46BA",
+              "id": "wand_void_bolt",
+              "name": "Void Bolt",
+              "description": "Shadow bolt that silences",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/smoke.png",
+              "tier": 3,
+              "damage": 50,
+              "cooldown": 6,
+              "castTime": 0.4,
+              "range": 20,
+              "projectile": "spell",
+              "damageType": "shadow",
+              "animation": "wand_dark",
+              "physics": null,
+              "effects": [
+                "Silence 2s",
+                "Shadow DMG"
+              ],
+              "originalIcon": "/icons/pack/misc/smoke.png"
+            }
+          ]
+        },
+        {
+          "type": "secondary",
+          "label": "SECONDARY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000CB5-30ACF510",
+              "id": "wand_blink",
+              "name": "Blink",
+              "description": "Instant teleport to target location",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Flow.png",
+              "tier": 1,
+              "damage": 0,
+              "cooldown": 12,
+              "castTime": 0,
+              "range": 15,
+              "projectile": null,
+              "damageType": "arcane",
+              "animation": "blink",
+              "physics": null,
+              "effects": [
+                "Teleport 15m",
+                "Invulnerable 0.5s"
+              ],
+              "originalIcon": "/icons/pack/misc/Flow.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CB6-E08186ED",
+              "id": "wand_barrier",
+              "name": "Arcane Barrier",
+              "description": "Create damage absorption shield",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/CircleE.png",
+              "tier": 2,
+              "damage": 0,
+              "cooldown": 18,
+              "castTime": 0.3,
+              "range": 0,
+              "projectile": null,
+              "damageType": "arcane",
+              "animation": "cast_shield",
+              "physics": null,
+              "effects": [
+                "Absorb 400",
+                "Reflects 15%"
+              ],
+              "originalIcon": "/icons/pack/misc/CircleE.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CB7-040254AC",
+              "id": "wand_time_warp",
+              "name": "Time Warp",
+              "description": "Slow time in zone, speed allies",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Electro.png",
+              "tier": 3,
+              "damage": 0,
+              "cooldown": 25,
+              "castTime": 0.5,
+              "range": 10,
+              "projectile": null,
+              "damageType": "arcane",
+              "animation": "cast_time",
+              "physics": "slow",
+              "effects": [
+                "Enemies 50% Slow",
+                "Allies +30% Speed",
+                "6s"
+              ],
+              "originalIcon": "/icons/pack/misc/Electro.png"
+            }
+          ]
+        },
+        {
+          "type": "ability",
+          "label": "ABILITY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000CB8-90865C67",
+              "id": "wand_chain",
+              "name": "Chain Lightning",
+              "description": "Lightning bouncing between enemies",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Lighting.png",
+              "tier": 1,
+              "damage": 70,
+              "cooldown": 10,
+              "castTime": 0.4,
+              "range": 20,
+              "projectile": "spell",
+              "damageType": "lightning",
+              "animation": "wand_lightning",
+              "physics": null,
+              "effects": [
+                "Bounces x5",
+                "-15% per Bounce"
+              ],
+              "originalIcon": "/icons/pack/misc/Lighting.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CB9-4CEC45E8",
+              "id": "wand_polymorph",
+              "name": "Polymorph",
+              "description": "Turn enemy into harmless creature",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Naturecircle.png",
+              "tier": 2,
+              "damage": 0,
+              "cooldown": 20,
+              "castTime": 0.8,
+              "range": 15,
+              "projectile": "spell",
+              "damageType": "arcane",
+              "animation": "wand_transform",
+              "physics": null,
+              "effects": [
+                "Disable 4s",
+                "Breaks on DMG"
+              ],
+              "originalIcon": "/icons/pack/misc/Naturecircle.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CBA-29E00F74",
+              "id": "wand_gravity",
+              "name": "Gravity Well",
+              "description": "Create vortex pulling enemies",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/ChaosCircle.png",
+              "tier": 3,
+              "damage": 60,
+              "cooldown": 15,
+              "castTime": 0.6,
+              "range": 15,
+              "projectile": null,
+              "damageType": "arcane",
+              "animation": "cast_vortex",
+              "physics": "pull",
+              "effects": [
+                "Pull 8m",
+                "DoT 5s",
+                "AoE 6m"
+              ],
+              "originalIcon": "/icons/pack/misc/ChaosCircle.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CBB-033D3747",
+              "id": "wand_disintegrate",
+              "name": "Disintegrate",
+              "description": "Channeled beam, massive single-target",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/CircleL.png",
+              "tier": 4,
+              "damage": 180,
+              "cooldown": 18,
+              "castTime": 0,
+              "range": 20,
+              "projectile": "beam",
+              "damageType": "arcane",
+              "animation": "wand_beam",
+              "physics": null,
+              "effects": [
+                "Channel 3s",
+                "Beam",
+                "Armor Melt"
+              ],
+              "originalIcon": "/icons/pack/misc/CircleL.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CBC-1AFEEA7B",
+              "id": "wand_arcane_explosion",
+              "name": "Arcane Explosion",
+              "description": "Instant AoE burst around caster",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/CircleE.png",
+              "tier": 5,
+              "damage": 100,
+              "cooldown": 8,
+              "castTime": 0,
+              "range": 6,
+              "projectile": null,
+              "damageType": "arcane",
+              "animation": "cast_explosion",
+              "physics": "knockback",
+              "effects": [
+                "Instant",
+                "AoE 6m",
+                "Knockback 4m"
+              ],
+              "originalIcon": "/icons/pack/misc/CircleE.png"
+            }
+          ]
+        },
+        {
+          "type": "ultimate",
+          "label": "ULTIMATE",
+          "unlockTier": 3,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000CBD-634BB53C",
+              "id": "wand_meteor_shower",
+              "name": "Meteor Shower",
+              "description": "Rain meteors on large area",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Lava.png",
+              "tier": 1,
+              "damage": 250,
+              "cooldown": 55,
+              "castTime": 1,
+              "range": 15,
+              "projectile": "spell",
+              "damageType": "fire",
+              "animation": "cast_meteor",
+              "physics": "knockdown",
+              "effects": [
+                "AoE 12m",
+                "6s Duration",
+                "Burn 8s"
+              ],
+              "originalIcon": "/icons/pack/misc/Lava.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CBE-308ADC7D",
+              "id": "wand_singularity",
+              "name": "Void Singularity",
+              "description": "Black hole pulling all, then explodes",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Chaos.png",
+              "tier": 4,
+              "damage": 300,
+              "cooldown": 75,
+              "castTime": 1.5,
+              "range": 15,
+              "projectile": null,
+              "damageType": "shadow",
+              "animation": "cast_void",
+              "physics": "pull",
+              "effects": [
+                "Pull All 15m",
+                "3s Charge",
+                "Explode"
+              ],
+              "originalIcon": "/icons/pack/misc/Chaos.png"
+            }
+          ]
+        }
+      ],
+      "uuid": "ITEM-20260422194034-000CB1-CF836FE7"
+    },
+    {
+      "id": "OFFHAND_RELIC",
+      "name": "Off-Hand Relic",
+      "icon": "/icons/pack/misc/runic_tablet_01.png",
+      "classes": [
+        "Mage",
+        "Worge"
+      ],
+      "totalSkills": 12,
+      "slots": [
+        {
+          "type": "primary",
+          "label": "PRIMARY",
+          "unlockTier": 1,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000CC0-4BA6147B",
+              "id": "relic_spirit_touch",
+              "name": "Spirit Touch",
+              "description": "Channel spirit energy at target",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/runic_tablet_01.png",
+              "tier": 1,
+              "damage": 40,
+              "cooldown": 0,
+              "castTime": 0.4,
+              "range": 15,
+              "projectile": "spell",
+              "damageType": "shadow",
+              "animation": "offhand_cast",
+              "physics": null,
+              "effects": [
+                "Spirit DMG",
+                "Builds Charge"
+              ],
+              "originalIcon": "/icons/pack/misc/runic_tablet_01.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CC1-0DA600BE",
+              "id": "relic_runic_pulse",
+              "name": "Runic Pulse",
+              "description": "Emit runic energy wave",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/runic_tablet_03.png",
+              "tier": 2,
+              "damage": 55,
+              "cooldown": 2,
+              "castTime": 0.3,
+              "range": 10,
+              "projectile": "spell",
+              "damageType": "arcane",
+              "animation": "offhand_pulse",
+              "physics": null,
+              "effects": [
+                "Cone Wave",
+                "Mana Return 10"
+              ],
+              "originalIcon": "/icons/pack/misc/runic_tablet_03.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CC2-B76CAE36",
+              "id": "relic_essence_drain",
+              "name": "Essence Drain",
+              "description": "Drain life force from target",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/runic_tablet_05.png",
+              "tier": 3,
+              "damage": 45,
+              "cooldown": 5,
+              "castTime": 0.5,
+              "range": 15,
+              "projectile": "spell",
+              "damageType": "shadow",
+              "animation": "offhand_drain",
+              "physics": null,
+              "effects": [
+                "Lifesteal 50%",
+                "Mana Drain 20"
+              ],
+              "originalIcon": "/icons/pack/misc/runic_tablet_05.png"
+            }
+          ]
+        },
+        {
+          "type": "secondary",
+          "label": "SECONDARY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000CC3-A2F37A5E",
+              "id": "relic_mystic_shield",
+              "name": "Mystic Shield",
+              "description": "Create ward absorbing spell damage",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/runic_tablet_07.png",
+              "tier": 1,
+              "damage": 0,
+              "cooldown": 15,
+              "castTime": 0.3,
+              "range": 0,
+              "projectile": null,
+              "damageType": "arcane",
+              "animation": "offhand_shield",
+              "physics": null,
+              "effects": [
+                "Absorb 350 Spell DMG",
+                "8s"
+              ],
+              "originalIcon": "/icons/pack/misc/runic_tablet_07.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CC4-CD1F72EE",
+              "id": "relic_soul_link",
+              "name": "Soul Link",
+              "description": "Link to ally, share healing",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Life.png",
+              "tier": 2,
+              "damage": 0,
+              "cooldown": 20,
+              "castTime": 0.5,
+              "range": 20,
+              "projectile": null,
+              "damageType": "holy",
+              "animation": "offhand_link",
+              "physics": null,
+              "effects": [
+                "Share 40% Healing",
+                "Range 20m",
+                "10s"
+              ],
+              "originalIcon": "/icons/pack/misc/Life.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CC5-48D62883",
+              "id": "relic_spirit_walk",
+              "name": "Spirit Walk",
+              "description": "Become ethereal, pass through enemies",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/smoke.png",
+              "tier": 3,
+              "damage": 0,
+              "cooldown": 25,
+              "castTime": 0,
+              "range": 0,
+              "projectile": null,
+              "damageType": "shadow",
+              "animation": "spirit_walk",
+              "physics": null,
+              "effects": [
+                "Ethereal 3s",
+                "Immune to Physical",
+                "+40% Speed"
+              ],
+              "originalIcon": "/icons/pack/misc/smoke.png"
+            }
+          ]
+        },
+        {
+          "type": "ability",
+          "label": "ABILITY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000CC6-7511578D",
+              "id": "relic_curse",
+              "name": "Curse of Weakness",
+              "description": "Reduce target damage output",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/runic_tablet_08.png",
+              "tier": 1,
+              "damage": 0,
+              "cooldown": 12,
+              "castTime": 0.5,
+              "range": 20,
+              "projectile": "spell",
+              "damageType": "shadow",
+              "animation": "offhand_curse",
+              "physics": null,
+              "effects": [
+                "-30% DMG 8s",
+                "Range 20m"
+              ],
+              "originalIcon": "/icons/pack/misc/runic_tablet_08.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CC7-1BCD3F86",
+              "id": "relic_hex",
+              "name": "Hex",
+              "description": "Transform enemy, reducing stats",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/runic_tablet_09.png",
+              "tier": 2,
+              "damage": 30,
+              "cooldown": 18,
+              "castTime": 0.8,
+              "range": 15,
+              "projectile": "spell",
+              "damageType": "shadow",
+              "animation": "offhand_hex",
+              "physics": null,
+              "effects": [
+                "Disable Abilities 3s",
+                "-25% All Stats"
+              ],
+              "originalIcon": "/icons/pack/misc/runic_tablet_09.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CC8-0A90392B",
+              "id": "relic_soul_leech",
+              "name": "Soul Leech",
+              "description": "AoE drain around caster",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/runic_tablet_10.png",
+              "tier": 3,
+              "damage": 60,
+              "cooldown": 14,
+              "castTime": 0,
+              "range": 6,
+              "projectile": null,
+              "damageType": "shadow",
+              "animation": "offhand_leech",
+              "physics": null,
+              "effects": [
+                "AoE 6m",
+                "Heal 100% of DMG"
+              ],
+              "originalIcon": "/icons/pack/misc/runic_tablet_10.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CC9-6B806B73",
+              "id": "relic_doom",
+              "name": "Doom",
+              "description": "Mark target, explodes after delay",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/runic_tablet_12.png",
+              "tier": 4,
+              "damage": 200,
+              "cooldown": 22,
+              "castTime": 0.6,
+              "range": 20,
+              "projectile": "spell",
+              "damageType": "shadow",
+              "animation": "offhand_doom",
+              "physics": "knockback",
+              "effects": [
+                "Delay 3s",
+                "AoE 5m on Explode",
+                "Knockback"
+              ],
+              "originalIcon": "/icons/pack/misc/runic_tablet_12.png"
+            }
+          ]
+        },
+        {
+          "type": "ultimate",
+          "label": "ULTIMATE",
+          "unlockTier": 3,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000CCA-95A0F268",
+              "id": "relic_banshee",
+              "name": "Banshee's Wail",
+              "description": "Spectral scream, fear + massive DoT",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Chaos.png",
+              "tier": 1,
+              "damage": 180,
+              "cooldown": 50,
+              "castTime": 0.5,
+              "range": 10,
+              "projectile": null,
+              "damageType": "shadow",
+              "animation": "offhand_scream",
+              "physics": null,
+              "effects": [
+                "Fear 3s",
+                "Shadow DoT 8s",
+                "AoE 10m"
+              ],
+              "originalIcon": "/icons/pack/misc/Chaos.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CCB-C36E31BC",
+              "id": "relic_soul_storm",
+              "name": "Soul Storm",
+              "description": "Unleash captured souls as projectiles",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/ChaosCircle.png",
+              "tier": 4,
+              "damage": 280,
+              "cooldown": 65,
+              "castTime": 1,
+              "range": 12,
+              "projectile": "spell",
+              "damageType": "shadow",
+              "animation": "offhand_ultimate",
+              "physics": "pull",
+              "effects": [
+                "12 Soul Projectiles",
+                "Homing",
+                "Heal per Hit"
+              ],
+              "originalIcon": "/icons/pack/misc/ChaosCircle.png"
+            }
+          ]
+        }
+      ],
+      "uuid": "ITEM-20260422194034-000CBF-2C27D32A"
+    },
+    {
+      "id": "SCYTHE",
+      "name": "Scythe",
+      "icon": "/icons/pack/weapons/Scythe_01.png",
+      "classes": [
+        "Worge",
+        "Warrior"
+      ],
+      "totalSkills": 12,
+      "slots": [
+        {
+          "type": "primary",
+          "label": "PRIMARY",
+          "unlockTier": 1,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000CCD-7EBA9288",
+              "id": "scythe_reap",
+              "name": "Reaping Slash",
+              "description": "Wide sweeping arc, builds Soul stacks",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Scythe_01.png",
+              "tier": 1,
+              "damage": 50,
+              "cooldown": 0,
+              "castTime": 0.4,
+              "range": 3,
+              "projectile": null,
+              "damageType": "shadow",
+              "animation": "scythe_slash",
+              "physics": null,
+              "effects": [
+                "270° Arc",
+                "Builds Soul Stack"
+              ],
+              "originalIcon": "/icons/pack/weapons/Scythe_01.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CCE-AC0196A1",
+              "id": "scythe_harvest",
+              "name": "Soul Harvest",
+              "description": "Consume souls for burst damage",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Scythe_03.png",
+              "tier": 2,
+              "damage": 70,
+              "cooldown": 3,
+              "castTime": 0.3,
+              "range": 3,
+              "projectile": null,
+              "damageType": "shadow",
+              "animation": "scythe_harvest",
+              "physics": null,
+              "effects": [
+                "+20 DMG per Soul",
+                "Consume Stacks"
+              ],
+              "originalIcon": "/icons/pack/weapons/Scythe_03.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CCF-DF797DD5",
+              "id": "scythe_embrace",
+              "name": "Death's Embrace",
+              "description": "Pull target in, heavy hit",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Scythe_05.png",
+              "tier": 3,
+              "damage": 65,
+              "cooldown": 5,
+              "castTime": 0.3,
+              "range": 8,
+              "projectile": null,
+              "damageType": "shadow",
+              "animation": "scythe_pull",
+              "physics": "pull",
+              "effects": [
+                "Pull 8m",
+                "Root 1s"
+              ],
+              "originalIcon": "/icons/pack/weapons/Scythe_05.png"
+            }
+          ]
+        },
+        {
+          "type": "secondary",
+          "label": "SECONDARY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000CD0-8F5FF113",
+              "id": "scythe_shadow_step",
+              "name": "Shadow Step",
+              "description": "Teleport behind target",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/smoke.png",
+              "tier": 1,
+              "damage": 40,
+              "cooldown": 10,
+              "castTime": 0,
+              "range": 12,
+              "projectile": null,
+              "damageType": "shadow",
+              "animation": "shadow_step",
+              "physics": null,
+              "effects": [
+                "Teleport Behind",
+                "+30% Next Hit"
+              ],
+              "originalIcon": "/icons/pack/misc/smoke.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CD1-B5D9B3BB",
+              "id": "scythe_life_drain",
+              "name": "Life Drain",
+              "description": "Channeled drain, heals self",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Life.png",
+              "tier": 2,
+              "damage": 80,
+              "cooldown": 12,
+              "castTime": 0,
+              "range": 10,
+              "projectile": "beam",
+              "damageType": "shadow",
+              "animation": "scythe_drain",
+              "physics": null,
+              "effects": [
+                "Channel 3s",
+                "Heal 100% of DMG"
+              ],
+              "originalIcon": "/icons/pack/misc/Life.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CD2-C4A6D626",
+              "id": "scythe_chains",
+              "name": "Spectral Chains",
+              "description": "Root multiple targets in area",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/ChaosCircle.png",
+              "tier": 3,
+              "damage": 30,
+              "cooldown": 15,
+              "castTime": 0.5,
+              "range": 8,
+              "projectile": null,
+              "damageType": "shadow",
+              "animation": "scythe_chains",
+              "physics": "root",
+              "effects": [
+                "Root 3s",
+                "AoE 8m",
+                "Shadow DoT"
+              ],
+              "originalIcon": "/icons/pack/misc/ChaosCircle.png"
+            }
+          ]
+        },
+        {
+          "type": "ability",
+          "label": "ABILITY",
+          "unlockTier": 2,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000CD3-6A81A5DF",
+              "id": "scythe_spiral",
+              "name": "Death Spiral",
+              "description": "Spinning scythe AoE channel",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Scythe_06.png",
+              "tier": 1,
+              "damage": 100,
+              "cooldown": 14,
+              "castTime": 0,
+              "range": 4,
+              "projectile": null,
+              "damageType": "shadow",
+              "animation": "scythe_spin",
+              "physics": null,
+              "effects": [
+                "Channel 3s",
+                "360° AoE",
+                "Lifesteal 20%"
+              ],
+              "originalIcon": "/icons/pack/weapons/Scythe_06.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CD4-32982B75",
+              "id": "scythe_corpse",
+              "name": "Corpse Explosion",
+              "description": "Detonate nearby corpses for AoE",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Burns.png",
+              "tier": 2,
+              "damage": 90,
+              "cooldown": 10,
+              "castTime": 0.3,
+              "range": 8,
+              "projectile": null,
+              "damageType": "shadow",
+              "animation": "cast_explosion",
+              "physics": "knockback",
+              "effects": [
+                "Per Corpse +40 DMG",
+                "AoE 5m"
+              ],
+              "originalIcon": "/icons/pack/misc/Burns.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CD5-99FB726F",
+              "id": "scythe_plague",
+              "name": "Plague Swarm",
+              "description": "Release disease cloud, spreading DoT",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Naturecircle.png",
+              "tier": 3,
+              "damage": 60,
+              "cooldown": 16,
+              "castTime": 0.5,
+              "range": 10,
+              "projectile": null,
+              "damageType": "nature",
+              "animation": "cast_plague",
+              "physics": "slow",
+              "effects": [
+                "Spread on Contact",
+                "DoT 8s",
+                "Slow 30%"
+              ],
+              "originalIcon": "/icons/pack/misc/Naturecircle.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CD6-45B45A16",
+              "id": "scythe_necrotic",
+              "name": "Necrotic Wave",
+              "description": "Send death wave forward",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Chaos_2.png",
+              "tier": 4,
+              "damage": 120,
+              "cooldown": 18,
+              "castTime": 0.6,
+              "range": 12,
+              "projectile": "wave",
+              "damageType": "shadow",
+              "animation": "scythe_wave",
+              "physics": null,
+              "effects": [
+                "Line 12m",
+                "Heal Reduction 50%",
+                "Pierce"
+              ],
+              "originalIcon": "/icons/pack/misc/Chaos_2.png"
+            }
+          ]
+        },
+        {
+          "type": "ultimate",
+          "label": "ULTIMATE",
+          "unlockTier": 3,
+          "skills": [
+            {
+              "uuid": "SKIL-20260422194034-000CD7-C2787806",
+              "id": "scythe_grim_reaper",
+              "name": "Grim Reaper",
+              "description": "Transform into Death, AoE execute",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/weapons/Scythe_07.png",
+              "tier": 1,
+              "damage": 200,
+              "cooldown": 55,
+              "castTime": 0.5,
+              "range": 8,
+              "projectile": null,
+              "damageType": "shadow",
+              "animation": "scythe_ultimate",
+              "physics": null,
+              "effects": [
+                "Transform 8s",
+                "Execute <25%",
+                "+50% Speed"
+              ],
+              "originalIcon": "/icons/pack/weapons/Scythe_07.png"
+            },
+            {
+              "uuid": "SKIL-20260422194034-000CD8-53D2AE36",
+              "id": "scythe_apocalypse_harvest",
+              "name": "Apocalypse Harvest",
+              "description": "Mark all enemies, reap souls after delay",
+              "icon": "https://molochdagod.github.io/ObjectStore/icons/pack/misc/Chaos.png",
+              "tier": 4,
+              "damage": 300,
+              "cooldown": 75,
+              "castTime": 1,
+              "range": 15,
+              "projectile": null,
+              "damageType": "shadow",
+              "animation": "scythe_apocalypse",
+              "physics": null,
+              "effects": [
+                "Mark All 15m",
+                "3s Delay",
+                "Unavoidable"
+              ],
+              "originalIcon": "/icons/pack/misc/Chaos.png"
+            }
+          ]
+        }
+      ],
+      "uuid": "ITEM-20260422194034-000CCC-C4880884"
+    }
+  ]
+}

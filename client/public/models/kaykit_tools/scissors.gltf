@@ -1,0 +1,220 @@
+{
+    "asset" : {
+        "generator" : "Khronos glTF Blender I/O v3.4.50",
+        "version" : "2.0"
+    },
+    "scene" : 0,
+    "scenes" : [
+        {
+            "name" : "Scene",
+            "nodes" : [
+                1
+            ]
+        }
+    ],
+    "nodes" : [
+        {
+            "mesh" : 0,
+            "name" : "scissors_part"
+        },
+        {
+            "children" : [
+                0
+            ],
+            "mesh" : 1,
+            "name" : "scissors",
+            "translation" : [
+                0,
+                0,
+                -0.009263068437576294
+            ]
+        }
+    ],
+    "materials" : [
+        {
+            "name" : "tools",
+            "pbrMetallicRoughness" : {
+                "baseColorTexture" : {
+                    "index" : 0
+                },
+                "metallicFactor" : 0,
+                "roughnessFactor" : 0.5
+            }
+        }
+    ],
+    "meshes" : [
+        {
+            "name" : "scissors_part",
+            "primitives" : [
+                {
+                    "attributes" : {
+                        "POSITION" : 0,
+                        "TEXCOORD_0" : 1,
+                        "NORMAL" : 2
+                    },
+                    "indices" : 3,
+                    "material" : 0
+                }
+            ]
+        },
+        {
+            "name" : "scissors",
+            "primitives" : [
+                {
+                    "attributes" : {
+                        "POSITION" : 4,
+                        "TEXCOORD_0" : 5,
+                        "NORMAL" : 6
+                    },
+                    "indices" : 7,
+                    "material" : 0
+                }
+            ]
+        }
+    ],
+    "textures" : [
+        {
+            "sampler" : 0,
+            "source" : 0
+        }
+    ],
+    "images" : [
+        {
+            "mimeType" : "image/png",
+            "name" : "tools_bits_texture",
+            "uri" : "tools_bits_texture.png"
+        }
+    ],
+    "accessors" : [
+        {
+            "bufferView" : 0,
+            "componentType" : 5126,
+            "count" : 308,
+            "max" : [
+                0.1366700530052185,
+                0.6690914630889893,
+                0.026079535484313965
+            ],
+            "min" : [
+                -0.22769583761692047,
+                -0.5329555869102478,
+                -0.02658759243786335
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 1,
+            "componentType" : 5126,
+            "count" : 308,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 2,
+            "componentType" : 5126,
+            "count" : 308,
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 3,
+            "componentType" : 5123,
+            "count" : 1002,
+            "type" : "SCALAR"
+        },
+        {
+            "bufferView" : 4,
+            "componentType" : 5126,
+            "count" : 428,
+            "max" : [
+                0.22769583761692047,
+                0.6690914630889893,
+                0.03769434988498688
+            ],
+            "min" : [
+                -0.1366700530052185,
+                -0.5329555869102478,
+                -0.03718670830130577
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 5,
+            "componentType" : 5126,
+            "count" : 428,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 6,
+            "componentType" : 5126,
+            "count" : 428,
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 7,
+            "componentType" : 5123,
+            "count" : 1338,
+            "type" : "SCALAR"
+        }
+    ],
+    "bufferViews" : [
+        {
+            "buffer" : 0,
+            "byteLength" : 3696,
+            "byteOffset" : 0,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 2464,
+            "byteOffset" : 3696,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 3696,
+            "byteOffset" : 6160,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 2004,
+            "byteOffset" : 9856,
+            "target" : 34963
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 5136,
+            "byteOffset" : 11860,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 3424,
+            "byteOffset" : 16996,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 5136,
+            "byteOffset" : 20420,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 2676,
+            "byteOffset" : 25556,
+            "target" : 34963
+        }
+    ],
+    "samplers" : [
+        {
+            "magFilter" : 9729,
+            "minFilter" : 9987
+        }
+    ],
+    "buffers" : [
+        {
+            "byteLength" : 28232,
+            "uri" : "scissors.bin"
+        }
+    ]
+}

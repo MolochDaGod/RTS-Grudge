@@ -1,0 +1,17 @@
+# LFS-tracked entries from a previous Replit setup were removed:
+#   - all files under attached_assets/ are now gitignored, no LFS needed.
+#   - client/public/models/tutorial_island/scene.glb (>100 MB) is gitignored.
+#   - client/public/models/pirate_islands/scene.bin (>100 MB) is gitignored.
+# Oversized scene files must be hosted on an asset CDN for production
+# (Cloudflare R2 / S3 / Vercel Blob) and loaded by URL at runtime.
+
+*.glb binary
+*.gltf binary
+*.bin binary
+*.fbx binary
+*.ktx2 binary
+*.png binary
+*.jpg binary
+*.webp binary
+*.zip binary
+*.rar binary

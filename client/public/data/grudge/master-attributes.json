@@ -1,0 +1,454 @@
+{
+  "version": "2.0.0",
+  "generated": "2026-04-22T00:55:47.215Z",
+  "total": 8,
+  "levelRange": "0-20",
+  "startingPoints": 20,
+  "pointsPerLevel": 7,
+  "maxPoints": 160,
+  "diminishingReturns": {
+    "threshold": 25,
+    "tier1": {
+      "range": "26-50",
+      "efficiency": 0.5
+    },
+    "tier2": {
+      "range": "51+",
+      "efficiency": 0.25
+    }
+  },
+  "attributes": [
+    {
+      "id": "strength",
+      "name": "Strength",
+      "emoji": "💪",
+      "color": "#ef4444",
+      "icon": "icons/wcs/attributes/strength.png",
+      "role": "Tank / Melee DPS",
+      "description": "High health, damage, and defense with strong combat modifiers. Warriors and Barbarians benefit most.",
+      "gains": {
+        "health": {
+          "label": "Health",
+          "flat": 26,
+          "percent": 0.8
+        },
+        "damage": {
+          "label": "Damage",
+          "flat": 3,
+          "percent": 2
+        },
+        "defense": {
+          "label": "Defense",
+          "flat": 12,
+          "percent": 1.5
+        },
+        "block": {
+          "label": "Block Chance",
+          "flat": 0.5,
+          "percent": 5
+        },
+        "criticalChance": {
+          "label": "Critical Chance",
+          "flat": 0.32,
+          "percent": 7
+        },
+        "blockEffect": {
+          "label": "Block Factor",
+          "flat": 0.85,
+          "percent": 26.3
+        },
+        "criticalDamage": {
+          "label": "Critical Factor",
+          "flat": 1.1,
+          "percent": 1.5
+        }
+      },
+      "uuid": "ATTR-20260421195547-000573-66282B62"
+    },
+    {
+      "id": "vitality",
+      "name": "Vitality",
+      "emoji": "❤️",
+      "color": "#22c55e",
+      "icon": "icons/wcs/attributes/vitality.png",
+      "role": "Tank / Survivability",
+      "description": "Maximum health, defense, and damage mitigation. Important for all frontline fighters.",
+      "gains": {
+        "health": {
+          "label": "Health",
+          "flat": 25,
+          "percent": 0.5
+        },
+        "mana": {
+          "label": "Mana",
+          "flat": 2,
+          "percent": 0.2
+        },
+        "stamina": {
+          "label": "Stamina",
+          "flat": 5,
+          "percent": 0.1
+        },
+        "damage": {
+          "label": "Damage",
+          "flat": 2,
+          "percent": 0.1
+        },
+        "defense": {
+          "label": "Defense",
+          "flat": 12,
+          "percent": 0
+        },
+        "blockEffect": {
+          "label": "Block Factor",
+          "flat": 0.3,
+          "percent": 17
+        },
+        "resistance": {
+          "label": "Resistance",
+          "flat": 0.5,
+          "percent": 0
+        }
+      },
+      "uuid": "ATTR-20260421195547-000574-2255EA41"
+    },
+    {
+      "id": "endurance",
+      "name": "Endurance",
+      "emoji": "🛡️",
+      "color": "#6366f1",
+      "icon": "icons/wcs/attributes/endurance.png",
+      "role": "Defensive Specialist",
+      "description": "Defense, block mechanics, and critical evasion. Dwarves excel here.",
+      "gains": {
+        "health": {
+          "label": "Health",
+          "flat": 10,
+          "percent": 0.1
+        },
+        "stamina": {
+          "label": "Stamina",
+          "flat": 1,
+          "percent": 0.3
+        },
+        "defense": {
+          "label": "Defense",
+          "flat": 12,
+          "percent": 12
+        },
+        "block": {
+          "label": "Block Chance",
+          "flat": 0.11,
+          "percent": 73.5
+        },
+        "blockEffect": {
+          "label": "Block Factor",
+          "flat": 0.27,
+          "percent": 0
+        },
+        "resistance": {
+          "label": "Resistance",
+          "flat": 0.46,
+          "percent": 0
+        }
+      },
+      "uuid": "ATTR-20260421195547-000575-354644ED"
+    },
+    {
+      "id": "intellect",
+      "name": "Intellect",
+      "emoji": "🧠",
+      "color": "#8b5cf6",
+      "icon": "icons/wcs/attributes/intellect.png",
+      "role": "Mage / Caster",
+      "description": "Mana, magic damage, and spell accuracy. Essential for Mage Priests.",
+      "gains": {
+        "mana": {
+          "label": "Mana",
+          "flat": 5,
+          "percent": 5
+        },
+        "damage": {
+          "label": "Damage",
+          "flat": 4,
+          "percent": 2.5
+        },
+        "defense": {
+          "label": "Defense",
+          "flat": 2,
+          "percent": 0
+        },
+        "criticalChance": {
+          "label": "Critical Chance",
+          "flat": 0.23,
+          "percent": 0.1
+        },
+        "accuracy": {
+          "label": "Accuracy",
+          "flat": 0.12,
+          "percent": 33.8
+        },
+        "resistance": {
+          "label": "Resistance",
+          "flat": 0.38,
+          "percent": 17
+        }
+      },
+      "uuid": "ATTR-20260421195547-000576-0FCEF523"
+    },
+    {
+      "id": "wisdom",
+      "name": "Wisdom",
+      "emoji": "✨",
+      "color": "#06b6d4",
+      "icon": "icons/wcs/attributes/wisdom.png",
+      "role": "Healer / Support / Mana Efficiency",
+      "description": "Mana efficiency, survivability, and spell effectiveness. Heal power and mana regeneration.",
+      "gains": {
+        "health": {
+          "label": "Health",
+          "flat": 10,
+          "percent": 0
+        },
+        "mana": {
+          "label": "Mana",
+          "flat": 20,
+          "percent": 3
+        },
+        "damage": {
+          "label": "Damage",
+          "flat": 2,
+          "percent": 1.5
+        },
+        "defense": {
+          "label": "Defense",
+          "flat": 2,
+          "percent": 0
+        },
+        "criticalChance": {
+          "label": "Critical Chance",
+          "flat": 0.5,
+          "percent": 0.15
+        },
+        "resistance": {
+          "label": "Resistance",
+          "flat": 0.5,
+          "percent": 0
+        }
+      },
+      "uuid": "ATTR-20260421195547-000577-917DEB6E"
+    },
+    {
+      "id": "dexterity",
+      "name": "Dexterity",
+      "emoji": "🎯",
+      "color": "#f59e0b",
+      "icon": "icons/wcs/attributes/dexterity.png",
+      "role": "Rogue / Precision Fighter",
+      "description": "Critical strikes, accuracy, and evasion. Key stat for Rangers.",
+      "gains": {
+        "damage": {
+          "label": "Damage",
+          "flat": 3,
+          "percent": 1.8
+        },
+        "defense": {
+          "label": "Defense",
+          "flat": 10,
+          "percent": 1
+        },
+        "block": {
+          "label": "Block Chance",
+          "flat": 0.41,
+          "percent": 1
+        },
+        "criticalChance": {
+          "label": "Critical Chance",
+          "flat": 0.5,
+          "percent": 1.2
+        },
+        "accuracy": {
+          "label": "Accuracy",
+          "flat": 0.7,
+          "percent": 1.5
+        }
+      },
+      "uuid": "ATTR-20260421195547-000578-07F9BBCD"
+    },
+    {
+      "id": "agility",
+      "name": "Agility",
+      "emoji": "⚡",
+      "color": "#10b981",
+      "icon": "icons/wcs/attributes/agility.png",
+      "role": "Mobile DPS / Dodge Tank",
+      "description": "Mobility, critical strikes, and defensive capabilities. Determines action order.",
+      "gains": {
+        "health": {
+          "label": "Health",
+          "flat": 2,
+          "percent": 0.6
+        },
+        "stamina": {
+          "label": "Stamina",
+          "flat": 5,
+          "percent": 0.5
+        },
+        "damage": {
+          "label": "Damage",
+          "flat": 3,
+          "percent": 1.6
+        },
+        "defense": {
+          "label": "Defense",
+          "flat": 5,
+          "percent": 0.8
+        },
+        "criticalChance": {
+          "label": "Critical Chance",
+          "flat": 0.42,
+          "percent": 1
+        }
+      },
+      "uuid": "ATTR-20260421195547-000579-6D61846A"
+    },
+    {
+      "id": "tactics",
+      "name": "Tactics",
+      "emoji": "📜",
+      "color": "#f97316",
+      "icon": "icons/wcs/attributes/tactics.png",
+      "role": "Strategic Fighter / Commander",
+      "description": "Balanced combat stats with penetration abilities. Buff/debuff effectiveness.",
+      "gains": {
+        "health": {
+          "label": "Health",
+          "flat": 10,
+          "percent": 8.4
+        },
+        "mana": {
+          "label": "Mana",
+          "flat": 0,
+          "percent": 8.2
+        },
+        "stamina": {
+          "label": "Stamina",
+          "flat": 1,
+          "percent": 0
+        },
+        "damage": {
+          "label": "Damage",
+          "flat": 3,
+          "percent": 0.2
+        },
+        "defense": {
+          "label": "Defense",
+          "flat": 5,
+          "percent": 0.5
+        },
+        "block": {
+          "label": "Block Chance",
+          "flat": 0.27,
+          "percent": 0.8
+        }
+      },
+      "uuid": "ATTR-20260421195547-00057A-0501E75B"
+    }
+  ],
+  "statDescriptions": {
+    "health": "Maximum Health Points",
+    "mana": "Maximum Mana Points",
+    "stamina": "Maximum Stamina Points",
+    "damage": "Base Attack Damage",
+    "defense": "Physical Defense Rating",
+    "magicDefense": "Magic Defense Rating",
+    "healPower": "Healing Output Bonus",
+    "block": "Block Chance",
+    "blockEffect": "Block Damage Reduction Factor",
+    "evasion": "Evasion Chance",
+    "accuracy": "Hit / Debuff Accuracy",
+    "criticalChance": "Critical Strike Chance",
+    "criticalDamage": "Critical Strike Multiplier",
+    "attackSpeed": "Attack Speed Bonus",
+    "movementSpeed": "Movement Speed Bonus",
+    "resistance": "Debuff Resistance",
+    "cdrResist": "Cooldown Reduction Resistance",
+    "defenseBreakResist": "Defense Break Resistance",
+    "armorPenetration": "Armor Penetration",
+    "blockPenetration": "Block Penetration",
+    "defenseBreak": "Defense Break Factor",
+    "drainHealth": "Health Drain (Lifesteal)",
+    "drainMana": "Mana Drain (Manasteal)",
+    "cooldownReduction": "Cooldown Reduction",
+    "abilityCost": "Ability Cost Reduction",
+    "spellAccuracy": "Spell Hit Accuracy",
+    "stagger": "Stagger Chance",
+    "ccResistance": "Crowd Control Resistance",
+    "damageReduction": "Flat Damage Reduction",
+    "bleedResist": "Bleed Resistance",
+    "statusEffect": "Status Effect Amplification",
+    "spellblock": "Spell Block Chance",
+    "dodge": "Dodge Chance",
+    "reflexTime": "Reflex Time Bonus",
+    "criticalEvasion": "Critical Evasion Chance",
+    "fallDamage": "Fall Damage Reduction",
+    "comboCooldownRed": "Combo Cooldown Reduction"
+  },
+  "statCaps": {
+    "block": {
+      "value": 0.75,
+      "display": "75%",
+      "rationale": "Maintains counterplay, prevents invulnerability"
+    },
+    "criticalChance": {
+      "value": 0.75,
+      "display": "75%",
+      "rationale": "Preserves non-crit damage builds"
+    },
+    "blockEffect": {
+      "value": 0.9,
+      "display": "90%",
+      "rationale": "Allows meaningful blocking without immunity"
+    },
+    "criticalDamage": {
+      "value": 3,
+      "display": "3.0× (300%)",
+      "rationale": "Prevents one-shot mechanics"
+    },
+    "accuracy": {
+      "value": 0.95,
+      "display": "95%",
+      "rationale": "Always 5% chance to resist"
+    },
+    "resistance": {
+      "value": 0.95,
+      "display": "95%",
+      "rationale": "Always 5% chance for debuffs to land"
+    },
+    "drainHealth": {
+      "value": 0.5,
+      "display": "50%",
+      "rationale": "Prevents infinite sustain loops"
+    },
+    "drainMana": {
+      "value": 0.5,
+      "display": "50%",
+      "rationale": "Prevents infinite sustain loops"
+    },
+    "reflectDamage": {
+      "value": 0.5,
+      "display": "50%",
+      "rationale": "Prevents reflect-only strategies"
+    },
+    "absorbHealth": {
+      "value": 0.5,
+      "display": "50%",
+      "rationale": "Prevents excessive regeneration"
+    },
+    "absorbMana": {
+      "value": 0.5,
+      "display": "50%",
+      "rationale": "Prevents excessive regeneration"
+    }
+  }
+}

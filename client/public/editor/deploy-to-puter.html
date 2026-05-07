@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deploy Grudge Engine to Puter</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; background: #1a1a1a; color: #fff; }
+    h1 { color: #10b981; }
+    button { background: #10b981; color: #fff; border: none; padding: 12px 24px; font-size: 16px; cursor: pointer; border-radius: 6px; margin: 10px 0; }
+    button:hover { background: #059669; }
+    button:disabled { background: #666; cursor: not-allowed; }
+    #status { margin-top: 20px; padding: 15px; background: #2a2a2a; border-radius: 6px; }
+    a { color: #10b981; }
+    .info { color: #888; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>Deploy Grudge Engine to Puter.js</h1>
+  <p class="info">This will deploy the Grudge Engine to Puter's free hosting service.</p>
+  
+  <button id="deployBtn" onclick="deployToPuter()">Deploy Now</button>
+  
+  <div id="status"></div>
+
+  <script src="https://js.puter.com/v2/"></script>
+  <script>
+    async function deployToPuter() {
+      const btn = document.getElementById('deployBtn');
+      const status = document.getElementById('status');
+      
+      btn.disabled = true;
+      status.innerHTML = 'Starting deployment...';
+      
+      try {
+        const dirName = 'grudge-engine-' + puter.randName();
+        status.innerHTML += '<br>Creating directory: ' + dirName;
+        await puter.fs.mkdir(dirName);
+        
+        status.innerHTML += '<br>Uploading index.html...';
+        const indexRes = await fetch('./index.html');
+        const indexContent = await indexRes.text();
+        await puter.fs.write(dirName + '/index.html', indexContent);
+        
+        status.innerHTML += '<br>Uploading favicon.png...';
+        const faviconRes = await fetch('./favicon.png');
+        const faviconBlob = await faviconRes.blob();
+        await puter.fs.write(dirName + '/favicon.png', faviconBlob);
+        
+        status.innerHTML += '<br>Creating assets directory...';
+        await puter.fs.mkdir(dirName + '/assets');
+        
+        const assets = [
+          'index-Dpvt92KD.js',
+          'index-CNFbJgsS.css',
+          'oitFinalSimpleBlend.fragment-BYAFiqCo.js',
+          'oitFinalSimpleBlend.fragment-ZqOUOLDd.js',
+          'screenSpaceCurvature.fragment-BL8ooqeK.js',
+          'textureMerger.fragment-B7cwuScz.js',
+          'textureMerger.fragment-CMUmyit-.js',
+          'volumetricLightingBlendVolume.fragment-Dd21j9vQ.js',
+          'volumetricLightingBlendVolume.fragment-DvNKo6PG.js',
+          'volumetricLightingRenderVolume.fragment-DwBRRzcn.js',
+          'volumetricLightingRenderVolume.fragment-Dwcx4pGB.js',
+          'volumetricLightingRenderVolume.vertex-BuEJTy2m.js',
+          'volumetricLightingRenderVolume.vertex-C2n2oFpv.js'
+        ];
+        
+        for (const asset of assets) {
+          status.innerHTML += '<br>Uploading ' + asset + '...';
+          const res = await fetch('./assets/' + asset);
+          const content = await res.text();
+          await puter.fs.write(dirName + '/assets/' + asset, content);
+        }
+        
+        status.innerHTML += '<br>Creating hosting...';
+        const subdomain = 'grudge-engine-' + puter.randName();
+        const site = await puter.hosting.create(subdomain, dirName);
+        
+        status.innerHTML = '<br><strong style="color:#10b981">Deployment successful!</strong>';
+        status.innerHTML += '<br><br>Your site is live at: <a href="https://' + site.subdomain + '.puter.site" target="_blank">https://' + site.subdomain + '.puter.site</a>';
+        
+      } catch (err) {
+        status.innerHTML += '<br><span style="color:#ef4444">Error: ' + err.message + '</span>';
+        console.error(err);
+      }
+      
+      btn.disabled = false;
+    }
+  </script>
+</body>
+</html>

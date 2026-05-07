@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#3a2a1a"/>
+      <stop offset="60%" stop-color="#1a120b"/>
+      <stop offset="100%" stop-color="#000"/>
+    </radialGradient>
+    <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e8d9b8"/>
+      <stop offset="50%" stop-color="#b89a64"/>
+      <stop offset="100%" stop-color="#5a4626"/>
+    </linearGradient>
+  </defs>
+  <circle cx="128" cy="128" r="120" fill="url(#bg)" stroke="#8a6a3a" stroke-width="4"/>
+  <circle cx="128" cy="128" r="108" fill="none" stroke="#5a4626" stroke-width="1.5" stroke-dasharray="3 5"/>
+  <g stroke="url(#metal)" stroke-width="9" stroke-linecap="round" fill="none" opacity="0.95">
+    <line x1="58" y1="58" x2="198" y2="198"/>
+    <line x1="198" y1="58" x2="58" y2="198"/>
+    <polygon points="50,50 70,55 65,70" fill="url(#metal)"/>
+    <polygon points="206,50 186,55 191,70" fill="url(#metal)"/>
+    <polygon points="50,206 70,201 65,186" fill="url(#metal)"/>
+    <polygon points="206,206 186,201 191,186" fill="url(#metal)"/>
+  </g>
+  <g fill="url(#metal)" stroke="#3a2a14" stroke-width="2">
+    <ellipse cx="128" cy="118" rx="48" ry="46"/>
+    <rect x="100" y="160" width="56" height="22" rx="6"/>
+    <rect x="98" y="180" width="14" height="8" rx="2"/>
+    <rect x="121" y="180" width="14" height="8" rx="2"/>
+    <rect x="144" y="180" width="14" height="8" rx="2"/>
+  </g>
+  <g fill="#0a0805">
+    <ellipse cx="111" cy="118" rx="11" ry="14"/>
+    <ellipse cx="145" cy="118" rx="11" ry="14"/>
+    <path d="M118 142 L128 152 L138 142 Z"/>
+  </g>
+</svg>

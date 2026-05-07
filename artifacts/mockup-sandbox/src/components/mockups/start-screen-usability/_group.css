@@ -1,0 +1,34 @@
+/* Group-level styles shared by every variant in start-screen-usability/.
+ * Mirrors the main app's globals so the variants render against the same
+ * fonts, background texture, and dark game-menu look as the real app.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;700&display=swap');
+
+@font-face {
+  font-family: 'MorkDungeon';
+  src: url('/__mockup/fonts/MorkDungeon.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Reset baseline so each preview iframe behaves like a real game viewport */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: #0a0502;
+  color: #fff;
+  font-family: 'Cinzel', serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Helpers used by the variants */
+.menu-bg {
+  background-image: url('/__mockup/images/menu_bg.png');
+  background-size: cover;
+  background-position: center;
+}

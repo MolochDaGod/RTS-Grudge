@@ -1,0 +1,220 @@
+{
+    "asset" : {
+        "generator" : "Khronos glTF Blender I/O v3.4.50",
+        "version" : "2.0"
+    },
+    "scene" : 0,
+    "scenes" : [
+        {
+            "name" : "Scene",
+            "nodes" : [
+                1
+            ]
+        }
+    ],
+    "nodes" : [
+        {
+            "mesh" : 0,
+            "name" : "grindstone_wheel",
+            "translation" : [
+                0,
+                0.7999992370605469,
+                0
+            ]
+        },
+        {
+            "children" : [
+                0
+            ],
+            "mesh" : 1,
+            "name" : "grindstone"
+        }
+    ],
+    "materials" : [
+        {
+            "name" : "tools",
+            "pbrMetallicRoughness" : {
+                "baseColorTexture" : {
+                    "index" : 0
+                },
+                "metallicFactor" : 0,
+                "roughnessFactor" : 0.5
+            }
+        }
+    ],
+    "meshes" : [
+        {
+            "name" : "grindstone_wheel",
+            "primitives" : [
+                {
+                    "attributes" : {
+                        "POSITION" : 0,
+                        "TEXCOORD_0" : 1,
+                        "NORMAL" : 2
+                    },
+                    "indices" : 3,
+                    "material" : 0
+                }
+            ]
+        },
+        {
+            "name" : "grindstone",
+            "primitives" : [
+                {
+                    "attributes" : {
+                        "POSITION" : 4,
+                        "TEXCOORD_0" : 5,
+                        "NORMAL" : 6
+                    },
+                    "indices" : 7,
+                    "material" : 0
+                }
+            ]
+        }
+    ],
+    "textures" : [
+        {
+            "sampler" : 0,
+            "source" : 0
+        }
+    ],
+    "images" : [
+        {
+            "mimeType" : "image/png",
+            "name" : "tools_bits_texture",
+            "uri" : "tools_bits_texture.png"
+        }
+    ],
+    "accessors" : [
+        {
+            "bufferView" : 0,
+            "componentType" : 5126,
+            "count" : 757,
+            "max" : [
+                1.2361620664596558,
+                0.75,
+                0.75
+            ],
+            "min" : [
+                -0.6161594986915588,
+                -0.75,
+                -0.75
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 1,
+            "componentType" : 5126,
+            "count" : 757,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 2,
+            "componentType" : 5126,
+            "count" : 757,
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 3,
+            "componentType" : 5123,
+            "count" : 2112,
+            "type" : "SCALAR"
+        },
+        {
+            "bufferView" : 4,
+            "componentType" : 5126,
+            "count" : 685,
+            "max" : [
+                0.6999999284744263,
+                0.9500002264976501,
+                1.1699999570846558
+            ],
+            "min" : [
+                -0.6999999284744263,
+                8.19563723553074e-08,
+                -1.0999999046325684
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 5,
+            "componentType" : 5126,
+            "count" : 685,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 6,
+            "componentType" : 5126,
+            "count" : 685,
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 7,
+            "componentType" : 5123,
+            "count" : 1230,
+            "type" : "SCALAR"
+        }
+    ],
+    "bufferViews" : [
+        {
+            "buffer" : 0,
+            "byteLength" : 9084,
+            "byteOffset" : 0,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 6056,
+            "byteOffset" : 9084,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 9084,
+            "byteOffset" : 15140,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 4224,
+            "byteOffset" : 24224,
+            "target" : 34963
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 8220,
+            "byteOffset" : 28448,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 5480,
+            "byteOffset" : 36668,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 8220,
+            "byteOffset" : 42148,
+            "target" : 34962
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 2460,
+            "byteOffset" : 50368,
+            "target" : 34963
+        }
+    ],
+    "samplers" : [
+        {
+            "magFilter" : 9729,
+            "minFilter" : 9987
+        }
+    ],
+    "buffers" : [
+        {
+            "byteLength" : 52828,
+            "uri" : "grindstone.bin"
+        }
+    ]
+}

@@ -1,0 +1,33 @@
+node_modules
+dist
+.DS_Store
+server/public
+vite.config.ts.*
+*.tar.gz
+
+# Raw upstream asset packs (FBX/ZIP/etc.). Reproduced into client/public/models
+# by scripts/convert-*.cjs — keep those out of source control so the repo stays
+# pushable. If you need a pack, fetch it from the original supplier.
+attached_assets/
+
+# Working-copy / staging model directory used by the asset pipeline.
+Models/
+
+# Dev tooling / local caches that shouldn't be on origin.
+.local/
+.venv/
+.agents/
+.canvas/
+.sixth/
+
+# Local helper outputs from the deployment audit scripts.
+_tracked_*.txt
+
+# Backup snapshots.
+**/*.bak
+
+# Runtime scene files that exceed GitHub's 100 MB single-file limit. These
+# need to be hosted on an asset CDN (Cloudflare R2 / S3 / Vercel Blob) and
+# loaded by URL in production. Keep them locally for dev, ignore for push.
+client/public/models/tutorial_island/scene.glb
+client/public/models/pirate_islands/scene.bin
