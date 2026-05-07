@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "NODE_ENV=development tsx server/index.ts",
     "build": "tsx script/build.ts",
+    "build:server": "tsx script/build-server.ts",
+    "build:client": "vite build",
     "start": "NODE_ENV=production node dist/index.cjs",
     "check": "tsc",
     "db:push": "drizzle-kit push"
@@ -68,6 +70,7 @@
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.19",
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.0",
     "@types/node": "20.16.11",
     "@types/react": "^18.3.28",

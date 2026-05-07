@@ -1,14 +1,17 @@
 # Nixpacks build config for RTS-Grudge on Railway.
-# Node 20 LTS matches the @types/node version pinned in package.json (20.x).
+# Railway hosts the SERVER ONLY. The client (Vite/React) is deployed separately on Vercel.
+# By skipping viteBuild entirely we avoid @rollup/rollup-win32-x64-msvc (Windows-only optional dep).
 
 [phases.setup]
 nixPkgs = ["nodejs_20", "python3", "gcc", "gnumake"]
 
 [phases.install]
-cmds = ["npm ci --prefer-offline"]
+# --ignore-scripts skips optional platform binaries (rollup win32, etc.)
+cmds = ["npm ci --prefer-offline --ignore-scripts"]
 
 [phases.build]
-cmds = ["npm run build"]
+# build:server runs esbuild only — no Vite, no Rollup.
+cmds = ["npm run build:server"]
 
 [start]
 cmd = "npm start"

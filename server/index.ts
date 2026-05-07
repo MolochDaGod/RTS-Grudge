@@ -1,8 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
+import cors from "cors";
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 import { registerRoutes } from "./routes";
-import { serveStatic } from "./static";
 import { createServer } from "http";
 import path from "path";
 import { attachPvpServer, listPvpRooms } from "./pvp";
@@ -10,6 +10,34 @@ import { attachWorldServer, getWorldStatus } from "./world";
 
 const app = express();
 const httpServer = createServer(app);
+
+// ── CORS — allow Vercel front-end + local dev to reach the Railway API/WS. ──
+// CLIENT_ORIGIN env var (set via Railway ↔ Vercel integration or manually) is
+// the canonical frontend URL. We also whitelist *.vercel.app previews and
+// localhost for local dev.
+const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "";
+const allowedOrigins = new Set<string>([
+  "http://localhost:5000",
+  "http://localhost:3000",
+  "http://localhost:5173",
+]);
+if (CLIENT_ORIGIN) CLIENT_ORIGIN.split(",").map((o) => o.trim()).filter(Boolean).forEach((o) => allowedOrigins.add(o));
+
+app.use(
+  cors({
+    origin: (origin, cb) => {
+      // Allow requests with no origin (curl, server-to-server, mobile apps).
+      if (!origin) return cb(null, true);
+      // Allow any Vercel preview deploy or custom domain listed in CLIENT_ORIGIN.
+      if (allowedOrigins.has(origin) || /\.vercel\.app$/.test(origin)) {
+        return cb(null, true);
+      }
+      cb(new Error(`CORS: origin not allowed — ${origin}`));
+    },
+    credentials: true,
+    methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
+  })
+);
 
 // ── Security headers (production-safe; CSP is intentionally loose so
 //    Three.js / WebGL / Blob workers still load from the same origin). ──────
@@ -139,12 +167,9 @@ app.use((req, res, next) => {
     return res.status(status).json({ message });
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (process.env.NODE_ENV === "production") {
-    serveStatic(app);
-  } else {
+  // In production on Railway the client is served by Vercel — no static files here.
+  // In development, Vite dev server is proxied so hot-reload works as before.
+  if (process.env.NODE_ENV !== "production") {
     const { setupVite } = await import("./vite");
     await setupVite(httpServer, app);
 
