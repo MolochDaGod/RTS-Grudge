@@ -18,7 +18,7 @@
     },
     {
       "source": "/api/:path*",
-      "destination": "${RAILWAY_PUBLIC_URL}/api/:path*"
+      "destination": "https://rts-grudge-server-production.up.railway.app/api/:path*"
     },
     {
       "source": "/((?!api|assets|models|Models|data|sounds|textures|icons|_next).*)",
