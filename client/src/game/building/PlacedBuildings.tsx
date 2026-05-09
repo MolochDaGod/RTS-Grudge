@@ -111,26 +111,31 @@ function GhostBuilding() {
   const selectedBuildingId = useBuildSystem(s => s.selectedBuildingId);
   const ghostPosition = useBuildSystem(s => s.ghostPosition);
   const ghostRotation = useBuildSystem(s => s.ghostRotation);
+  const ghostValid = useBuildSystem(s => s.ghostValid);
   const groupRef = useRef<THREE.Group>(null);
 
   if (!selectedBuildingId || !ghostPosition) return null;
   const def = getBuildingDef(selectedBuildingId);
   if (!def) return null;
 
-  // Footprint plane stays so the player can see exactly which tiles will be claimed.
+  // Green footprint = valid, red = invalid (overlapping or out of zone)
+  const footprintColor = ghostValid ? "#44ff44" : "#ff4444";
+  const ghostTint = ghostValid ? "#4ea1ff" : "#ff6666";
+
   return (
     <group ref={groupRef} position={ghostPosition} rotation={[0, ghostRotation, 0]}>
       <Suspense fallback={
         <mesh>
           <boxGeometry args={[def.size[0], 2, def.size[1]]} />
-          <meshStandardMaterial color="#4ea1ff" transparent opacity={0.4} />
+          <meshStandardMaterial color={ghostTint} transparent opacity={0.4} />
         </mesh>
       }>
         <GhostModel defId={def.id} modelPath={def.modelPath} size={def.size} />
       </Suspense>
+      {/* Footprint plane — green when valid, red when blocked */}
       <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[def.size[0], def.size[1]]} />
-        <meshBasicMaterial color="#4ea1ff" transparent opacity={0.25} />
+        <meshBasicMaterial color={footprintColor} transparent opacity={ghostValid ? 0.25 : 0.35} />
       </mesh>
     </group>
   );
@@ -149,12 +154,13 @@ function BuildingInteraction() {
     rayRef.current.ray.intersectPlane(planeRef.current, intersectionRef.current);
 
     if (intersectionRef.current) {
-      const snapped: [number, number, number] = [
-        Math.round(intersectionRef.current.x / 2) * 2,
-        getTerrainHeight(intersectionRef.current.x, intersectionRef.current.z, globalHeightData),
-        Math.round(intersectionRef.current.z / 2) * 2,
-      ];
-      setGhostPosition(snapped);
+      // Store handles grid snapping and validation internally
+      const terrainY = getTerrainHeight(intersectionRef.current.x, intersectionRef.current.z, globalHeightData);
+      setGhostPosition([
+        intersectionRef.current.x,
+        terrainY,
+        intersectionRef.current.z,
+      ]);
     }
   });
 

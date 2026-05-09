@@ -1,0 +1,195 @@
+import { Heart, Zap, Shield, Anchor } from "lucide-react";
+
+export type HUDMode = "combat" | "ship" | "harvest" | "build" | "explore" | "idle";
+
+export interface SlotDef {
+  id: string;
+  label: string;
+  icon?: string;
+  iconUrl?: string;
+  hotkey: string;
+  cooldown?: number;
+  maxCooldown?: number;
+  disabled?: boolean;
+  active?: boolean;
+  description?: string;
+  onClick?: () => void;
+}
+
+export interface VitalBarDef {
+  id: string;
+  label: string;
+  current: number;
+  max: number;
+  color: string;
+  icon?: "heart" | "zap" | "shield" | "anchor";
+}
+
+export interface GameHUDProps {
+  mode: HUDMode;
+  slots: SlotDef[];
+  vitals?: VitalBarDef[];
+  hint?: string;
+  secondarySlots?: SlotDef[];
+  secondaryLabel?: string;
+  sideLeft?: SlotDef;
+  sideRight?: SlotDef;
+  compact?: boolean;
+}
+
+const MODE_THEME: Record<HUDMode, { border: string; text: string; bg: string; glow: string; label: string }> = {
+  combat:  { border: "border-red-600/50",    text: "text-red-400",    bg: "bg-red-900/30",    glow: "shadow-red-900/30",    label: "COMBAT" },
+  ship:    { border: "border-amber-600/50",  text: "text-amber-400",  bg: "bg-amber-900/30",  glow: "shadow-amber-900/30",  label: "SAILING" },
+  harvest: { border: "border-green-600/50",  text: "text-green-400",  bg: "bg-green-900/30",  glow: "shadow-green-900/30",  label: "HARVEST" },
+  build:   { border: "border-blue-600/50",   text: "text-blue-400",   bg: "bg-blue-900/30",   glow: "shadow-blue-900/30",   label: "BUILD" },
+  explore: { border: "border-purple-600/50", text: "text-purple-400", bg: "bg-purple-900/30", glow: "shadow-purple-900/30", label: "EXPLORE" },
+  idle:    { border: "border-white/20",      text: "text-white/50",   bg: "bg-white/5",       glow: "shadow-black/10",      label: "" },
+};
+
+const VITAL_ICONS = { heart: Heart, zap: Zap, shield: Shield, anchor: Anchor };
+
+function Slot({ slot, theme }: { slot: SlotDef; theme: typeof MODE_THEME.combat }) {
+  const cdFrac = (slot.cooldown && slot.maxCooldown && slot.maxCooldown > 0) ? Math.min(1, slot.cooldown / slot.maxCooldown) : 0;
+  const onCooldown = cdFrac > 0;
+  const isDisabled = slot.disabled || onCooldown;
+
+  return (
+    <div
+      className={`relative w-12 h-12 rounded-md border flex items-center justify-center cursor-pointer select-none group transition-all overflow-hidden
+        ${slot.active
+          ? `${theme.border} ${theme.bg} ring-1 ring-inset ${theme.border}`
+          : isDisabled
+            ? "border-white/10 bg-black/50 opacity-50 cursor-not-allowed"
+            : "border-amber-600/40 bg-black/70 hover:border-amber-400/70 hover:bg-amber-900/30"
+        }`}
+      onClick={() => !isDisabled && slot.onClick?.()}
+      title={slot.description || slot.label}
+      data-testid={`slot-${slot.id}`}
+    >
+      {onCooldown && (
+        <div className="absolute bottom-0 left-0 right-0 bg-black/60 transition-all" style={{ height: `${cdFrac * 100}%` }} />
+      )}
+
+      <div className="relative z-10">
+        {slot.iconUrl ? (
+          <img src={slot.iconUrl} alt={slot.label} className="w-8 h-8 group-hover:scale-110 transition-transform" style={{ imageRendering: "pixelated" }} draggable={false} />
+        ) : (
+          <span className="text-xl leading-none">{slot.icon || "?"}</span>
+        )}
+      </div>
+
+      {onCooldown && (
+        <div className="absolute inset-0 flex items-center justify-center z-20 bg-black/40">
+          <span className="text-[10px] text-white/80 font-bold font-mono">{Math.ceil(slot.cooldown!)}s</span>
+        </div>
+      )}
+
+      <div className="absolute -bottom-0.5 right-0.5 text-[8px] text-amber-400/70 font-mono font-bold z-10">{slot.hotkey}</div>
+
+      <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-black/90 text-white text-[9px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-30 border border-white/10">
+        {slot.label}
+      </div>
+    </div>
+  );
+}
+
+function SideButton({ slot, label }: { slot: SlotDef; label: string }) {
+  const cdFrac = (slot.cooldown && slot.maxCooldown && slot.maxCooldown > 0) ? Math.min(1, slot.cooldown / slot.maxCooldown) : 0;
+  const onCooldown = cdFrac > 0;
+  return (
+    <div className="flex flex-col items-center gap-1 pointer-events-auto">
+      <span className="text-[10px] text-white/30 tracking-widest uppercase">{label}</span>
+      <button
+        onClick={slot.onClick}
+        disabled={slot.disabled || onCooldown}
+        className={`relative w-16 h-14 rounded-xl overflow-hidden border-2 transition-all
+          ${onCooldown || slot.disabled
+            ? "border-white/10 bg-black/40 cursor-not-allowed"
+            : "border-red-600 bg-red-900/60 hover:bg-red-700/70 active:scale-95 cursor-pointer"}`}
+        data-testid={`slot-side-${slot.id}`}
+      >
+        {onCooldown && (
+          <div className="absolute bottom-0 left-0 right-0 bg-red-900/70 transition-all" style={{ height: `${cdFrac * 100}%` }} />
+        )}
+        <div className="relative flex flex-col items-center justify-center h-full">
+          <span className="text-xl">{onCooldown ? "⏳" : (slot.icon || "💥")}</span>
+          <span className="text-white/80 text-[10px] font-bold mt-0.5">
+            {onCooldown ? `${slot.cooldown!.toFixed(1)}s` : slot.label}
+          </span>
+        </div>
+      </button>
+    </div>
+  );
+}
+
+export function GameHUD({ mode, slots, vitals, hint, secondarySlots, secondaryLabel, sideLeft, sideRight, compact = false }: GameHUDProps) {
+  const theme = MODE_THEME[mode];
+
+  return (
+    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 pointer-events-none" data-testid="game-hud">
+      <div className="flex items-end gap-3">
+        {sideLeft && <SideButton slot={sideLeft} label={sideLeft.description || "Left"} />}
+
+        <div className="flex flex-col items-center gap-2 pointer-events-auto">
+          {mode !== "idle" && (
+            <div className={`text-[9px] ${theme.text} tracking-[0.2em] uppercase font-bold opacity-60`}>
+              {theme.label}
+            </div>
+          )}
+
+          {vitals && vitals.length > 0 && (
+            <div className={`bg-black/70 backdrop-blur-sm rounded-lg px-3 ${compact ? "py-1" : "py-1.5"} w-full min-w-[220px] space-y-1`}>
+              {vitals.map(v => {
+                const Ic = v.icon ? VITAL_ICONS[v.icon] : Heart;
+                const pct = Math.max(0, Math.min(100, (v.current / v.max) * 100));
+                return (
+                  <div key={v.id} className="flex items-center gap-2">
+                    <Ic className="w-3.5 h-3.5 shrink-0" style={{ color: v.color }} />
+                    <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: v.color }} data-testid={`vital-${v.id}`} />
+                    </div>
+                    <span className="text-[10px] text-white/50 w-14 text-right font-mono">{Math.ceil(v.current)}/{v.max}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {secondarySlots && secondarySlots.length > 0 && (
+            <div className="bg-black/70 backdrop-blur-sm rounded-lg px-3 py-2 w-full">
+              {secondaryLabel && (
+                <div className="text-[9px] text-white/30 text-center mb-1 tracking-widest uppercase">{secondaryLabel}</div>
+              )}
+              <div className="flex gap-1.5 justify-center flex-wrap">
+                {secondarySlots.map(s => <Slot key={s.id} slot={s} theme={theme} />)}
+              </div>
+            </div>
+          )}
+
+          <div className={`bg-black/70 backdrop-blur-sm rounded-xl ${compact ? "p-1.5" : "p-2"} shadow-lg ${theme.glow} border ${theme.border}`}>
+            <div className={`flex ${compact ? "gap-1" : "gap-1.5"} justify-center`}>
+              {slots.map(s => <Slot key={s.id} slot={s} theme={theme} />)}
+            </div>
+          </div>
+
+          {hint && (
+            <div className="text-center text-[9px] text-white/20 leading-relaxed max-w-[420px]">{hint}</div>
+          )}
+        </div>
+
+        {sideRight && <SideButton slot={sideRight} label={sideRight.description || "Right"} />}
+      </div>
+    </div>
+  );
+}
+
+export function ModeIndicator({ mode }: { mode: HUDMode }) {
+  const theme = MODE_THEME[mode];
+  if (mode === "idle") return null;
+  return (
+    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-sm border ${theme.border}`} data-testid="mode-indicator">
+      <span className={`w-1.5 h-1.5 rounded-full ${theme.bg} ring-1 ${theme.border}`} />
+      <span className={`text-[10px] ${theme.text} tracking-widest uppercase font-bold`}>{theme.label}</span>
+    </div>
+  );
+}

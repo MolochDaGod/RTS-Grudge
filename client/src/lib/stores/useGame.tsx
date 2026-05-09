@@ -8,7 +8,7 @@ export type { HeroClass };
 import { onModeSwitch } from "@/game/controllers/ModeController";
 import { useCampaign } from "@/lib/stores/useCampaign";
 
-export type GamePhase = "menu" | "characterSelect" | "loading" | "intro" | "playing" | "dead" | "paused" | "admin" | "gge" | "controller";
+export type GamePhase = "menu" | "characterSelect" | "raceSelect" | "loading" | "intro" | "playing" | "dead" | "paused" | "admin" | "gge" | "controller";
 export type InteractionMode = "combat" | "build" | "harvest";
 
 export type WeaponType = "sword" | "greatsword" | "staff" | "wand" | "bow" | "axe" | "poleaxe" | "hammer" | "dagger" | "shield" | "fists" | "crossbow" | "gun";
@@ -182,6 +182,7 @@ interface GameState {
   enterTutorialIsland: (returnPos?: { x: number; z: number } | null) => void;
   exitTutorialIsland: () => void;
   goToCharacterSelect: () => void;
+  goToRaceSelect: () => void;
   goToAdmin: () => void;
   goToGGE: () => void;
   goToController: () => void;
@@ -368,6 +369,7 @@ export const useGame = create<GameState>()(
       });
     },
     goToCharacterSelect: () => set({ phase: "characterSelect" }),
+    goToRaceSelect: () => set({ phase: "raceSelect" }),
     goToAdmin: () => set({ phase: "admin" }),
     goToGGE: () => set({ phase: "gge" }),
     goToController: () => set({ phase: "controller" }),

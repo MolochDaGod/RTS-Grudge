@@ -5,7 +5,23 @@
   "framework": "vite",
   "rewrites": [
     {
-      "source": "/((?!api|assets|Models|_next).*)",
+      "source": "/api/game/:path*",
+      "destination": "https://api.grudge-studio.com/:path*"
+    },
+    {
+      "source": "/api/auth/:path*",
+      "destination": "https://id.grudge-studio.com/api/auth/:path*"
+    },
+    {
+      "source": "/api/assets/:path*",
+      "destination": "https://assets.grudge-studio.com/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "${RAILWAY_PUBLIC_URL}/api/:path*"
+    },
+    {
+      "source": "/((?!api|assets|models|Models|data|sounds|textures|icons|_next).*)",
       "destination": "/index.html"
     }
   ],
@@ -20,6 +36,12 @@
       "source": "/(.*\\.(?:glb|gltf|fbx|bin|hdr|exr))",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=86400" }
+      ]
+    },
+    {
+      "source": "/data/grudge/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=604800" }
       ]
     }
   ]

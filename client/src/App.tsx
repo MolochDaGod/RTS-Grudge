@@ -24,6 +24,61 @@ import "@fontsource/inter";
 const GGEEditor = lazy(() => import("./game/editor/GGEEditor"));
 const ControllerPage = lazy(() => import("./game/controller/ControllerPage"));
 
+// ── Race/Class → Game CharacterConfig bridge ─────────────────────────────────
+import { RaceClassSelect } from "./game/character/RaceClassSelect";
+import type { CharacterConfig as RaceCharConfig } from "./game/character/CharacterConfig";
+import type { CharacterConfig as GameCharConfig, CombatClass, WeaponType } from "./lib/stores/useGame";
+
+/** Map grudge6-creator class id → game store CombatClass.
+ *  Mage = caster (ranged spells), Worge = melee (shapeshifter/druid) */
+const CLASS_TO_COMBAT: Record<string, CombatClass> = {
+  warrior: "melee", ranger: "ranger", mage: "caster", worge: "melee",
+};
+/** Map grudge6-creator class id → starting weapon */
+const CLASS_TO_WEAPON: Record<string, { right: WeaponType; left: WeaponType | null }> = {
+  warrior: { right: "sword", left: "shield" },
+  ranger:  { right: "bow",   left: null },
+  mage:    { right: "staff", left: null },
+  worge:   { right: "staff", left: null },  // bone staff, shifts to claws in bear form
+};
+/** Map race.modelKey → faction for lore/NPC system */
+const MODEL_KEY_TO_FACTION: Record<string, string> = {
+  wk: "crusade", elf: "fabled", brb: "crusade",
+  orc: "legion", ud: "legion", barbarian: "crusade",
+};
+
+function raceConfigToGameConfig(rc: RaceCharConfig): GameCharConfig {
+  const classId = rc.id.split("_").pop() ?? "warrior";
+  const raceId = rc.id.replace(`_${classId}`, "");
+  const weapons = CLASS_TO_WEAPON[classId] ?? CLASS_TO_WEAPON.warrior;
+  return {
+    characterId: rc.uuid ?? rc.id,
+    modelPath: `/models/toon_rts/characters/${raceId}.glb`,
+    name: rc.name,
+    scale: 1.0,
+    baseHeight: 1.8,
+    speedMultiplier: rc.speed / 6.0,
+    combatClass: CLASS_TO_COMBAT[classId] ?? "melee",
+    weaponRight: weapons.right,
+    weaponLeft: weapons.left,
+    faction: MODEL_KEY_TO_FACTION[rc.modelKey] ?? "crusade",
+    materialColors: {
+      skin: null, clothing: null, pants: null,
+      hair: null, hat: null, armor: null, detail: null,
+    },
+  };
+}
+
+function RaceSelectBridge() {
+  const { startWithCharacter, restart } = useGame();
+  return (
+    <RaceClassSelect
+      onSelect={(rc) => startWithCharacter(raceConfigToGameConfig(rc))}
+      onBack={restart}
+    />
+  );
+}
+
 function App() {
   const { phase, togglePanel, closePanel, pause, resume, inDungeon, inHousing, inTutorialIsland, restart, goToController } = useGame();
 
@@ -123,6 +178,7 @@ function App() {
       <AutoSaveController />
       {phase === "menu" && <MenuScreen />}
       {phase === "characterSelect" && <CharacterSelectScreen />}
+      {phase === "raceSelect" && <RaceSelectBridge />}
       {phase === "loading" && <LoadingScreen />}
       {phase === "intro" && <IntroCutscene />}
       {(phase === "playing" || phase === "paused") && !inDungeon && !inHousing && !inTutorialIsland && <GameScene />}

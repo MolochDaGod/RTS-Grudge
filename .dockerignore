@@ -1,0 +1,18 @@
+node_modules
+dist
+.git
+.env
+.env.*
+!.env.example
+*.log
+.vscode
+.idea
+.replit*
+.agents
+.claude
+attached_assets
+*.zip
+# Large model files are served by Vercel CDN, not needed in server container
+client/public/models
+client/public/sounds
+client/public/textures

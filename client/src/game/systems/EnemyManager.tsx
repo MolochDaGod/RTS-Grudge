@@ -172,6 +172,45 @@ export function getEnemiesByTier(tier: EnemyTier): EnemyType[] {
     .map(([type]) => type);
 }
 
+/**
+ * Scale an enemy template's stats to a target level (1-20).
+ *
+ * Uses the canonical GW stat curve:
+ *   HP  = base × (1 + 0.15 × (level - 1))   → +15% per level
+ *   DMG = base × (1 + 0.12 × (level - 1))   → +12% per level
+ *   SPD = base × (1 + 0.03 × (level - 1))   → +3% per level
+ *   XP  = base × (1 + 0.20 × (level - 1))   → +20% per level
+ *
+ * Diminishing returns above level 10 (matches the 8-attribute DR curve):
+ *   Levels 1-10:  full scaling
+ *   Levels 11-20: half scaling rate
+ */
+function scaleToLevel(
+  base: { health: number; damage: number; speed: number; xpReward: number },
+  level: number,
+): { health: number; maxHealth: number; damage: number; speed: number; xpReward: number } {
+  const clampedLevel = Math.max(1, Math.min(20, Math.round(level)));
+  // Effective level with DR: full points 1-10, half points 11-20
+  const effectiveLevel =
+    clampedLevel <= 10
+      ? clampedLevel
+      : 10 + (clampedLevel - 10) * 0.5;
+  const hpMult = 1 + 0.15 * (effectiveLevel - 1);
+  const dmgMult = 1 + 0.12 * (effectiveLevel - 1);
+  const spdMult = 1 + 0.03 * (effectiveLevel - 1);
+  const xpMult = 1 + 0.20 * (effectiveLevel - 1);
+  const health = Math.round(base.health * hpMult);
+  return {
+    health,
+    maxHealth: health,
+    damage: Math.round(base.damage * dmgMult),
+    speed: Math.round(base.speed * spdMult * 10) / 10,
+    xpReward: Math.round(base.xpReward * xpMult),
+  };
+}
+
+export { scaleToLevel };
+
 export const useEnemyManager = create<EnemyManagerState>()((set, get) => ({
   enemies: [],
 
