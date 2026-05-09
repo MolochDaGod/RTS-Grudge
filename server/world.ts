@@ -25,6 +25,7 @@ const ALLOWED_ORIGINS = [
   "https://www.grudgewarlords.com",
   "https://rts.grudge-studio.com",
   "https://grudge-studio.com",
+  "https://rts-grudge-git-main-grudgenexus.vercel.app",
   "http://localhost:5000",
   "http://localhost:5173",
   "http://127.0.0.1:5000",
@@ -270,6 +271,7 @@ export function attachWorldServer(httpServer: HttpServer): IOServer {
       origin: (origin, cb) => {
         if (!origin) return cb(null, true);
         if (origin.endsWith(".up.railway.app")) return cb(null, true);
+        if (origin.endsWith(".vercel.app")) return cb(null, true);
         if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
         return cb(new Error(`World origin not allowed: ${origin}`), false);
       },

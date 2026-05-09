@@ -15,6 +15,7 @@ const ALLOWED_ORIGINS = [
   "https://rts.grudge-studio.com",
   "https://grudge-studio.com",
   "https://www.grudge-studio.com",
+  "https://rts-grudge-git-main-grudgenexus.vercel.app",
   "http://localhost:5000",
   "http://localhost:5173",
   "http://127.0.0.1:5000",
