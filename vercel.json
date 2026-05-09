@@ -1,7 +1,7 @@
 {
   "buildCommand": "npm run build:client",
   "outputDirectory": "dist/public",
-  "installCommand": "npm ci --ignore-scripts",
+  "installCommand": "npm ci",
   "framework": "vite",
   "rewrites": [
     {
