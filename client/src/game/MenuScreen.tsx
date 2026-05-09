@@ -22,7 +22,7 @@ const FONTS = {
 const noop = () => {};
 
 export default function MenuScreen() {
-  const { goToGGE, goToController, goToCharacterSelect, enterTutorialIsland } = useGame();
+  const { goToGGE, goToController, goToCharacterSelect, goToRaceSelect, enterTutorialIsland, start } = useGame();
   const startCampaign = useCampaign((s) => s.startCampaign);
 
   // The TUTORIAL ISLAND button is a designer/QA shortcut — it skips
@@ -55,7 +55,18 @@ export default function MenuScreen() {
   // has no wrecked-ship mesh. `inTutorialIsland` survives both the
   // loading and intro phases because `finishLoading` / `finishIntro`
   // never clear it — only `exitTutorialIsland` does.
+  // Race/Class → Character creation → Game
   const handlePlay = () => {
+    goToRaceSelect();
+  };
+
+  // Quick Play — skip character creation, use default character, go straight to game
+  const handleQuickPlay = () => {
+    start();
+  };
+
+  // Campaign mode — old flow with Hero Forge + intro cutscene
+  const handleCampaign = () => {
     startCampaign();
     useGame.setState({ inTutorialIsland: true });
     goToCharacterSelect();
