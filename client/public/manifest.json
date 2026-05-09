@@ -1,0 +1,12 @@
+{
+  "name": "Grudge Warlords — RTS",
+  "short_name": "Grudge RTS",
+  "description": "3D pirate RTS with island building, ship combat, crafting, and faction warfare.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0604",
+  "theme_color": "#c9950a",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

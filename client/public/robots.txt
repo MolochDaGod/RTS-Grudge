@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://rts.grudge-studio.com/sitemap.xml
