@@ -1,54 +1,42 @@
-import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
+import { Pool } from "pg";
 
 /**
- * NOTE: This module uses the @neondatabase/serverless **HTTP** driver.
- * That driver has two quirks we work around explicitly:
- *   1. `INSERT/UPDATE/DELETE ... RETURNING` returns `rowCount` but the
- *      actual rows array is empty. So after every write we do a follow-up
- *      `SELECT` to read back the canonical row.
- *   2. `TIMESTAMPTZ` columns are not parsed by default and JSON-serialise
- *      to `null`. We cast every timestamp we expose to clients with
- *      `::text` so they come back as ISO-style strings.
+ * NOTE: This module uses the standard `pg` (node-postgres) library to connect
+ * to a Railway PostgreSQL instance via a standard postgres:// connection string.
+ * The DATABASE_URL environment variable must be set to the Railway-provided
+ * connection string.
  */
 
-// The HTTP driver supports both the tagged-template form `sql\`...\`` (used
-// for DDL below) and a function-call form `sql(text, params)` for parameter-
-// ised queries. The latter isn't reflected in the upstream types, so we
-// keep a separately-typed handle for the function-call form.
-let _sql: NeonQueryFunction<false, false> | null = null;
-function getSql(): NeonQueryFunction<false, false> {
-  if (!_sql) {
+let _pool: Pool | null = null;
+function getPool(): Pool {
+  if (!_pool) {
     const url = process.env.DATABASE_URL || process.env.GRUDGE_DATABASE_URL;
     if (!url) throw new Error("DATABASE_URL not configured");
-    _sql = neon(url);
+    _pool = new Pool({
+      connectionString: url,
+      // Railway Postgres uses SSL in production; allow self-signed certs.
+      ssl: process.env.NODE_ENV === "production"
+        ? { rejectUnauthorized: false }
+        : false,
+    });
+    _pool.on("error", (err) => {
+      console.error("[saves] pg pool error:", err);
+    });
   }
-  return _sql;
+  return _pool;
 }
-function getSqlFn(): (text: string, params?: unknown[]) => Promise<unknown[]> {
-  const sql = getSql() as unknown as { query: (text: string, params?: unknown[]) => Promise<unknown[] | null> };
-  // The @neondatabase/serverless v1 HTTP driver throws
-  // `TypeError: Cannot read properties of null (reading 'map')`
-  // when a query returns zero rows (it tries to .map() over a null
-  // `fields` array internally). We catch that one specific error and
-  // treat it as the empty result it actually represents — anything else
-  // is a real failure and re-thrown.
-  return async (text, params) => {
-    try {
-      const r = await sql.query(text, params);
-      return Array.isArray(r) ? r : [];
-    } catch (e: any) {
-      const msg = String(e?.message ?? "");
-      if (msg.includes("reading 'map'") || msg.includes("reading \"map\"")) {
-        return [];
-      }
-      throw e;
-    }
-  };
+
+async function query<T = Record<string, unknown>>(
+  text: string,
+  params?: unknown[],
+): Promise<T[]> {
+  const pool = getPool();
+  const result = await pool.query<T>(text, params);
+  return result.rows;
 }
 
 export async function initSavesDB() {
-  const sql = getSql();
-  await sql`
+  await query(`
     CREATE TABLE IF NOT EXISTS game_saves (
       player_id TEXT NOT NULL,
       slot INTEGER NOT NULL DEFAULT 0,
@@ -64,8 +52,10 @@ export async function initSavesDB() {
       updated_at TIMESTAMPTZ DEFAULT NOW(),
       PRIMARY KEY (player_id, slot)
     )
-  `;
-  await sql`CREATE INDEX IF NOT EXISTS game_saves_updated_idx ON game_saves(player_id, updated_at DESC)`;
+  `);
+  await query(
+    `CREATE INDEX IF NOT EXISTS game_saves_updated_idx ON game_saves(player_id, updated_at DESC)`,
+  );
   console.log("[saves] game_saves table ready");
 }
 
@@ -101,30 +91,28 @@ const FULL_COLS = `
 `;
 
 export async function listSaves(playerId: string): Promise<SaveSummary[]> {
-  const sql = getSql();
-  const rows = await getSqlFn()(
+  const rows = await query<SaveSummary>(
     `SELECT ${SUMMARY_COLS}
      FROM game_saves
      WHERE player_id = $1
      ORDER BY slot ASC`,
     [playerId],
   );
-  return (rows as unknown as SaveSummary[]) ?? [];
+  return rows;
 }
 
 export async function loadSave(
   playerId: string,
   slot: number,
 ): Promise<SaveRecord | null> {
-  const sql = getSql();
-  const rows = await getSqlFn()(
+  const rows = await query<SaveRecord>(
     `SELECT ${FULL_COLS}
      FROM game_saves
      WHERE player_id = $1 AND slot = $2
      LIMIT 1`,
     [playerId, slot],
   );
-  return ((rows as unknown as SaveRecord[])?.[0]) ?? null;
+  return rows[0] ?? null;
 }
 
 export interface SaveInput {
@@ -143,8 +131,6 @@ export async function upsertSave(
   slot: number,
   input: SaveInput,
 ): Promise<SaveRecord | { conflict: true; current: SaveRecord }> {
-  const sql = getSql();
-
   if (typeof input.expectedVersion === "number") {
     const existing = await loadSave(playerId, slot);
     if (existing && existing.version !== input.expectedVersion) {
@@ -152,7 +138,7 @@ export async function upsertSave(
     }
   }
 
-  await getSqlFn()(
+  await query(
     `INSERT INTO game_saves (
        player_id, slot, character_id, character_name, character_class,
        character_race, level, play_seconds, save_data, version, updated_at
@@ -185,17 +171,9 @@ export async function upsertSave(
 }
 
 export async function deleteSave(playerId: string, slot: number): Promise<boolean> {
-  const sql = getSql();
-  // Existence check first — see RETURNING quirk in module header.
-  const before = await getSqlFn()(
-    `SELECT 1 AS one FROM game_saves WHERE player_id = $1 AND slot = $2 LIMIT 1`,
-    [playerId, slot],
-  );
-  const beforeArr = Array.isArray(before) ? before : [];
-  if (beforeArr.length === 0) return false;
-  await getSqlFn()(
+  const result = await getPool().query(
     `DELETE FROM game_saves WHERE player_id = $1 AND slot = $2`,
     [playerId, slot],
   );
-  return true;
+  return (result.rowCount ?? 0) > 0;
 }
