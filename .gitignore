@@ -7,3 +7,25 @@ vite.config.ts.*
 .env
 .env.local
 .env.production
+
+# R2/D1 assets (served from CDN)
+Models/
+attached_assets/
+client/public/
+
+# Replit artifacts
+.canvas/
+.local/
+.replit
+_extract/
+artifacts/
+skills-lock.json
+
+# Python tooling
+main.py
+pyproject.toml
+uv.lock
+
+# Misc
+$null
+'

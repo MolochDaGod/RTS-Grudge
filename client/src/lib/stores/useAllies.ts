@@ -3,7 +3,7 @@ import * as THREE from "three";
 
 export type AllyType = "soldier" | "archer" | "knight" | "elite_archer" | "farmer" | "warrior" | "ranger" | "mage" | "wizard" | "captain";
 
-export type AllyBehavior = "idle" | "patrol" | "combat" | "harvest" | "return_to_camp" | "follow" | "sleep" | "go_home";
+export type AllyBehavior = "idle" | "patrol" | "combat" | "harvest" | "return_to_camp" | "follow" | "sleep" | "go_home" | "craft" | "defend";
 
 export type AllyCommand = "follow" | "patrol" | "stay" | "attack_target";
 
@@ -76,6 +76,7 @@ export interface AllyData {
   targetHeight: number;
   spawnedBy: string;
   behavior: AllyBehavior;
+  assignedBuildingUid: string | null;  // building this ally is assigned to (workbench, watchtower, farm)
   personalCommand: AllyCommand | null; // null = obey global; otherwise overrides
   personalTargetId: string | null;     // per-ally target for "attack_target"
   canHarvest: boolean;
@@ -92,7 +93,7 @@ type AllyConfig = Omit<
   AllyData,
   | "id" | "name" | "profession" | "level" | "xp" | "xpToNext"
   | "position" | "patrolCenter" | "patrolRadius" | "homePosition"
-  | "spawnedBy" | "personalCommand" | "personalTargetId"
+  | "spawnedBy" | "assignedBuildingUid" | "personalCommand" | "personalTargetId"
   | "isSleeping" | "kills" | "resourcesGathered"
 >;
 
@@ -286,6 +287,7 @@ interface AlliesState {
   awardXp: (id: string, amount: number, source?: "kill" | "harvest" | "quest") => void;
   setPersonalCommand: (id: string, command: AllyCommand | null, targetId?: string | null) => void;
   setHomePosition: (id: string, home: THREE.Vector3) => void;
+  assignToBuilding: (allyId: string, buildingUid: string | null, behavior?: AllyBehavior) => void;
   selectAlly: (id: string | null) => void;
   getAlliesNear: (pos: THREE.Vector3, radius: number) => AllyData[];
   getCaptainBuff: (pos: THREE.Vector3) => number;
@@ -324,6 +326,7 @@ export const useAllies = create<AlliesState>((set, get) => ({
         patrolRadius,
         homePosition: homePos,
         spawnedBy: buildingUid,
+        assignedBuildingUid: null,
         personalCommand: null,
         personalTargetId: null,
         isSleeping: false,
@@ -415,6 +418,17 @@ export const useAllies = create<AlliesState>((set, get) => ({
 
   setHomePosition: (id, home) => set(s => ({
     allies: s.allies.map(a => a.id === id ? { ...a, homePosition: home.clone() } : a),
+  })),
+
+  assignToBuilding: (allyId, buildingUid, behavior) => set(s => ({
+    allies: s.allies.map(a => {
+      if (a.id !== allyId) return a;
+      return {
+        ...a,
+        assignedBuildingUid: buildingUid,
+        behavior: behavior ?? (buildingUid ? a.behavior : "patrol"),
+      };
+    }),
   })),
 
   selectAlly: (id) => set({ selectedAllyId: id }),
