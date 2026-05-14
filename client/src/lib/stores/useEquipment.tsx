@@ -1,0 +1,200 @@
+import { create } from "zustand";
+
+export type EquipSlot = "helm" | "shoulder" | "chest" | "legs" | "boots" | "belt" | "mainHand" | "offHand" | "gloves" | "cape" | "ring" | "necklace";
+
+export type ItemTier = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+
+export const TIER_INFO: Record<ItemTier, { label: string; color: string; glow: string }> = {
+  1: { label: "Common", color: "#8b7355", glow: "none" },
+  2: { label: "Uncommon", color: "#a8a8a8", glow: "0 0 4px #a8a8a844" },
+  3: { label: "Rare", color: "#4a9eff", glow: "0 0 6px #4a9eff44" },
+  4: { label: "Epic", color: "#9d4dff", glow: "0 0 8px #9d4dff44" },
+  5: { label: "Legendary", color: "#ff4d4d", glow: "0 0 10px #ff4d4d66" },
+  6: { label: "Mythic", color: "#ffaa00", glow: "0 0 12px #ffaa0066" },
+  7: { label: "Ancient", color: "#d4a84b", glow: "0 0 14px #d4a84b88" },
+  8: { label: "Artifact", color: "#f0d890", glow: "0 0 16px #f0d89088" },
+};
+
+export const CDN_BASE = "https://molochdagod.github.io/ObjectStore/icons/pack";
+
+export interface EquipItem {
+  id: string;
+  name: string;
+  slot: EquipSlot;
+  icon: string;
+  iconUrl?: string;
+  tier: ItemTier;
+  stats: Partial<Record<StatKey, number>>;
+  rarity: "common" | "uncommon" | "rare" | "epic" | "legendary" | "mythic" | "ancient" | "artifact";
+  weaponType?: string;
+}
+
+export type StatKey = "health" | "mana" | "stamina" | "damage" | "defense" | "block" | "critChance" | "critDamage" | "attackSpeed" | "movementSpeed" | "accuracy" | "resistance" | "armor" | "armorPenetration" | "healthRegen" | "manaRegen" | "evasion" | "cooldownReduction" | "drainHealth" | "stagger" | "spellAccuracy" | "dodge";
+
+export interface ActionSlot {
+  key: string;
+  label: string;
+  animationName: string | null;
+  cooldown: number;
+  lastUsed: number;
+  icon: string;
+  type: "attack" | "skill" | "item" | "empty";
+}
+
+const DEFAULT_ACTION_SLOTS: ActionSlot[] = [
+  { key: "1", label: "Skill 1", animationName: "skill1", cooldown: 3, lastUsed: 0, icon: "🔥", type: "skill" },
+  { key: "2", label: "Skill 2", animationName: "skill2", cooldown: 4, lastUsed: 0, icon: "⬆️", type: "skill" },
+  { key: "3", label: "Skill 3", animationName: "skill3", cooldown: 5, lastUsed: 0, icon: "🌀", type: "skill" },
+  { key: "4", label: "Skill 4", animationName: "skill4", cooldown: 3, lastUsed: 0, icon: "👊", type: "attack" },
+  { key: "5", label: "Skill 5", animationName: "skill5", cooldown: 4, lastUsed: 0, icon: "💫", type: "attack" },
+  { key: "6", label: "Empty", animationName: null, cooldown: 0, lastUsed: 0, icon: "", type: "empty" },
+  { key: "7", label: "Empty", animationName: null, cooldown: 0, lastUsed: 0, icon: "", type: "empty" },
+  { key: "8", label: "Empty", animationName: null, cooldown: 0, lastUsed: 0, icon: "", type: "empty" },
+];
+
+interface EquipmentState {
+  equipped: Partial<Record<EquipSlot, EquipItem>>;
+  actionSlots: ActionSlot[];
+  level: number;
+  experience: number;
+  experienceToNext: number;
+  gold: number;
+  mana: number;
+  maxMana: number;
+
+  equip: (item: EquipItem) => void;
+  unequip: (slot: EquipSlot) => void;
+  getEquipped: (slot: EquipSlot) => EquipItem | undefined;
+  getTotalStats: () => Partial<Record<StatKey, number>>;
+  setActionSlot: (index: number, slot: Partial<ActionSlot>) => void;
+  clearActionSlot: (index: number) => void;
+  useAction: (index: number) => boolean;
+  addGold: (amount: number) => void;
+  addExperience: (amount: number) => void;
+  useMana: (amount: number) => boolean;
+  regenMana: (delta: number) => void;
+  reset: () => void;
+}
+
+const SLOT_ORDER: EquipSlot[] = ["helm", "shoulder", "chest", "legs", "boots", "belt", "mainHand", "offHand", "gloves", "cape", "ring", "necklace"];
+
+export { SLOT_ORDER };
+
+export const useEquipment = create<EquipmentState>()((set, get) => ({
+  equipped: {},
+  actionSlots: [...DEFAULT_ACTION_SLOTS],
+  level: 1,
+  experience: 0,
+  experienceToNext: 100,
+  gold: 0,
+  mana: 50,
+  maxMana: 50,
+
+  equip: (item) => {
+    set((state) => ({
+      equipped: { ...state.equipped, [item.slot]: item },
+    }));
+  },
+
+  unequip: (slot) => {
+    set((state) => {
+      const newEquipped = { ...state.equipped };
+      delete newEquipped[slot];
+      return { equipped: newEquipped };
+    });
+  },
+
+  getEquipped: (slot) => get().equipped[slot],
+
+  getTotalStats: () => {
+    const { equipped } = get();
+    const totals: Partial<Record<StatKey, number>> = {};
+    for (const item of Object.values(equipped)) {
+      if (!item) continue;
+      for (const [key, val] of Object.entries(item.stats)) {
+        const k = key as StatKey;
+        totals[k] = (totals[k] || 0) + (val || 0);
+      }
+    }
+    return totals;
+  },
+
+  setActionSlot: (index, partial) => {
+    set((state) => {
+      const slots = [...state.actionSlots];
+      slots[index] = { ...slots[index], ...partial };
+      return { actionSlots: slots };
+    });
+  },
+
+  clearActionSlot: (index) => {
+    set((state) => {
+      const slots = [...state.actionSlots];
+      slots[index] = { key: slots[index].key, label: "Empty", animationName: null, cooldown: 0, lastUsed: 0, icon: "", type: "empty" };
+      return { actionSlots: slots };
+    });
+  },
+
+  useAction: (index) => {
+    const { actionSlots, mana } = get();
+    const slot = actionSlots[index];
+    if (!slot || slot.type === "empty" || !slot.animationName) return false;
+    const now = Date.now() / 1000;
+    if (now - slot.lastUsed < slot.cooldown) return false;
+
+    const manaCost = slot.type === "skill" ? 10 : 0;
+    if (mana < manaCost) return false;
+
+    set((state) => {
+      const slots = [...state.actionSlots];
+      slots[index] = { ...slots[index], lastUsed: now };
+      return { actionSlots: slots, mana: state.mana - manaCost };
+    });
+    return true;
+  },
+
+  addGold: (amount) => set((state) => ({ gold: state.gold + amount })),
+
+  addExperience: (amount) => {
+    set((state) => {
+      let exp = state.experience + amount;
+      let lvl = state.level;
+      let toNext = state.experienceToNext;
+      while (exp >= toNext) {
+        exp -= toNext;
+        lvl++;
+        toNext = Math.floor(toNext * 1.5);
+      }
+      return {
+        experience: exp,
+        level: lvl,
+        experienceToNext: toNext,
+        maxMana: 50 + (lvl - 1) * 10,
+      };
+    });
+  },
+
+  useMana: (amount) => {
+    const { mana } = get();
+    if (mana < amount) return false;
+    set({ mana: mana - amount });
+    return true;
+  },
+
+  regenMana: (delta) => {
+    set((state) => ({
+      mana: Math.min(state.maxMana, state.mana + 3 * delta),
+    }));
+  },
+
+  reset: () => set({
+    equipped: {},
+    actionSlots: [...DEFAULT_ACTION_SLOTS],
+    level: 1,
+    experience: 0,
+    experienceToNext: 100,
+    gold: 0,
+    mana: 50,
+    maxMana: 50,
+  }),
+}));
