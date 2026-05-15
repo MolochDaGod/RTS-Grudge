@@ -627,8 +627,15 @@ function PlayerModel({
       }
 
       // Light combo chain: attack1 starts the combo, attack2/3 advance it.
-      if (cur === "attack1") sendCharEvent({ type: "ATTACK_LIGHT" });
-      else if (cur === "attack2" || cur === "attack3") sendCharEvent({ type: "ATTACK_COMBO_NEXT" });
+      // Track combo length in the fatigue system so chains past 3 hits
+      // start draining extra stamina (DRAIN_RATES.comboPer per hit).
+      if (cur === "attack1") {
+        sendCharEvent({ type: "ATTACK_LIGHT" });
+        useFatigue.getState().registerComboHit();
+      } else if (cur === "attack2" || cur === "attack3") {
+        sendCharEvent({ type: "ATTACK_COMBO_NEXT" });
+        useFatigue.getState().registerComboHit();
+      }
 
       // Heavy / charged swings all map to the heavy slot in the parallel
       // combat region (they're upper-body layered with the heavyAttack clip).
@@ -2599,7 +2606,9 @@ function PlayerModel({
         const cidForAtk = useSurvival.getState().activeCharacterId;
         const atkStats = getCachedPlayerStats(cidForAtk);
         const atkSpeedMult = atkStats ? (1 / Math.max(0.5, atkStats.attackSpeed)) : 1.0;
-        actionTimer.current = ACTION_DURATIONS[currentCombatState] * atkSpeedMult;
+        // Fatigue slows attack cadence — exhausted swings take 30% longer.
+        const fatigueAtkMult = 1 / Math.max(0.5, useFatigue.getState().modifiers.attackSpeedMult);
+        actionTimer.current = ACTION_DURATIONS[currentCombatState] * atkSpeedMult * fatigueAtkMult;
       }
     }
 
@@ -2633,6 +2642,7 @@ function PlayerModel({
         inputBufferTime.current = 0;
 
         sendCombat({ type: "ACTION_DONE" });
+        useFatigue.getState().resetCombo();
         lastAnimPlayed.current = "";
 
         if (buffered) {
@@ -2654,9 +2664,11 @@ function PlayerModel({
       }
     }
 
+    // Dash/roll speeds modulated by fatigue — exhausted rolls are sluggish.
+    const fatigueDashMult = useFatigue.getState().modifiers.speedMult;
     if (currentCombatState === "rolling") {
       const facing = modelRef.current ? modelRef.current.rotation.y : 0;
-      const rollSpeed = DASH_SPEED * 0.8;
+      const rollSpeed = DASH_SPEED * 0.8 * fatigueDashMult;
       setLinvel(Math.sin(facing) * rollSpeed, vy, Math.cos(facing) * rollSpeed);
     }
 
@@ -2733,15 +2745,15 @@ function PlayerModel({
 
     if (currentCombatState === "dashing") {
       const facing = modelRef.current ? modelRef.current.rotation.y : 0;
-      const dashVx = Math.sin(facing) * DASH_SPEED;
-      const dashVz = Math.cos(facing) * DASH_SPEED;
+      const dashVx = Math.sin(facing) * DASH_SPEED * fatigueDashMult;
+      const dashVz = Math.cos(facing) * DASH_SPEED * fatigueDashMult;
       setLinvel(dashVx, vy, dashVz);
     }
 
     if (currentCombatState === "dashAttack") {
       const facing = modelRef.current ? modelRef.current.rotation.y : 0;
-      const dashVx = Math.sin(facing) * DASH_SPEED * 0.7;
-      const dashVz = Math.cos(facing) * DASH_SPEED * 0.7;
+      const dashVx = Math.sin(facing) * DASH_SPEED * 0.7 * fatigueDashMult;
+      const dashVz = Math.cos(facing) * DASH_SPEED * 0.7 * fatigueDashMult;
       setLinvel(dashVx, vy, dashVz);
     }
 
@@ -2827,8 +2839,10 @@ function PlayerModel({
       // left/right = lateral shimmy along the captured right tangent.
       const climbV = (keys.forward ? 1 : 0) - (keys.backward ? 1 : 0);
       const climbH = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
-      const CLIMB_UP_SPEED = cs.kind === "ladder" ? 2.4 : 2.0;
-      const CLIMB_LATERAL_SPEED = cs.kind === "ladder" ? 1.4 : 1.6;
+      // Fatigue modulates climb speed — exhausted players crawl at 40%.
+      const climbFatigueMult = useFatigue.getState().modifiers.speedMult;
+      const CLIMB_UP_SPEED = (cs.kind === "ladder" ? 2.4 : 2.0) * climbFatigueMult;
+      const CLIMB_LATERAL_SPEED = (cs.kind === "ladder" ? 1.4 : 1.6) * climbFatigueMult;
       const climbVy = climbV * CLIMB_UP_SPEED;
       const lateralX = cs.right.x * climbH * CLIMB_LATERAL_SPEED;
       const lateralZ = cs.right.z * climbH * CLIMB_LATERAL_SPEED;
@@ -2853,16 +2867,10 @@ function PlayerModel({
       // useCharacterController can swap climb ↔ climb_down.
       sendCharEvent({ type: "CLIMB_VEL", vertical: climbV, lateral: climbH });
 
-      // Vertical climbing drains stamina at a slow rate. Lateral
-      // shimmying is free. Regen is suppressed elsewhere while in
-      // `climbing`, so this produces a real net loss.
-      let staminaExhausted = false;
-      if (climbV !== 0) {
-        const drain = (STAMINA_COSTS.climbing || 8) * Math.min(delta, 0.1);
-        const newStamina = Math.max(0, useSurvival.getState().stamina - drain);
-        useSurvival.setState({ stamina: newStamina });
-        if (newStamina <= 0) staminaExhausted = true;
-      }
+      // Stamina drain for climbing is now handled by fatigue.tick()
+      // (activity flag `climbing: true`), which drains at DRAIN_RATES.climb
+      // (16/sec). We only check if stamina has hit zero for forced dismount.
+      const staminaExhausted = useSurvival.getState().stamina <= 0;
 
       // Drop-off: back-key at the foot of the climb is a soft dismount,
       // and an empty stamina pool forces the same dismount.
@@ -3361,6 +3369,10 @@ function PlayerModel({
       // intentionally don't trigger it. Gated on `gameplay.flashEffects`
       // inside the overlay so the accessibility toggle still applies.
       try { useParryFlash.getState().trigger(); } catch {}
+      // Perfect parry rewards: burst of stamina recovery so skilled
+      // players can sustain longer fights. Mirrors Annihilate's
+      // perfectActionBurst mechanic from the fatigue system.
+      try { useFatigue.getState().perfectActionBurst(12); } catch {}
       spawnDamageNumber(
         0,
         [info.position[0], info.position[1] + 0.5, info.position[2]],
