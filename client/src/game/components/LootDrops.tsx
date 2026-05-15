@@ -4,7 +4,7 @@ import { create } from "zustand";
 import * as THREE from "three";
 import { DroppedLoot, rollLootDrops, collectLoot, shouldPickupLoot, isLootExpired } from "../systems/LootSystem";
 import { registerEnemyDeathCallback, type EnemyData } from "../systems/EnemyManager";
-import { ITEM_MODELS } from "../systems/ModelRegistry";
+import { ITEM_MODELS, getLootModelKey } from "../systems/ModelRegistry";
 import { useCampaign } from "@/lib/stores/useCampaign";
 import { useAsset } from "../hooks/useAsset";
 
@@ -74,6 +74,16 @@ export default function LootDropsRenderer({ playerPosition }: LootDropsRendererP
 
     const currentDrops = useLootDrops.getState().drops;
     for (const drop of currentDrops) {
+      // Magnetic pull: items within 5m drift toward the player
+      const dx = playerPosition.x - drop.position[0];
+      const dz = playerPosition.z - drop.position[2];
+      const dist = Math.sqrt(dx * dx + dz * dz);
+      if (dist < 5.0 && dist > 0.1) {
+        const pull = Math.min(4.0 * delta / dist, 0.5);
+        drop.position[0] += dx * pull;
+        drop.position[2] += dz * pull;
+      }
+
       if (shouldPickupLoot(drop, playerPosition.x, playerPosition.z)) {
         collectLoot(drop);
         useLootDrops.getState().removeDrop(drop.id);
@@ -142,34 +152,65 @@ function PotionDropMesh({ drop }: { drop: DroppedLoot }) {
   );
 }
 
+/** Rarity glow color based on loot type + itemId keywords. */
+function getRarityColor(type: string, itemId: string): string {
+  if (itemId.includes("legendary") || itemId.includes("artifact")) return "#ffaa00";
+  if (itemId.includes("rare") || itemId.includes("crystal") || type === "equipment") return "#aa44ff";
+  if (type === "gold") return "#ffcc00";
+  if (type === "material") return "#44aaff";
+  if (type === "food") return "#44cc44";
+  return "#ffffff";
+}
+
+function LootGLBModel({ modelDef }: { modelDef: { path: string; defaultScale: number } }) {
+  const { scene } = useAsset(modelDef.path);
+  const cloned = useMemo(() => {
+    const clone = scene.clone(true);
+    clone.scale.setScalar(modelDef.defaultScale);
+    clone.traverse(child => {
+      if ((child as THREE.Mesh).isMesh) (child as THREE.Mesh).castShadow = true;
+    });
+    return clone;
+  }, [scene, modelDef.defaultScale]);
+  return <primitive object={cloned} />;
+}
+
 function LootDropMesh({ drop }: { drop: DroppedLoot }) {
   const meshRef = useRef<THREE.Group>(null);
   const startY = drop.position[1];
-
-  const color = useMemo(() => {
-    switch (drop.type) {
-      case "gold": return "#ffcc00";
-      case "material": return "#88aacc";
-      case "food": return "#44cc44";
-      case "equipment": return "#cc44ff";
-      default: return "#ffffff";
-    }
-  }, [drop.type]);
+  const modelKey = getLootModelKey(drop.type, drop.itemId);
+  const modelDef = ITEM_MODELS[modelKey];
+  const rarityColor = getRarityColor(drop.type, drop.itemId);
 
   useFrame(() => {
     if (!meshRef.current) return;
     const t = (Date.now() - drop.spawnTime) * 0.002;
-    meshRef.current.position.y = startY + Math.sin(t) * 0.15 + 0.3;
+    meshRef.current.position.set(drop.position[0], startY + Math.sin(t) * 0.15 + 0.3, drop.position[2]);
     meshRef.current.rotation.y += 0.02;
   });
 
   return (
     <group ref={meshRef} position={drop.position}>
-      <mesh castShadow>
-        <boxGeometry args={[0.2, 0.2, 0.2]} />
-        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} />
-      </mesh>
-      <pointLight color={color} intensity={0.5} distance={3} />
+      {modelDef ? (
+        <Suspense fallback={
+          <mesh castShadow>
+            <boxGeometry args={[0.15, 0.15, 0.15]} />
+            <meshStandardMaterial color={rarityColor} emissive={rarityColor} emissiveIntensity={0.5} />
+          </mesh>
+        }>
+          <LootGLBModel modelDef={modelDef} />
+        </Suspense>
+      ) : (
+        <mesh castShadow>
+          <boxGeometry args={[0.2, 0.2, 0.2]} />
+          <meshStandardMaterial color={rarityColor} emissive={rarityColor} emissiveIntensity={0.5} />
+        </mesh>
+      )}
+      <pointLight color={rarityColor} intensity={0.8} distance={4} />
+      {/* Rarity aura glow */}
+      <sprite scale={[0.5, 0.5, 1]} position={[0, 0.1, 0]}>
+        <spriteMaterial color={rarityColor} transparent opacity={0.25} blending={THREE.AdditiveBlending} depthWrite={false} />
+      </sprite>
     </group>
   );
 }

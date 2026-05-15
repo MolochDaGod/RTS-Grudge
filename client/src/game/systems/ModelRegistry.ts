@@ -99,6 +99,8 @@ export const ALL_CHARACTER_MODELS: ModelEntry[] = [
   { id: "vampire_aristocrat-female", name: "Undead (F)", path: "/models/characters/vampire_aristocrat-female.glb", type: "character", format: "glb", defaultScale: 1.0, defaultHeight: 1.8, category: "caster", combatClass: "caster", description: "Vampire aristocrat. Pale-blooded sorceress marching under the Legion.", race: "undead", faction: "legion", gender: "female", isPlayable: true },
   { id: "werewolf", name: "Werewolf (Worge Form)", path: "/models/characters/werewolf.glb", type: "character", format: "glb", defaultScale: 1.0, defaultHeight: 2.1, category: "beast", combatClass: "melee", description: "Early worge transformation. Lupine bipedal, claws and fangs.", race: "werewolf", faction: "wild", gender: "neutral", isPlayable: false, isWorgeForm: true },
   { id: "lizardfolk-male", name: "Lizardfolk (Worge Form)", path: "/models/characters/lizardfolk-male.glb", type: "character", format: "glb", defaultScale: 1.0, defaultHeight: 2.0, category: "beast", combatClass: "melee", description: "Later worge transformation. Reptilian, scaled, tail-balanced.", race: "lizardfolk", faction: "wild", gender: "male", isPlayable: false, isWorgeForm: true },
+  // Stylized nightmarish werewolf — high-fidelity bear form for Worge class
+  { id: "stylized_nightmarish_werewolf", name: "Werewolf (Worge Bear Form)", path: "/models/characters/stylized_nightmarish_werewolf.glb", type: "character", format: "glb", defaultScale: 1.0, defaultHeight: 2.4, category: "beast", combatClass: "melee", description: "Stylized nightmarish werewolf. High-fidelity Worge bear transformation.", race: "werewolf", faction: "wild", gender: "neutral", isPlayable: false, isWorgeForm: true },
   { id: "goblin_backstabber-male", name: "Goblin Backstabber (M)", path: "/models/characters/goblin_backstabber-male.glb", type: "character", format: "glb", defaultScale: 1.0, defaultHeight: 1.4, category: "creature", combatClass: "melee", description: "Hostile goblin. Small, vicious, dagger-from-behind.", race: "goblin", faction: "hostile", gender: "male", isPlayable: false },
   { id: "goblin_backstabber-female", name: "Goblin Backstabber (F)", path: "/models/characters/goblin_backstabber-female.glb", type: "character", format: "glb", defaultScale: 1.0, defaultHeight: 1.35, category: "creature", combatClass: "melee", description: "Hostile goblin. Quick blades, no honor.", race: "goblin", faction: "hostile", gender: "female", isPlayable: false },
 ];
@@ -457,9 +459,68 @@ export const SPELL_MODELS: SpellModelEntry[] = [
   { id: "spell_rock", name: "Rock", path: "/models/spells/Rock.glb", format: "glb", defaultScale: 0.4, spellType: "projectile", element: "earth" },
 ];
 
-export const ITEM_MODELS = {
-  potion: { path: "/models/items/Potion.glb", defaultScale: 0.3 },
+const S = "/models/dungeon_kaykit/3dspritesa";
+const RC = "/models/dungeon_kaykit/reward chest";
+
+export const ITEM_MODELS: Record<string, { path: string; defaultScale: number }> = {
+  // Legacy
+  potion:              { path: "/models/items/Potion.glb",          defaultScale: 0.3 },
+  // KayKit 3D sprites — loot drops
+  coin:                { path: `${S}/coin.glb`,                    defaultScale: 0.4 },
+  coins_medium:        { path: `${S}/coinsMedium.glb`,             defaultScale: 0.35 },
+  coins_small:         { path: `${S}/coinsSmall.glb`,              defaultScale: 0.35 },
+  artifact:            { path: `${S}/artifact.glb`,                defaultScale: 0.35 },
+  spell_book:          { path: `${S}/spellBook.glb`,               defaultScale: 0.3 },
+  book_a:              { path: `${S}/bookA.glb`,                   defaultScale: 0.3 },
+  book_b:              { path: `${S}/bookB.glb`,                   defaultScale: 0.3 },
+  loot_sack_a:         { path: `${S}/lootSackA.glb`,               defaultScale: 0.35 },
+  loot_sack_b:         { path: `${S}/lootSackB.glb`,               defaultScale: 0.35 },
+  weapon_rack:         { path: `${S}/weaponRack.glb`,              defaultScale: 0.3 },
+  // KayKit potions (6 variants)
+  potion_large_red:    { path: `${S}/potionLarge_red.glb`,         defaultScale: 0.35 },
+  potion_large_blue:   { path: `${S}/potionLarge_blue.glb`,        defaultScale: 0.35 },
+  potion_large_green:  { path: `${S}/potionLarge_green.glb`,       defaultScale: 0.35 },
+  potion_small_red:    { path: `${S}/potionSmall_red.glb`,         defaultScale: 0.35 },
+  potion_small_blue:   { path: `${S}/potionSmall_blue.glb`,        defaultScale: 0.35 },
+  potion_small_green:  { path: `${S}/potionSmall_green.glb`,       defaultScale: 0.35 },
 };
+
+/** Reward chest models by tier, with separate lid pieces for open state. */
+export const REWARD_CHEST_MODELS = {
+  common:    { body: `${RC}/chest_common.glb`,    top: `${RC}/chestTop_common.glb`, scale: 0.5 },
+  uncommon:  { body: `${RC}/chest_uncommon.glb`,  top: `${RC}/chestTop_common.glb`, scale: 0.5 },
+  rare:      { body: `${RC}/chest_rare.glb`,      top: `${RC}/chestTop_rare.glb`,   scale: 0.5 },
+  mimic:     { body: `${RC}/chest_rare_mimic.glb`, top: `${RC}/chestTop_rare.glb`,  scale: 0.5 },
+} as const;
+
+export type RewardChestTier = keyof typeof REWARD_CHEST_MODELS;
+
+/** Map loot drop type → best ITEM_MODELS key for the 3D sprite. */
+export function getLootModelKey(type: string, itemId: string): string {
+  // Potions → KayKit potion models by color
+  if (type === "potion") {
+    if (itemId.includes("mana")) return "potion_large_blue";
+    if (itemId.includes("stamina") || itemId.includes("speed")) return "potion_large_green";
+    return "potion_large_red";
+  }
+  // Gold → coin pile size by quantity context
+  if (type === "gold") return "coins_medium";
+  // Materials → varies
+  if (type === "material") {
+    if (itemId.includes("gem") || itemId.includes("crystal") || itemId.includes("shard")) return "artifact";
+    if (itemId.includes("bone")) return "loot_sack_a";
+    return "loot_sack_b";
+  }
+  // Equipment → weapon rack or spell book
+  if (type === "equipment") {
+    if (itemId.includes("scroll")) return "spell_book";
+    return "weapon_rack";
+  }
+  // Food → loot sack
+  if (type === "food") return "loot_sack_a";
+  // Default
+  return "coin";
+}
 
 export const KAYKIT_WEAPONS: WeaponModelEntry[] = [
   { id: "kk_sword_a", name: "KayKit Sword A", path: "/models/kaykit_weapons/sword_A.glb", format: "glb", category: "blade", weaponType: "sword", defaultScale: 1.0, skipTextureAtlas: true },
