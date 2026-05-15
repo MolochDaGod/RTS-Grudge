@@ -85,6 +85,14 @@ import { useTargeting } from "@/lib/stores/useTargeting";
 import { updateGrassPlayerPosition } from "../world/GrassLayer";
 import { vfx, VFXPresets } from "../vfx";
 import { ImpactFlinchController, damageToFlinchIntensity } from "../systems/ImpactFlinch";
+// ── New combat systems ──
+import {
+  applyCombatImpulse, spawnCombatMeshVFX, fireWeaponVFX, fireHitVFX,
+  rollHitEffects, spawnHitImpactMeshVFX, tickCombat, tickCombatVFX,
+  applyHitKnockback, applyDodgeImpulse,
+} from "../systems/CombatPhysics";
+import { useFatigue } from "../systems/FatigueSystem";
+import { preloadMeshVFX } from "../effects/MeshVFXProjectiles";
 
 const MATERIAL_TO_PART: Record<string, keyof MaterialColors> = {
   Skin: "skin", Face: "skin", Teeth: "skin", Body: "skin", Head: "skin", Flesh: "skin",
@@ -429,16 +437,16 @@ function PlayerModel({
   const [flashTier, setFlashTier] = useState<1 | 2>(1);
   const [flashSeq, setFlashSeq] = useState(0);
 
+  // Alias for CombatPhysics integration (applyCombatImpulse needs applyImpulse)
+  const rigidBodyRef = rbRef;
+
   useEffect(() => {
     combatActor.current.start();
+    // Preload mesh VFX models (rasengan, tornado, cast circle, explosions, etc.)
+    preloadMeshVFX().catch(() => {});
     return () => {
       combatActor.current.stop();
-      // Clear the rebound primitive's blocking flag on unmount so a stale
-      // "true" can't survive a Player swap (e.g. character reselect / reload)
-      // and cause projectiles to detect a block against an absent player.
       blockGuard.setBlocking(false);
-      // Same idea for the charge HUD bar: if the player unmounts mid-charge
-      // (scene swap, character reselect), the meter must not stay on screen.
       useChargeHud.getState().clear();
     };
   }, []);
@@ -575,6 +583,30 @@ function PlayerModel({
       if (cur === "blocking") {
         sendCharEvent({ type: "BLOCK_START" });
         blockGuard.setBlocking(true);
+      }
+
+      // ── NEW: Fire Rapier impulse + mesh VFX on every combat state change ──
+      {
+        const pos = playerPos.current;
+        const faceY = modelRef.current?.rotation.y ?? 0;
+        const facing: [number, number] = [Math.sin(faceY), Math.cos(faceY)];
+        const fatigueMult = useFatigue.getState().modifiers.speedMult;
+        const rb = rigidBodyRef.current;
+        applyCombatImpulse(cur, rb, facing, [pos.x, pos.y, pos.z], fatigueMult);
+        const sc = (window as any).__threeScene;
+        if (sc) {
+          spawnCombatMeshVFX(
+            cur, prev ?? "idle", sc,
+            [pos.x, pos.y, pos.z], facing,
+            selectedCharacter.weaponRight,
+            rightHand.current, null,
+          );
+        }
+        if (rightHand.current) {
+          const tipPos = new THREE.Vector3();
+          rightHand.current.getWorldPosition(tipPos);
+          fireWeaponVFX(cur, selectedCharacter.weaponRight, [tipPos.x, tipPos.y, tipPos.z], [facing[0], 0, facing[1]]);
+        }
       }
 
       // Light combo chain: attack1 starts the combo, attack2/3 advance it.
@@ -1297,6 +1329,24 @@ function PlayerModel({
           critFlashPos.current = [hitEnemy.position.x, hitEnemy.position.y, hitEnemy.position.z];
           setCritFlashActive(true);
           setTimeout(() => setCritFlashActive(false), 500);
+        }
+
+        // ── NEW: Weapon-specific hit VFX + status effect procs ──
+        if (!dodged) {
+          const hitDir: [number, number, number] = [
+            hitEnemy.position.x - playerPos.current.x,
+            0,
+            hitEnemy.position.z - playerPos.current.z,
+          ];
+          const hitPos: [number, number, number] = [
+            hitEnemy.position.x, hitEnemy.position.y + 0.8, hitEnemy.position.z,
+          ];
+          fireHitVFX(selectedCharacter.weaponRight, hitPos, hitDir, isCrit);
+          rollHitEffects(target.id, selectedCharacter.characterId, selectedCharacter.weaponRight, combatState, isCrit);
+          const sc = (window as any).__threeScene;
+          if (sc) {
+            spawnHitImpactMeshVFX(sc, hitPos, combatState, selectedCharacter.weaponRight, isCrit);
+          }
         }
 
         const enemyName = hitEnemy.type.replace(/_/g, ' ');
@@ -3144,6 +3194,9 @@ function PlayerModel({
     // Bone-level flinch: update AFTER the mixer so additive rotations
     // layer on top of the current animation pose.
     playerFlinchRef.current?.update(delta);
+
+    // ── NEW: Per-frame combat VFX tick (mesh effects + spell zones) ──
+    tickCombatVFX(delta);
 
     // Suppress stamina regen while on a climb
     // in the climb controller produces a real net loss instead of

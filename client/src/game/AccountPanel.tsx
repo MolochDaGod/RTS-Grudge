@@ -9,16 +9,16 @@ import {
 import { useWallet } from "@/lib/wallet/useWallet";
 
 /**
- * Top-left start-menu panel. Two states:
+ * Top-left start-menu panel — Grudge Studio branding.
  *
- *   - Signed out: a single "Sign in with Puter" button. Anonymous play
+ *   - Signed out: "Sign in with Grudge" button that opens
+ *     id.grudge-studio.com in a modal/popup. Anonymous play
  *     keeps working — sign-in is optional.
- *   - Signed in:  shows the Grudge ID (Puter UUID short form), the
- *     Solana wallet address (auto-provisioned via Crossmint on first
- *     sign-in), and a sign-out button.
+ *   - Signed in:  shows the Grudge ID, Solana wallet address,
+ *     and a sign-out button.
  *
- * Hidden entirely when the Puter SDK fails to load (offline / blocked)
- * so we don't show a button that can never succeed.
+ * Auth backend is Puter SDK but the frontend shows Grudge branding
+ * per project convention (id.grudge-studio.com styles match WCS).
  */
 export function AccountPanel() {
   const { user, loading, refresh } = usePuterUser();
@@ -77,16 +77,16 @@ export function AccountPanel() {
   if (!user) {
     return (
       <div className="fixed top-3 left-3 z-20">
-        <button
+      <button
           type="button"
           onClick={handleSignIn}
           disabled={busy}
           className="flex items-center gap-2 px-3 py-1.5 bg-amber-500 text-black border-2 border-amber-600 rounded-md hover:bg-amber-400 focus:outline-none focus:ring-4 focus:ring-amber-300 focus:ring-offset-2 focus:ring-offset-black transition-colors disabled:opacity-50"
-          aria-label="Sign in with Puter to sync saves and claim a Solana wallet"
-          title="Sign in with Puter to sync saves across devices and claim a Solana wallet"
+          aria-label="Sign in with Grudge Studio to sync saves and claim a Solana wallet"
+          title="Sign in to sync saves across devices and claim a Solana wallet"
         >
           {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <LogIn className="w-4 h-4" />}
-          <span className="text-xs font-bold tracking-wide">Sign In with Puter</span>
+          <span className="text-xs font-bold tracking-wide">Sign In</span>
         </button>
         <p className="mt-1 text-[10px] text-zinc-400 max-w-[14rem] leading-tight">
           Optional — links your Grudge ID, cloud saves, and a Solana wallet.
