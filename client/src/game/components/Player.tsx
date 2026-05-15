@@ -28,7 +28,8 @@ import {
 } from "../machines/combatMachine";
 import { MeleeSlashEffect } from "../effects/SkillEffects";
 import { WeaponTrail } from "../effects/WeaponTrail";
-import { isInWater } from "../effects/WaterVolume";
+import { isInWater, WATER_SURFACE_Y } from "../effects/WaterVolume";
+import { computeSwimPhysics, resolveSwimState } from "../systems/SwimPhysics";
 import { useSurvival, getHungerStatus, getHungerHealthRegenAllowed, onDodgeProc } from "@/lib/stores/useSurvival";
 import { useInventory } from "@/lib/stores/useInventory";
 import { useEquipment } from "@/lib/stores/useEquipment";
@@ -354,6 +355,13 @@ function PlayerModel({
   // triggers the dodge_proc override on the controller. Using a ref
   // keeps the store callback off the React render path.
   const dodgeProcPending = useRef(false);
+
+  // Worge bear form transform. Toggled by CLASS_ABILITY_3 (X key) when the
+  // selected character has a worgeFormModelPath set. Swapping this path causes
+  // useCharacterController to reload the model, giving a brief morph into the
+  // nightmarish werewolf and back. The cooldown gate (classAbility3) provides
+  // the 12s revert window before the next toggle is allowed.
+  const [bearFormActive, setBearFormActive] = useState(false);
   const [hitParticleActive, setHitParticleActive] = useState(false);
   const hitParticlePos = useRef<[number, number, number]>([0, 0, 0]);
   const [healParticleActive, setHealParticleActive] = useState(false);
@@ -410,6 +418,9 @@ function PlayerModel({
   const lastMovePos = useRef(new THREE.Vector3(spawnPosition[0], spawnPosition[1], spawnPosition[2]));
   const stuckNudgeDir = useRef(new THREE.Vector3());
   const jumpForceApplied = useRef(false);
+  // Edge-detect water entry/exit so we send ENTER_WATER / EXIT_WATER only
+  // on the frame the player crosses the surface, not every frame.
+  const wasInWater = useRef(false);
 
   const inputBuffer = useRef<{ event: CombatEvent; staminaCost: number } | null>(null);
   const inputBufferTime = useRef(0);
@@ -472,12 +483,18 @@ function PlayerModel({
   );
   const activeWeaponType = resolveEquippedWeaponType(equippedMainHandWeaponType);
 
+  // Resolve the active character model path. Worge players toggle into their
+  // bear form via CLASS_ABILITY_3; all other characters always use the base path.
+  const formModelPath = bearFormActive && selectedCharacter.worgeFormModelPath
+    ? selectedCharacter.worgeFormModelPath
+    : selectedCharacter.modelPath;
+
   // Migrated to the new controller pipeline: speed-driven locomotion blend
   // tree (idle ↔ walk ↔ run ↔ sprint) plus a bone-masked upper-body combat
   // layer for punch / uppercut / hit. The public surface stays identical to
   // useCharacterModel so the rest of this component is unchanged.
   const controller = useCharacterController({
-    modelPath: selectedCharacter.modelPath,
+    modelPath: formModelPath,
     targetHeight: charHeight,
     materialColorOverrides: matOverrides,
     weaponType: activeWeaponType,
@@ -1622,11 +1639,16 @@ function PlayerModel({
       }
 
       // Class ability "X" → tertiary class ability (cooldown classAbility3).
+      // For Worge characters, this also toggles the bear form model swap.
       if (e.code === "KeyX") {
         const cdReady = useGame.getState().skillCooldowns.classAbility3 <= 0;
         if (cdReady && useStamina(STAMINA_COSTS.classAbility3 || 35)) {
           useSkillCooldown("classAbility3", 12.0);
           sendCombat({ type: "CLASS_ABILITY_3" });
+          // Worge bear form: toggle model when worgeFormModelPath is set.
+          if (selectedCharacter.worgeFormModelPath) {
+            setBearFormActive(prev => !prev);
+          }
         }
       }
 
@@ -2278,20 +2300,53 @@ function PlayerModel({
       }
     }
 
-    // --- Swim mode: vertical control + jump suppression -------------------
-    // While submerged we re-purpose Space/Alt as ascend/descend rather than
-    // letting them fire the ground-jump path. With no vertical input we
-    // damp toward neutral buoyancy (gentle hover) so the character treads
-    // in place instead of sinking under Rapier gravity.
+    // --- Swim mode: full buoyancy / drag / drowning via SwimPhysics ------
+    // `computeSwimPhysics` returns per-frame forces; we apply them as Rapier
+    // impulse + velocity overrides. State-machine events drive the swimming
+    // region in characterMachine so useCharacterController picks the right
+    // swim/swim_idle/dive animation override automatically.
     if (inWater) {
-      const SWIM_VERTICAL_SPEED = 3.5;
-      let swimVy: number;
-      if (keys.jump) swimVy = SWIM_VERTICAL_SPEED;
-      else if (keys.sink) swimVy = -SWIM_VERTICAL_SPEED;
-      else swimVy = vy * 0.85;
-      setLinvel(vx, swimVy, vz);
-      vy = swimVy;
-    } else if (keys.jump && !prevKeys.current.jump) {
+      const capsuleH = measuredBounds ? measuredBounds.height : charHeight;
+      const swimOut = computeSwimPhysics({
+        playerY: py,
+        waterSurfaceY: WATER_SURFACE_Y,
+        capsuleHeight: capsuleH,
+        vy,
+        horizontalSpeed: Math.hypot(vx, vz),
+        wantsDive: !!keys.sink,
+        wantsAscend: !!keys.jump,
+        delta,
+      });
+      // Apply buoyancy as an impulse (not raw velocity) so Rapier's solver
+      // blends it with gravity and contacts naturally.
+      if (rbRef.current) {
+        rbRef.current.applyImpulse({ x: 0, y: swimOut.buoyancyForce * delta, z: 0 }, true);
+      }
+      // Horizontal drag — scale existing XZ velocity toward the drag factor.
+      const dragVx = vx * swimOut.horizontalDrag;
+      const dragVz = vz * swimOut.horizontalDrag;
+      const finalVy = swimOut.vyOverride !== null ? swimOut.vyOverride : vy;
+      setLinvel(dragVx, finalVy, dragVz);
+      vy = finalVy;
+      // Resolve the swim state and send events to the character machine.
+      const horizSpeed = Math.hypot(dragVx, dragVz);
+      const swimState = resolveSwimState(swimOut, horizSpeed);
+      // Edge-detect water entry/exit for the state machine.
+      if (!wasInWater.current) {
+        sendCharEvent({ type: "ENTER_WATER" });
+      }
+      if (swimOut.isDiving) sendCharEvent({ type: "DIVE" });
+      else if (swimOut.isDrowning) sendCharEvent({ type: "DROWN" });
+      else sendCharEvent({ type: "SWIM_MOVE", speed: horizSpeed });
+    } else {
+      // Edge: just left water this frame.
+      if (wasInWater.current) {
+        sendCharEvent({ type: "EXIT_WATER" });
+      }
+    }
+    wasInWater.current = inWater;
+
+    if (!inWater && keys.jump && !prevKeys.current.jump) {
       // Mount intent: if the player is inside a climb sensor and not yet
       // climbing, route the jump press into a WALL_TOUCH so the combat
       // machine enters `climbing` and the controller block above takes
@@ -2548,21 +2603,10 @@ function PlayerModel({
       }
     }
 
-    // --- Swim animation override ------------------------------------------
-    // While submerged, force the locomotion slot to swim/swim_idle regardless
-    // of what the locomotion machine wants (idle/walk/run/falling/etc.). We
-    // don't override during a hit reaction or transition lock so existing
-    // damage feedback still reads. Combat upper-body animations from the
-    // layered slot (attack/block) continue to mix on top because this only
-    // touches the legacy lower-body playAnimation path.
-    if (inWater && hitAnimTimer.current <= 0 && transitionLock.current <= 0) {
-      const horizSpeed = Math.hypot(vx, vz);
-      const desiredSwim: AnimationState = horizSpeed > 0.5 ? "swim" : "swim_idle";
-      if (lastAnimPlayed.current !== desiredSwim) {
-        playAnimation(desiredSwim);
-        lastAnimPlayed.current = desiredSwim;
-      }
-    }
+    // Swim animations are now driven by the characterMachine swimming region
+    // → useCharacterController's swim subscriber pushes swim/swim_idle into
+    // the override slot. The legacy playAnimation path below is no longer
+    // needed for swim states.
 
     if (actionTimer.current > 0) {
       actionTimer.current -= delta;
@@ -2654,13 +2698,15 @@ function PlayerModel({
 
     const inAction = ACTION_STATES.has(currentCombatState);
 
+    // Jump forces scaled by fatigue so exhausted players can't vault as high.
+    const fatigueJumpMult = useFatigue.getState().modifiers.jumpMult;
     if (currentCombatState === "jumping" && !jumpForceApplied.current) {
-      setLinvel(vx, JUMP_FORCE, vz);
+      setLinvel(vx, JUMP_FORCE * fatigueJumpMult, vz);
       jumpForceApplied.current = true;
     }
 
     if (currentCombatState === "doubleJumping" && !jumpForceApplied.current) {
-      setLinvel(vx, DOUBLE_JUMP_FORCE, vz);
+      setLinvel(vx, DOUBLE_JUMP_FORCE * fatigueJumpMult, vz);
       jumpForceApplied.current = true;
     }
 
@@ -2988,12 +3034,14 @@ function PlayerModel({
       const cid = useSurvival.getState().activeCharacterId;
       const ps = getCachedPlayerStats(cid);
       const statSpeedMult = ps ? ps.movementSpeed : 1.0;
+      // Fatigue speed modifier — exhausted players move at 40% of base.
+      const fatigueSpeedMult = useFatigue.getState().modifiers.speedMult;
 
       let speed: number;
       if (canSprint) {
-        speed = physicsConfig.playerSpeed * physicsConfig.sprintMultiplier * charSpeedMult * statSpeedMult;
+        speed = physicsConfig.playerSpeed * physicsConfig.sprintMultiplier * charSpeedMult * statSpeedMult * fatigueSpeedMult;
       } else if (moving) {
-        speed = physicsConfig.playerSpeed * charSpeedMult * statSpeedMult;
+        speed = physicsConfig.playerSpeed * charSpeedMult * statSpeedMult * fatigueSpeedMult;
       } else {
         speed = 0;
       }
@@ -3197,6 +3245,24 @@ function PlayerModel({
 
     // ── NEW: Per-frame combat VFX tick (mesh effects + spell zones) ──
     tickCombatVFX(delta);
+
+    // ── Fatigue system tick ──
+    // Drives stamina drain for sustained activities (sprint, climb, swim,
+    // block) and resolves the fatigue tier (rested→normal→tired→exhausted)
+    // which gates sprint speed, jump height, and attack cadence.
+    {
+      const fatigue = useFatigue.getState();
+      fatigue.tick(delta, {
+        sprinting: !!(keys.sprint && moving && isGrounded.current),
+        climbing: currentCombatState === "climbing",
+        swimming: inWater,
+        blocking: currentCombatState === "blocking",
+        idle: !moving && isGrounded.current && currentCombatState === "idle",
+      });
+      // Mirror fatigue level into the character machine so the sprint
+      // guard blocks transitions when exhausted.
+      sendCharEvent({ type: "SET_FATIGUE", value: fatigue.level });
+    }
 
     // Suppress stamina regen while on a climb
     // in the climb controller produces a real net loss instead of

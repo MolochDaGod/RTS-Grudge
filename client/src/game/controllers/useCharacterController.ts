@@ -14,7 +14,9 @@ import {
   getCombatState,
   getOverrideState,
   getClimbingState,
+  getSwimmingState,
   type ClimbingState,
+  type SwimmingState,
 } from "./characterMachine";
 import type { WeaponType } from "@/lib/stores/useGame";
 
@@ -125,6 +127,7 @@ export function useCharacterController(opts: UseCharacterControllerOptions) {
     let prevAirborne: string | null = null;
     let prevOverride: string | null = null;
     let prevClimbing: ClimbingState = null;
+    let prevSwimming: SwimmingState = "dry";
 
     const sub = actor.subscribe((snap) => {
       const value = snap.value;
@@ -224,6 +227,31 @@ export function useCharacterController(opts: UseCharacterControllerOptions) {
           }
         }
         prevAirborne = airborne;
+      }
+
+      // Swimming region → drive swim / swim_idle / tread overrides.
+      // Swimming is a parallel region that tracks water state independently
+      // of locomotion. When the character enters water we push a full-body
+      // swim override; when they leave we release it so the locomotion
+      // blend tree resumes driving the body.
+      const swimming = getSwimmingState(value);
+      if (swimming !== prevSwimming) {
+        if (swimming === "surface_swim" || swimming === "diving" || swimming === "ascending") {
+          a.playOverride("swim", { loop: true });
+        } else if (swimming === "surface_idle" || swimming === "treading") {
+          a.playOverride("swim_idle", { loop: true });
+        } else if (swimming === "drowning") {
+          // Drowning: slow treading animation — same clip, lower timeScale
+          // reads as struggling. The fatigue system handles damage.
+          a.playOverride("swim_idle", { loop: true });
+        } else if (swimming === "dry") {
+          // Left water — release the swim override so locomotion resumes.
+          const cur = a.currentOverrideState;
+          if (cur === "swim" || cur === "swim_idle" || cur === "swim_to_edge") {
+            a.stopOverride(0.25);
+          }
+        }
+        prevSwimming = swimming;
       }
 
       // Overrides region → hit/death/pickup/victory full-body or layered.
