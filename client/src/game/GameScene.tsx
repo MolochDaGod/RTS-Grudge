@@ -29,6 +29,8 @@ import PlacedBuildings from "./building/PlacedBuildings";
 import BuildMenu from "./building/BuildMenu";
 import BuildModeHandler from "./building/BuildModeHandler";
 import SurvivalBuildings from "./components/SurvivalBuildings";
+import ModularBuildings from "./building/ModularBuildings";
+import ModularBuildMenu from "./building/ModularBuildMenu";
 import AllyNPCs from "./npc/AllyNPC";
 import NatureScatter from "./terrain/NatureScatter";
 import LootDropsRenderer from "./components/LootDrops";
@@ -49,6 +51,8 @@ import { useTrainingIslands } from "./islands/useTrainingIslands";
 import { SceneInspectorBridge } from "./debug/SceneInspectorBridge";
 import { SelectionHighlight } from "./debug/SelectionHighlight";
 import { SceneInspectorPanel } from "./debug/SceneInspectorPanel";
+import SinkingIslandTicker from "./world/SinkingIslandTicker";
+import SinkingIslandDebugHUD from "./cheats/SinkingIslandDebugHUD";
 
 const controls = [
   { name: "forward", keys: ["KeyW", "ArrowUp"] },
@@ -410,6 +414,7 @@ export default function GameScene() {
             <AllyNPCs />
             <PlacedBuildings />
             {!isWilderness && <SurvivalBuildings />}
+            <ModularBuildings />
             <Suspense fallback={null}>
               <NatureScatter />
             </Suspense>
@@ -436,6 +441,11 @@ export default function GameScene() {
                 is closed. */}
             <SceneInspectorBridge />
             <SelectionHighlight />
+            {/* Sinking island simulation — drives the boss-zone sink/respawn
+                state machine every frame. Must be inside the Canvas so it
+                gets proper R3F delta time. Cost is one branch check/frame
+                while all islands are stable. */}
+            <SinkingIslandTicker />
           </Physics>
         </Suspense>
       </Canvas>
@@ -443,10 +453,13 @@ export default function GameScene() {
       <SceneInspectorPanel />
       <LocationDiscovery />
       <BuildMenu />
+      <ModularBuildMenu />
       <CampaignHUD />
       <DungeonInteractionHandler />
       <BuildModeHandler />
       <ModeControllerUpdater />
+      {/* F10 — sinking island state verification panel */}
+      <SinkingIslandDebugHUD />
       <ShovelHudOverlay />
       <SailingHUD />
       <DockPrompt visible={nearDock && !showIslandSelector} onBoard={handleBoardBoat} />

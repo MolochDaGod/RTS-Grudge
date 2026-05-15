@@ -1,5 +1,6 @@
 import { useEffect, useCallback, useRef } from "react";
 import { useBuildSystem, getBuildingDef, registerBuildingRemoveCallback } from "@/lib/stores/useBuildSystem";
+import { useModularBuild } from "@/lib/stores/useModularBuild";
 import { useGame } from "@/lib/stores/useGame";
 import { useAllies } from "@/lib/stores/useAllies";
 import { addBuildingResources, removeBuildingResources } from "../components/ResourceNode";
@@ -86,6 +87,11 @@ export default function BuildModeHandler() {
         } else {
           useGame.getState().setInteractionMode("build");
         }
+      }
+      // N key toggles modular dungeon build mode (separate from RTS B-key)
+      if (e.code === "KeyN" && !e.repeat) {
+        const mb = useModularBuild.getState();
+        mb.setActive(!mb.active);
       }
       if (useBuildSystem.getState().buildMode) {
         if (e.code === "KeyR" && !e.repeat) {
