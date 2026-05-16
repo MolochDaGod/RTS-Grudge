@@ -9,6 +9,7 @@ import { registerMeshyRoutes } from "./meshyRoutes";
 import { registerLocalAssets } from "./registerLocalAssets";
 import { registerSavesRoutes } from "./savesRoutes";
 import { registerLoadoutsRoutes } from "./loadoutsRoutes";
+import { registerInventoryRoutes } from "./inventoryRoutes";
 import { registerWalletsRoutes } from "./walletsRoutes";
 
 interface AIProviderDef {
@@ -299,6 +300,9 @@ export async function registerRoutes(
 
   registerLoadoutsRoutes(app);
   console.log("[loadouts] Hotbar loadout routes registered");
+
+  registerInventoryRoutes(app);
+  console.log("[inventory] Account-level inventory routes registered");
 
   registerWalletsRoutes(app);
   const provisioning = (process.env.CROSSMINT_API_KEY || process.env.CROSSMINT_SERVER_API_KEY) ? "enabled" : "disabled (no CROSSMINT_API_KEY)";

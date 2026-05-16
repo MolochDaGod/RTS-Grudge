@@ -9,7 +9,19 @@
  * This registry also maps to the existing GLB characters in
  * ModelRegistry.ts so both pipelines (FBX prefix-toggle and GLB
  * external-attach) can coexist.
+ *
+ * CDN PATHS: The 6 grudge6 race GLBs are hosted on the Grudge Object Store.
+ * Run `node scripts/convert-grudge6-assets.mjs` to convert local FBX files
+ * to GLB and upload. See that script for the expected output layout.
  */
+
+// ---------------------------------------------------------------------------
+// Grudge Object Storage CDN roots
+// ---------------------------------------------------------------------------
+/** Root for grudge6 race character GLBs and their animation packs. */
+export const GRUDGE6_CDN = "https://molochdagod.github.io/ObjectStore/models/factioncharacters";
+/** Root for Bip001 animation pack GLBs shared across all 6 races. */
+export const GRUDGE6_ANIM_CDN = `${GRUDGE6_CDN}/animations`;
 
 import type { Faction, Race } from "../systems/ModelRegistry";
 
@@ -118,9 +130,10 @@ export const RACE_CONFIGS: Record<string, RaceConfig> = {
     race: "human",
     faction: "crusade",
     fbxModel: "/models/factioncharacters/WesternKingdoms/models/WK_Characters_customizable.FBX",
+    // CDN GLB path — uploaded via scripts/convert-grudge6-assets.mjs
     glbModels: {
-      male: "/models/characters/assassin-male.glb",
-      female: "/models/characters/assassin-female.glb",
+      male:   `${GRUDGE6_CDN}/wk/WK_Characters_customizable.glb`,
+      female: `${GRUDGE6_CDN}/wk/WK_Characters_customizable.glb`,
     },
     unitySlots: {
       weapon: "R_hand_container",
@@ -140,8 +153,8 @@ export const RACE_CONFIGS: Record<string, RaceConfig> = {
     faction: "crusade",
     fbxModel: "/models/factioncharacters/Barbarians/models/BRB_Characters_customizable.FBX",
     glbModels: {
-      male: "/models/characters/human_battle_mage-male.glb",
-      female: "/models/characters/human_battle_mage-female.glb",
+      male:   `${GRUDGE6_CDN}/brb/BRB_Characters_customizable.glb`,
+      female: `${GRUDGE6_CDN}/brb/BRB_Characters_customizable.glb`,
     },
     unitySlots: {
       weapon: "R_hand_container",
@@ -161,8 +174,8 @@ export const RACE_CONFIGS: Record<string, RaceConfig> = {
     faction: "fabled",
     fbxModel: "/models/factioncharacters/Elves/models/ELF_Characters_customizable.FBX",
     glbModels: {
-      male: "/models/characters/elf-male.glb",
-      female: "/models/characters/elf-female.glb",
+      male:   `${GRUDGE6_CDN}/elf/ELF_Characters_customizable.glb`,
+      female: `${GRUDGE6_CDN}/elf/ELF_Characters_customizable.glb`,
     },
     unitySlots: {
       weapon: "R_hand_container",
@@ -182,8 +195,8 @@ export const RACE_CONFIGS: Record<string, RaceConfig> = {
     faction: "fabled",
     fbxModel: "/models/factioncharacters/Dwarves/models/DWF_Characters_customizable.FBX",
     glbModels: {
-      male: "/models/characters/dwarf-male.glb",
-      female: "/models/characters/dwarf-female.glb",
+      male:   `${GRUDGE6_CDN}/dwf/DWF_Characters_customizable.glb`,
+      female: `${GRUDGE6_CDN}/dwf/DWF_Characters_customizable.glb`,
     },
     unitySlots: {
       weapon: "R_hand_container",
@@ -203,8 +216,8 @@ export const RACE_CONFIGS: Record<string, RaceConfig> = {
     faction: "legion",
     fbxModel: "/models/factioncharacters/Orcs/models/ORC_Characters_Customizable.FBX",
     glbModels: {
-      male: "/models/characters/orc_scout-male.glb",
-      female: "/models/characters/orc_scout-female.glb",
+      male:   `${GRUDGE6_CDN}/orc/ORC_Characters_Customizable.glb`,
+      female: `${GRUDGE6_CDN}/orc/ORC_Characters_Customizable.glb`,
     },
     unitySlots: {
       weapon: "R_hand_container",
@@ -247,8 +260,8 @@ export const RACE_CONFIGS: Record<string, RaceConfig> = {
     faction: "legion",
     fbxModel: "/models/factioncharacters/Undead/models/UD_Characters_customizable.FBX",
     glbModels: {
-      male: "/models/characters/vampire_aristocrat-male.glb",
-      female: "/models/characters/vampire_aristocrat-female.glb",
+      male:   `${GRUDGE6_CDN}/ud/UD_Characters_customizable.glb`,
+      female: `${GRUDGE6_CDN}/ud/UD_Characters_customizable.glb`,
     },
     unitySlots: {
       weapon: "R_hand_container",

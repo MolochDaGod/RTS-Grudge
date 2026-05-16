@@ -79,6 +79,9 @@ const LOCAL_CHARACTER_FILES = new Set<string>([
 export function resolveCharacterModelPath(path: string): string {
   if (!path || typeof path !== "string") return path;
 
+  // Grudge Object Store CDN URLs — pass through unchanged; no local fallback.
+  if (path.startsWith("https://") || path.startsWith("http://")) return path;
+
   if (path.startsWith("/models/characters/")) {
     const filename = path.substring("/models/characters/".length).split("?")[0];
     if (LOCAL_CHARACTER_FILES.has(filename)) {

@@ -25,11 +25,20 @@ export default function MenuScreen() {
   const { goToGGE, goToController, goToCharacterSelect, enterTutorialIsland } = useGame();
   const startCampaign = useCampaign((s) => s.startCampaign);
 
-  // The TUTORIAL ISLAND button is a designer/QA shortcut — it skips
-  // character select + the intro cutscene and drops you straight onto
-  // the shipwreck-island GLB. Use PLAY for the real campaign flow.
-  const handleTutorialIsland = () => {
+  // SHIPWRECK — direct drop onto the tutorial island GLB without character
+  // select or intro. This is now the PRIMARY fast-start path recommended
+  // for all players, not just QA. Character customisation can happen from
+  // within the game.
+  const handleShipwreck = () => {
     enterTutorialIsland(null);
+  };
+
+  // OPEN WORLD — admin / dev access to the procedural GameScene.
+  // Should only be exposed in dev builds or to admin users.
+  const handleOpenWorld = () => {
+    // Go directly to playing WITHOUT setting inTutorialIsland so
+    // App.tsx routes to GameScene (the procedural open world admin area).
+    useGame.setState({ inTutorialIsland: false, phase: "playing" as any });
   };
 
   // Warm the Hero Forge model cache while the user is reading the menu so the
@@ -44,17 +53,10 @@ export default function MenuScreen() {
     kickoffIntroAnimPreload();
   }, []);
 
-  // Real campaign flow:
-  //   PLAY → Character Select → Loading → Intro Cutscene → Playing
-  //
-  // The intro cutscene tells the "lone survivor washes up on the beach"
-  // story. When it ends, `finishIntro` flips phase to "playing" — and
-  // because we set `inTutorialIsland: true` here, the App routes the
-  // player onto the shipwreck-island GLB (Driftwood Cove) where that
-  // beach actually exists, instead of the procedural overworld which
-  // has no wrecked-ship mesh. `inTutorialIsland` survives both the
-  // loading and intro phases because `finishLoading` / `finishIntro`
-  // never clear it — only `exitTutorialIsland` does.
+  // PLAY — full campaign flow.
+  //   Starts the campaign, sets inTutorialIsland: true so the shipwreck
+  //   scene loads after character select + intro. This is the "proper"
+  //   story flow; for an immediate jump use SHIPWRECK.
   const handlePlay = () => {
     startCampaign();
     useGame.setState({ inTutorialIsland: true });
@@ -147,18 +149,18 @@ export default function MenuScreen() {
         {/* Secondary debug actions — three side-by-side compact tiles. */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-xl mt-3 mb-4">
           <button
-            onClick={handleTutorialIsland}
+          onClick={handleShipwreck}
             type="button"
             className="flex items-center justify-center gap-2 py-2 px-3 bg-zinc-900 text-cyan-300 border-2 border-cyan-900/60 rounded-md hover:bg-zinc-800 hover:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition-all"
-            aria-label="Enter Tutorial Island (debug)"
-            title="Spawn near the shipwreck (debug)"
+            aria-label="Start on Shipwreck Island"
+            title="Spawn on the shipwreck — harvesting, combat, full resource nodes"
           >
             <Play className="w-4 h-4" />
             <span
               className="text-sm font-bold tracking-wider"
               style={{ fontFamily: FONTS.header }}
             >
-              TUTORIAL ISLAND
+              SHIPWRECK
             </span>
           </button>
 

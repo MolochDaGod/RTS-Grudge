@@ -68,6 +68,62 @@ function flashStarve(amountDealt: number) {
   } catch {}
 }
 
+// ---------------------------------------------------------------------------
+// SWG-style Wound System
+// ---------------------------------------------------------------------------
+// Wounds are persistent injuries that reduce MAX stats until healed.
+// They accumulate from combat (especially unblocked heavy hits, DoTs,
+// fall damage) and require medicine items (medpacks, stimpacks) to clear.
+//
+// Wound Types:
+//   health  — reduces effectiveMaxHealth (max = base * (1 - wounds.health/100))
+//   stamina — reduces effectiveMaxStamina
+//   mind    — increases skill cooldown times (future use)
+//
+// Severity tiers:
+//   0-24:   Lightly Wounded   (no HUD indicator)
+//   25-49:  Wounded           (yellow tint in stat bars)
+//   50-74:  Heavily Wounded   (orange tint, movement penalty)
+//   75-99:  Critically Wounded(red, significant stat penalties)
+//   100:    Incapacitated     (near death, movement locked)
+
+export interface WoundState {
+  health:  number;  // 0–100
+  stamina: number;  // 0–100
+  mind:    number;  // 0–100 (future: skill cooldown multiplier)
+}
+
+export type WoundType = "health" | "stamina" | "mind";
+
+export function getWoundSeverity(wounds: number): "none" | "light" | "wounded" | "heavy" | "critical" | "incapacitated" {
+  if (wounds === 0)  return "none";
+  if (wounds < 25)   return "light";
+  if (wounds < 50)   return "wounded";
+  if (wounds < 75)   return "heavy";
+  if (wounds < 100)  return "critical";
+  return "incapacitated";
+}
+
+/** Effective max HP after applying health wounds. */
+export function effectiveMaxHealth(base: number, wounds: number): number {
+  return Math.max(1, Math.round(base * (1 - wounds / 100)));
+}
+
+/** Effective max stamina after applying stamina wounds. */
+export function effectiveMaxStamina(base: number, wounds: number): number {
+  return Math.max(1, Math.round(base * (1 - wounds / 100)));
+}
+
+// Wound accrual rates per damage type (added per hit, not per second).
+const WOUND_PER_HIT: Partial<Record<DamageType, { type: WoundType; amount: number }>> = {
+  blade:   { type: "health",  amount: 3 },
+  pierce:  { type: "health",  amount: 4 },
+  impact:  { type: "stamina", amount: 5 },
+  burn:    { type: "health",  amount: 6 },
+  poison:  { type: "mind",    amount: 4 },
+  fall:    { type: "stamina", amount: 8 },
+};
+
 export type HungerStatus = "well_fed" | "normal" | "hungry" | "starving";
 
 export function getHungerStatus(hunger: number): HungerStatus {
@@ -97,14 +153,27 @@ export interface SurvivalState {
   maxHunger: number;
   stamina: number;
   maxStamina: number;
+  mana: number;
+  maxMana: number;
   isAlive: boolean;
   activeCharacterId: string | null;
   lastDamageWasStarve: boolean;
+  /** SWG-style wounds — persistent until medicine is applied. */
+  wounds: WoundState;
+
+  /** Effective (wound-reduced) max health. */
+  getEffectiveMaxHealth: () => number;
+  /** Effective (wound-reduced) max stamina. */
+  getEffectiveMaxStamina: () => number;
 
   takeDamage: (amount: number, type: DamageType) => void;
   heal: (amount: number) => void;
-  eat: (amount: number, healOverride?: number) => void;
+  /** Apply a medicine item. amount = wound points removed, type = wound category. */
+  applyMedicine: (type: WoundType, amount: number) => void;
+  eat: (amount: number, healOverride?: number, manaRestore?: number) => void;
   restoreStamina: (amount: number) => void;
+  restoreMana: (amount: number) => void;
+  useMana: (amount: number) => boolean;
   useStamina: (amount: number) => boolean;
   regenStamina: (delta: number) => void;
   hungerTick: (delta: number) => void;
@@ -139,9 +208,12 @@ const INITIAL_STATE = {
   maxHunger: 100,
   stamina: 100,
   maxStamina: 100,
+  mana: 100,
+  maxMana: 100,
   isAlive: true,
   activeCharacterId: null as string | null,
   lastDamageWasStarve: false,
+  wounds: { health: 0, stamina: 0, mind: 0 } as WoundState,
 };
 
 export const useSurvival = create<SurvivalState>()(
@@ -149,6 +221,36 @@ export const useSurvival = create<SurvivalState>()(
     ...INITIAL_STATE,
 
     setActiveCharacter: (id: string) => set({ activeCharacterId: id }),
+
+    getEffectiveMaxHealth: () => {
+      const s = useSurvival.getState();
+      return effectiveMaxHealth(s.maxHealth, s.wounds.health);
+    },
+    getEffectiveMaxStamina: () => {
+      const s = useSurvival.getState();
+      return effectiveMaxStamina(s.maxStamina, s.wounds.stamina);
+    },
+
+    applyMedicine: (type: WoundType, amount: number) => {
+      set((s) => {
+        const w = { ...s.wounds };
+        w[type] = Math.max(0, w[type] - amount);
+        return { wounds: w };
+      });
+    },
+
+    restoreMana: (amount: number) => {
+      set((s) => ({
+        mana: Math.min(s.maxMana, s.mana + amount),
+      }));
+    },
+
+    useMana: (amount: number) => {
+      const s = useSurvival.getState();
+      if (s.mana < amount) return false;
+      set({ mana: Math.max(0, s.mana - amount) });
+      return true;
+    },
 
     takeDamage: (amount: number, type: DamageType) => {
       const state = get();
@@ -168,6 +270,17 @@ export const useSurvival = create<SurvivalState>()(
         return;
       }
       set({ lastDamageWasStarve: false });
+
+      // Accumulate wounds (persistent injury) for applicable damage types.
+      // Only triggers on unblocked hits (type !== "starve" already filtered).
+      const woundHit = WOUND_PER_HIT[type];
+      if (woundHit && amount > 5) {
+        set((s) => {
+          const w = { ...s.wounds };
+          w[woundHit.type] = Math.min(100, w[woundHit.type] + woundHit.amount);
+          return { wounds: w };
+        });
+      }
 
       const stats = _statLookup?.(state.activeCharacterId);
 

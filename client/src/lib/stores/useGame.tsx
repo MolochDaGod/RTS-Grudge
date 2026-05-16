@@ -401,11 +401,17 @@ export const useGame = create<GameState>()(
     finishIntro: () => {
       const s = get();
       if (s.phase === "intro") {
+        // Explicitly re-assert inTutorialIsland so the shipwreck scene
+        // loads even if a state-update race briefly cleared the flag.
+        // The campaign flow (PLAY button) always intends to land on the
+        // shipwreck / tutorial island after the intro cinematic.
         set({
           phase: "playing", score: 0, wave: 1, enemiesKilled: 0,
           dayTime: 0.3, isDaytime: true, weather: "clear", weatherIntensity: 0, showCrafting: false,
           inDungeon: false, inHousing: false, dungeonLevel: 1, dungeonSeed: 0,
           overworldReturnPos: null, housingReturnPos: null,
+          // Preserve or re-assert: campaign always starts on the shipwreck.
+          inTutorialIsland: s.inTutorialIsland !== false,
           ...INITIAL_PROGRESSION,
         });
       }

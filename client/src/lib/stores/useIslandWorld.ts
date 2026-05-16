@@ -4,6 +4,8 @@ export type IslandBiome = "temperate" | "tropical" | "volcanic" | "arctic" | "pi
 
 export interface IslandData {
   id: string;
+  /** Display name — shown in HUD and sailing UI. */
+  name: string;
   gridX: number;
   gridZ: number;
   seed: number;
@@ -33,6 +35,15 @@ interface IslandWorldState {
 
 const BIOMES: IslandBiome[] = ["temperate", "tropical", "volcanic", "arctic", "pirate", "cursed"];
 
+const ISLAND_NAMES: Record<IslandBiome, string[]> = {
+  temperate: ["The Shattered Coast", "Driftwood Shore", "The Broken Atoll"],
+  tropical:  ["Coconut Harbor", "Mangrove Lagoon", "Rum Runner's Cay"],
+  volcanic:  ["Ember Caldera", "Cinder Gate", "Scorched Reach"],
+  arctic:    ["Frostfall Peak", "Glacier Keep", "Blizzard Maw"],
+  pirate:    ["Corsair's Cove", "Cutthroat Bay", "Dead Man's Wharf"],
+  cursed:    ["The Cursed Deep", "Shadow Hollows", "The Abyss"],
+};
+
 const BIOME_ENEMIES: Record<IslandBiome, string[]> = {
   temperate: ["skeleton", "spider", "golem", "thrower_brute", "thrower_assassin", "thrower_soldier", "thrower_berserker"],
   tropical: ["pirate", "spider", "ninja", "thrower_assassin", "thrower_berserker"],
@@ -59,18 +70,22 @@ function createIsland(gridX: number, gridZ: number): IslandData {
   const rng = seededRandom(seed);
   const biome = BIOMES[Math.floor(rng() * BIOMES.length)];
   const isHome = gridX === 0 && gridZ === 0;
+  const finalBiome = isHome ? "temperate" : biome;
+  const namePool = ISLAND_NAMES[finalBiome];
+  const nameIdx = Math.floor(rng() * namePool.length);
 
   return {
     id: `island_${gridX}_${gridZ}`,
+    name: isHome ? "Home Island" : namePool[nameIdx],
     gridX,
     gridZ,
     seed,
-    biome: isHome ? "temperate" : biome,
+    biome: finalBiome,
     discovered: isHome,
     hasShop: isHome || rng() > 0.4,
     hasDungeon: isHome || rng() > 0.3,
     dungeonLevel: isHome ? 1 : Math.floor(rng() * 5) + 1,
-    enemyTypes: BIOME_ENEMIES[isHome ? "temperate" : biome],
+    enemyTypes: BIOME_ENEMIES[finalBiome],
   };
 }
 

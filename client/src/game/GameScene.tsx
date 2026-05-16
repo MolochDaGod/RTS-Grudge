@@ -469,7 +469,9 @@ export default function GameScene() {
       {/* Faction hero interaction panel — opens on [T] near hub hero */}
       <HeroInteractionPanel />
       <ShovelHudOverlay />
-      <SailingHUD />
+      {/* IslandStatus: only show during active sailing transit. When docked
+          the hub_main island name + dock prompts handle orientation cues. */}
+      {sailing && <SailingHUD />}
       <DockPrompt visible={nearDock && !showIslandSelector} onBoard={handleBoardBoat} />
       <BeachedBoatPromptHUD />
       {nearDock && !showIslandSelector && !showTrainingSelector && (
