@@ -60,41 +60,40 @@ Slot  Key   Type       Default Icon   Description
  7     8    item       —              Consumable (on-use relic)
 ```
 
-### Skill Icons CDN Path
+### Skill Icons — Current Implementation
+
+The three class ability slots (E/R/X) currently use inline SVG icons from
+`game/components/GameIcons.tsx`:
+
+| Slot | Key | Icon component | Colour |
+|---|---|---|---|
+| E | `classAbility1` | `FireIcon` | `#ff6b35` |
+| R | `classAbility2` | `MagicShieldIcon` | `#64b5f6` |
+| X | `classAbility3` | `MeteorIcon` | `#ff9800` |
+
+Weapon skill slots (Q1/Q2/Q3) render a generic `SwordIcon` tinted by the
+weapon mastery tree colour. The skill name and effect come from `WEAPON_MASTERY_TREES`
+in `WeaponSkillData.ts` and display on hover.
+
+### Skill Icons CDN Path (planned — not yet live)
+
+The CDN path below is the target once skill-specific art is uploaded to the
+Object Store. Once images are present, swap the SVG icon for an `<img>` in the
+hotbar slot:
 
 ```
 {CDN_BASE}/skills/{class}/{skillName}.png
+Where {CDN_BASE} = https://molochdagod.github.io/ObjectStore/icons/pack
+
+Warrior: skills/warrior/charge.png, slash.png, guard.png, aoe_sweep.png
+Mage:    skills/mage/fireball.png, ice_bolt.png, lightning.png, aoe_burst.png
+Ranger:  skills/ranger/quick_shot.png, aimed_shot.png, dodge_roll.png, rapid_fire.png
+Worge:   skills/worge/claw.png, leap.png, transform.png, howl.png
 ```
 
-Where `{CDN_BASE} = https://molochdagod.github.io/ObjectStore/icons/pack`
-
-**Per-class skill icon paths:**
-
-```
-Warrior:
-  skills/warrior/slash.png
-  skills/warrior/guard.png
-  skills/warrior/charge.png
-  skills/warrior/aoe_sweep.png
-
-Mage:
-  skills/mage/fireball.png
-  skills/mage/ice_bolt.png
-  skills/mage/lightning.png
-  skills/mage/aoe_burst.png
-
-Ranger:
-  skills/ranger/quick_shot.png
-  skills/ranger/aimed_shot.png
-  skills/ranger/dodge_roll.png
-  skills/ranger/rapid_fire.png
-
-Worge:
-  skills/worge/claw.png
-  skills/worge/leap.png
-  skills/worge/transform.png
-  skills/worge/howl.png
-```
+To wire a CDN icon into a skill slot, update the `SKILL_DEFS` array in
+`HUD.tsx` with an `iconUrl` field and conditionally render `<img>` over the SVG
+component when the URL is defined.
 
 ### Hotbar Action Slot API
 
