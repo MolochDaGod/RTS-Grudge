@@ -172,6 +172,19 @@ const STYLE_PRESETS: StylePreset[] = [
     weaponRight: "staff", weaponLeft: null, description: "Armored spellblade. Staff caster.",
     modelPath: "/models/characters/human_battle_mage-female.glb",
     matColors: { clothing: "#3355cc", armor: "#888899", detail: "#ccaa33" } },
+  // Worge class — night_stalker humanoid with bear-form transform on CLASS_ABILITY_3
+  { id: "worge_m", name: "Worge (M)", icon: "\uD83D\uDC3A", category: "warrior", combatClass: "melee",
+    weaponRight: "fists", weaponLeft: null,
+    description: "Shapeshifting brawler. Transforms into a nightmarish werewolf bear form.",
+    modelPath: "/models/characters/night_stalker-male.glb",
+    matColors: { clothing: "#3a2510", skin: "#8a5a30", armor: "#444444" },
+    bodyMorph: { muscle: 1.4, shoulderWidth: 1.3 } },
+  { id: "worge_f", name: "Worge (F)", icon: "\uD83D\uDC3A", category: "warrior", combatClass: "melee",
+    weaponRight: "fists", weaponLeft: null,
+    description: "Shapeshifting huntress. Transforms into a nightmarish werewolf bear form.",
+    modelPath: "/models/characters/night_stalker-female.glb",
+    matColors: { clothing: "#3a2510", skin: "#8a5a30", armor: "#444444" },
+    bodyMorph: { muscle: 1.2, shoulderWidth: 1.15 } },
 ];
 
 // Used by save loader to migrate stale saved characters whose previous model
@@ -182,9 +195,7 @@ const REMOVED_HERO_FORGE_MODELS = new Set<string>([
   "/models/characters/undead_grave_knight-male.glb",
   "/models/characters/undead_grave_knight-female.glb",
   "/models/characters/lizardfolk-male.glb",
-  "/models/characters/night_stalker-male.glb",
-  "/models/characters/night_stalker-female.glb",
-  "/models/characters/werewolf.glb",
+  // night_stalker and werewolf are now selectable as the Worge class presets
 ]);
 const PRESET_CATEGORIES: { key: StylePreset["category"]; label: string; color: string }[] = [
   { key: "warrior", label: "Warriors", color: "#c9950a" },
@@ -1338,6 +1349,11 @@ export default function CharacterSelectScreen() {
     setBackAccessoryId(null);
     setCurrentModelPath(preset.modelPath || BASE_CHARACTER.modelPath);
     setActivePreset(preset.id);
+    // Worge presets automatically wire the bear-form model path so Player.tsx
+    // can swap to it on CLASS_ABILITY_3 without any extra UI config.
+    // We store it in the character save but it's not surfaced as an editable
+    // field — it's always derived from the race/class selection.
+    // (handled downstream by startLoading / startWithCharacter in the confirm step)
   }, []);
 
   const saveCharacterEdits = useCallback((data: Record<string, any>) => {
@@ -1518,6 +1534,13 @@ export default function CharacterSelectScreen() {
     const isDefaultOffset = weaponOffset.rightPos.every(v => v === 0) && weaponOffset.rightRot.every(v => v === 0)
       && weaponOffset.rightScale.every(v => v === 1) && weaponOffset.leftPos.every(v => v === 0)
       && weaponOffset.leftRot.every(v => v === 0) && weaponOffset.leftScale.every(v => v === 1);
+    // Detect Worge presets by model path so the bear-form model gets wired
+    // automatically — no manual field needed in Hero Forge.
+    const isWorgePath = currentModelPath?.includes("night_stalker");
+    const worgeFormModelPath = isWorgePath
+      ? "/models/characters/stylized_nightmarish_werewolf.glb"
+      : undefined;
+
     const config: CharacterConfig = {
       characterId: BASE_CHARACTER.id,
       modelPath: currentModelPath, name: heroName || "Hero", scale,
@@ -1530,6 +1553,7 @@ export default function CharacterSelectScreen() {
       arrowModelId: arrowModelId || undefined,
       backAccessoryId: backAccessoryId || undefined,
       faction: getFactionForModel(currentModelPath),
+      worgeFormModelPath,
     };
     initHero(BASE_CHARACTER.id);
     resetSurvival(); resetInventory(); resetEnemies();

@@ -5,6 +5,12 @@ import { getTerrainHeight, globalHeightData } from "./Terrain";
 import { useEnemyManager, type EnemyType } from "../systems/EnemyManager";
 import { useGame } from "@/lib/stores/useGame";
 import { useAudio } from "@/lib/stores/useAudio";
+import {
+  rollBiomeEnemy,
+  getDifficultyAtPosition,
+} from "../systems/BiomeSpawnRegistry";
+import { isEnemySpawnAllowed } from "@/game/world/DistrictRegistry";
+import { useWorldEvents } from "@/lib/stores/useWorldEvents";
 
 interface WaveSpawnerProps {
   playerPosition: THREE.Vector3;
@@ -95,14 +101,37 @@ export default function WaveSpawner({ playerPosition }: WaveSpawnerProps) {
       spawnPos.current.x = Math.max(-bounds, Math.min(bounds, spawnPos.current.x));
       spawnPos.current.z = Math.max(-bounds, Math.min(bounds, spawnPos.current.z));
 
+      // Skip town/safe districts — enemies don't spawn inside settlements.
+      if (!isEnemySpawnAllowed(spawnPos.current.x, spawnPos.current.z)) {
+        spawnTimer.current = 0.5; // retry quickly at a different angle
+        return;
+      }
+
+      // Primary: biome-appropriate enemy for this spawn position.
+      // Fallback: wave-tier pool (plains / initial game area).
+      const biomeType = rollBiomeEnemy(
+        spawnPos.current.x,
+        spawnPos.current.z,
+        isDaytime,
+      );
       const pool = getWavePool(wave, isDaytime);
-      const type = pool[Math.floor(Math.random() * pool.length)];
+      const type: EnemyType = biomeType ?? pool[Math.floor(Math.random() * pool.length)];
 
       spawnEnemy(type, spawnPos.current.clone());
       waveEnemiesSpawned.current++;
 
+      // Spawn interval: shorter in high-difficulty zones (more pressure).
+      const diffMult = getDifficultyAtPosition(
+        spawnPos.current.x,
+        spawnPos.current.z,
+      );
       const baseInterval = isDaytime ? 4 : 2;
-      spawnTimer.current = baseInterval - Math.min(wave * 0.2, 2) + Math.random() * 2;
+      // diffMult 1.0 → normal interval; 3.5 → ~60 % faster
+      const diffScale = Math.max(0.4, 1 / Math.sqrt(diffMult));
+      // World events (e.g. FactionInvasion) further compress the interval.
+      const eventMult = useWorldEvents.getState().enemySpawnMult();
+      spawnTimer.current =
+        (baseInterval - Math.min(wave * 0.2, 2) + Math.random() * 2) * diffScale * eventMult;
     }
 
     const activeEnemies = enemies.filter(e => !e.isDying);

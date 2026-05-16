@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { subscribeWithSelector } from "zustand/middleware";
 
 export type EquipSlot = "helm" | "shoulder" | "chest" | "legs" | "boots" | "belt" | "mainHand" | "offHand" | "gloves" | "cape" | "ring" | "necklace";
 
@@ -74,13 +75,53 @@ interface EquipmentState {
   useMana: (amount: number) => boolean;
   regenMana: (delta: number) => void;
   reset: () => void;
+  /** Save equipped state to localStorage */
+  persist: () => void;
+  /** Load equipped state from localStorage */
+  hydrate: () => void;
+  /**
+   * Cape active ability cooldown. Tracks when the cape ability was last used
+   * so no-swap enforcement can detect if the cooldown is still running.
+   * Value is a unix timestamp (seconds). 0 = never used.
+   */
+  capeAbilityLastUsed: number;
+  capeAbilityCooldown: number; // seconds
+  /**
+   * Attempt to use the equipped cape's active ability.
+   * Returns false if on cooldown or no cape equipped.
+   */
+  useCapeAbility: () => { ok: boolean; effect?: string; remainingCd?: number };
+  /**
+   * Enforce no-swap: returns true if a cape is equipped AND its cooldown
+   * hasn't expired yet (i.e. swapping should be blocked).
+   */
+  isCapeSwapLocked: () => boolean;
 }
 
 const SLOT_ORDER: EquipSlot[] = ["helm", "shoulder", "chest", "legs", "boots", "belt", "mainHand", "offHand", "gloves", "cape", "ring", "necklace"];
 
 export { SLOT_ORDER };
 
-export const useEquipment = create<EquipmentState>()((set, get) => ({
+const EQUIPMENT_PERSIST_KEY = "grudge_equipment_state";
+
+function loadPersistedEquipment(): Partial<EquipmentState> {
+  try {
+    const raw = localStorage.getItem(EQUIPMENT_PERSIST_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return {
+      equipped:  parsed.equipped  ?? {},
+      gold:      parsed.gold      ?? 0,
+      level:     parsed.level     ?? 1,
+      experience:parsed.experience ?? 0,
+      experienceToNext: parsed.experienceToNext ?? 100,
+    };
+  } catch {
+    return {};
+  }
+}
+
+export const useEquipment = create<EquipmentState>()(subscribeWithSelector((set, get) => ({
   equipped: {},
   actionSlots: [...DEFAULT_ACTION_SLOTS],
   level: 1,
@@ -89,19 +130,46 @@ export const useEquipment = create<EquipmentState>()((set, get) => ({
   gold: 0,
   mana: 50,
   maxMana: 50,
+  capeAbilityLastUsed: 0,
+  capeAbilityCooldown: 0,
+  ...loadPersistedEquipment(),
 
   equip: (item) => {
+    // Cape swap enforcement: block if cape ability is still on cooldown
+    if (item.slot === "cape") {
+      const { capeAbilityLastUsed, capeAbilityCooldown } = get();
+      const now = Date.now() / 1000;
+      if (capeAbilityLastUsed > 0 && now - capeAbilityLastUsed < capeAbilityCooldown) {
+        const remaining = Math.ceil(capeAbilityCooldown - (now - capeAbilityLastUsed));
+        console.warn(`[Equipment] Cape swap blocked — ability on cooldown (${remaining}s remaining)`);
+        return; // hard block, no swap
+      }
+      // Equipping a new cape resets the cooldown to that cape's CD (from ArmorPrefabDatabase)
+      // The cooldown value is looked up by the caller or set from capeActive.cooldownSeconds
+    }
     set((state) => ({
       equipped: { ...state.equipped, [item.slot]: item },
     }));
+    get().persist();
   },
 
   unequip: (slot) => {
+    // Cape unequip also blocked while ability is on cooldown
+    if (slot === "cape") {
+      const { capeAbilityLastUsed, capeAbilityCooldown } = get();
+      const now = Date.now() / 1000;
+      if (capeAbilityLastUsed > 0 && now - capeAbilityLastUsed < capeAbilityCooldown) {
+        const remaining = Math.ceil(capeAbilityCooldown - (now - capeAbilityLastUsed));
+        console.warn(`[Equipment] Cape unequip blocked — ability on cooldown (${remaining}s remaining)`);
+        return;
+      }
+    }
     set((state) => {
       const newEquipped = { ...state.equipped };
       delete newEquipped[slot];
       return { equipped: newEquipped };
     });
+    get().persist();
   },
 
   getEquipped: (slot) => get().equipped[slot],
@@ -187,14 +255,71 @@ export const useEquipment = create<EquipmentState>()((set, get) => ({
     }));
   },
 
-  reset: () => set({
-    equipped: {},
-    actionSlots: [...DEFAULT_ACTION_SLOTS],
-    level: 1,
-    experience: 0,
-    experienceToNext: 100,
-    gold: 0,
-    mana: 50,
-    maxMana: 50,
-  }),
-}));
+  reset: () => {
+    set({
+      equipped: {},
+      actionSlots: [...DEFAULT_ACTION_SLOTS],
+      level: 1,
+      experience: 0,
+      experienceToNext: 100,
+      gold: 0,
+      mana: 50,
+      maxMana: 50,
+      capeAbilityLastUsed: 0,
+      capeAbilityCooldown: 0,
+    });
+    try { localStorage.removeItem(EQUIPMENT_PERSIST_KEY); } catch {}
+  },
+
+  persist: () => {
+    const { equipped, gold, level, experience, experienceToNext } = get();
+    try {
+      localStorage.setItem(EQUIPMENT_PERSIST_KEY, JSON.stringify({
+        equipped, gold, level, experience, experienceToNext,
+      }));
+    } catch {
+      console.warn("[Equipment] Could not persist to localStorage");
+    }
+  },
+
+  hydrate: () => {
+    const saved = loadPersistedEquipment();
+    if (Object.keys(saved).length > 0) {
+      set(saved as Partial<EquipmentState>);
+    }
+  },
+
+  useCapeAbility: () => {
+    const state = get();
+    const cape = state.equipped.cape;
+    if (!cape) return { ok: false };
+
+    const now = Date.now() / 1000;
+    const remaining = state.capeAbilityCooldown - (now - state.capeAbilityLastUsed);
+    if (state.capeAbilityLastUsed > 0 && remaining > 0) {
+      return { ok: false, remainingCd: Math.ceil(remaining) };
+    }
+
+    // Lookup the ArmorPrefab for this cape to get its active ability + cooldown
+    // We import lazily to avoid circular deps
+    try {
+      const { getArmorById } = require("@/lib/data/ArmorPrefabDatabase");
+      const armorPrefab = getArmorById(cape.id);
+      const cooldown = armorPrefab?.capeActive?.cooldownSeconds ?? 30;
+      const effect = armorPrefab?.capeActive?.effect ?? "";
+      set({ capeAbilityLastUsed: now, capeAbilityCooldown: cooldown });
+      console.info(`[Equipment] Cape ability used: ${armorPrefab?.capeActive?.name ?? cape.name} (CD: ${cooldown}s, effect: ${effect})`);
+      return { ok: true, effect, remainingCd: 0 };
+    } catch {
+      // Fallback for non-armor prefab capes
+      set({ capeAbilityLastUsed: now, capeAbilityCooldown: 30 });
+      return { ok: true };
+    }
+  },
+
+  isCapeSwapLocked: () => {
+    const { capeAbilityLastUsed, capeAbilityCooldown } = get();
+    if (!capeAbilityLastUsed) return false;
+    return (Date.now() / 1000 - capeAbilityLastUsed) < capeAbilityCooldown;
+  },
+})));

@@ -21,7 +21,7 @@ import WeatherEvents from "./components/WeatherEvents";
 import { AssetLoaderInit } from "./systems/AssetLoaderInit";
 import WaveSpawner from "./components/WaveSpawner";
 import NPCs from "./components/NPCs";
-import Animals from "./components/Animals";
+import BiomeWildlife from "./components/BiomeWildlife";
 import HUD from "./components/HUD";
 import DungeonEntrances from "./dungeon/DungeonEntrances";
 import HousingEntrance from "./housing/HousingEntrance";
@@ -53,6 +53,8 @@ import { SelectionHighlight } from "./debug/SelectionHighlight";
 import { SceneInspectorPanel } from "./debug/SceneInspectorPanel";
 import SinkingIslandTicker from "./world/SinkingIslandTicker";
 import SinkingIslandDebugHUD from "./cheats/SinkingIslandDebugHUD";
+import FactionHeroes from "./npc/FactionHeroes";
+import HeroInteractionPanel from "./ui/HeroInteractionPanel";
 
 const controls = [
   { name: "forward", keys: ["KeyW", "ArrowUp"] },
@@ -410,7 +412,7 @@ export default function GameScene() {
               />
             ))}
             {!isWilderness && <NPCs />}
-            <Animals />
+            <BiomeWildlife />
             <AllyNPCs />
             <PlacedBuildings />
             {!isWilderness && <SurvivalBuildings />}
@@ -446,6 +448,10 @@ export default function GameScene() {
                 gets proper R3F delta time. Cost is one branch check/frame
                 while all islands are stable. */}
             <SinkingIslandTicker />
+            {/* Faction heroes — renders only heroes co-located with the
+                player. Off-screen heroes advance via 60-s interval in
+                FactionHeroes; their states live in useFactionHeroes. */}
+            <FactionHeroes playerPosition={playerPosRef.current} />
           </Physics>
         </Suspense>
       </Canvas>
@@ -460,6 +466,8 @@ export default function GameScene() {
       <ModeControllerUpdater />
       {/* F10 — sinking island state verification panel */}
       <SinkingIslandDebugHUD />
+      {/* Faction hero interaction panel — opens on [T] near hub hero */}
+      <HeroInteractionPanel />
       <ShovelHudOverlay />
       <SailingHUD />
       <DockPrompt visible={nearDock && !showIslandSelector} onBoard={handleBoardBoat} />

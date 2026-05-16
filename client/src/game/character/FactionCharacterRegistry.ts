@@ -88,11 +88,16 @@ export interface RaceConfig {
   name: string;
   prefix: RacePrefix;
   race: Race;
-  faction: Faction;
+  faction: Faction | string;
   /** FBX model path (prefix-based child mesh toggle) */
   fbxModel: string;
   /** GLB model path (external weapon attach — current RTS-Grudge pipeline) */
   glbModels: { male: string; female: string };
+  /**
+   * Bear-form GLB for the Worge race. When set, CLASS_ABILITY_3 swaps
+   * the player model to this path and back.
+   */
+  bearFormGlb?: string;
   /** Unity equipment slot mapping: category → bone Transform name */
   unitySlots: {
     weapon: string;   // mainHand bone
@@ -201,6 +206,29 @@ export const RACE_CONFIGS: Record<string, RaceConfig> = {
       male: "/models/characters/orc_scout-male.glb",
       female: "/models/characters/orc_scout-female.glb",
     },
+    unitySlots: {
+      weapon: "R_hand_container",
+      head: "Bip001 Head",
+      chest: "body",
+      legs: "legs",
+      shield: "L_shield_container",
+      shoulders: "shoulders",
+      hands: "arms",
+      feet: "legs",
+    },
+  },
+  worge: {
+    name: "Worge",
+    prefix: "WK_", // shares the WK skeleton for animation compatibility
+    race: "barbarian" as any,
+    faction: "wild",
+    fbxModel: "/models/factioncharacters/WesternKingdoms/models/WK_Characters_customizable.FBX",
+    glbModels: {
+      male: "/models/characters/night_stalker-male.glb",
+      female: "/models/characters/night_stalker-female.glb",
+    },
+    /** Bear-form model — swapped in when the Worge's CLASS_ABILITY_3 fires. */
+    bearFormGlb: "/models/characters/stylized_nightmarish_werewolf.glb",
     unitySlots: {
       weapon: "R_hand_container",
       head: "Bip001 Head",

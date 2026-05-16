@@ -78,6 +78,12 @@ export interface CharacterConfig {
   arrowModelId?: string | null;
   backAccessoryId?: string | null;
   faction?: string;
+  /**
+   * When set, this character is a Worge and can transform into bear form.
+   * CLASS_ABILITY_3 toggles between modelPath (human/night-stalker form) and
+   * this path (werewolf / bear form). Null for non-worge characters.
+   */
+  worgeFormModelPath?: string | null;
 }
 
 export const DEFAULT_CHARACTER: CharacterConfig = {

@@ -1,0 +1,43 @@
+name = "grudge-asset-api"
+main = "workers/asset-api/index.ts"
+compatibility_date = "2024-09-23"
+
+# ── R2 Buckets ────────────────────────────────────────────────────────────────
+# Primary asset bucket — GLB models, textures, audio
+[[r2_buckets]]
+binding = "ASSETS"
+bucket_name = "grudge-assets"
+# Uncomment once a preview bucket is created:
+# preview_bucket_name = "grudge-assets-preview"
+
+# Game data bucket — weapons.json, skills.json, materials.json, etc.
+[[r2_buckets]]
+binding = "GAME_DATA"
+bucket_name = "grudge-gamedata"
+
+# ── D1 Databases ──────────────────────────────────────────────────────────────
+# Asset registry — canonical asset manifest queried by all clients
+[[d1_databases]]
+binding = "DB"
+database_name = "grudge-assets-db"
+database_id = "3eeadd9e-832d-4d2e-bb14-8ddf75b3ac59"
+
+# ── Routes ────────────────────────────────────────────────────────────────────
+[env.production]
+routes = [
+    { pattern = "api.grudge-studio.com/assets*", zone_name = "grudge-studio.com" },
+    { pattern = "api.grudge-studio.com/gamedata*", zone_name = "grudge-studio.com" },
+]
+
+# ── Build ─────────────────────────────────────────────────────────────────────
+[build]
+command = "npx esbuild workers/asset-api/index.ts --bundle --platform=browser --format=esm --outfile=dist/worker.js"
+
+# ── Vars (non-secret, per-env) ────────────────────────────────────────────────
+[vars]
+ASSET_CDN_BASE = "https://assets.grudge-studio.com"
+ENVIRONMENT = "development"
+
+[env.production.vars]
+ASSET_CDN_BASE = "https://assets.grudge-studio.com"
+ENVIRONMENT = "production"

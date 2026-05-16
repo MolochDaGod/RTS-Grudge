@@ -29,3 +29,7 @@ export {
   readPrefabTag,
   clearPrefabTags,
 } from "./tagging";
+
+// Character prefab system
+export { CharacterPrefab } from "./character";
+export type { PrefabConfig, RaceId, ClassId, DamageEvent } from "./character";

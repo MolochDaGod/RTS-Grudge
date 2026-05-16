@@ -81,9 +81,16 @@ function randomHex(bytes: number): string {
 const ID_SERVICE_URL = process.env.GRUDGE_ID_URL || "https://id.grudge-studio.com";
 const IS_DEV = process.env.NODE_ENV !== "production";
 
-// Simple in-memory token cache (TTL 5 min) to avoid hammering id service
+// In-memory token cache. TTL set to 30 min so players stay logged in across
+// normal page reloads without hitting id.grudge-studio.com every request.
+// Tokens are evicted early when /auth/refresh issues a new one.
 const tokenCache = new Map<string, { user: GrudgeUser; expiresAt: number }>();
-const CACHE_TTL_MS = 5 * 60 * 1000;
+const CACHE_TTL_MS = 30 * 60 * 1000;
+
+/** Manually evict a token from the cache (call when a refresh issues a new one). */
+export function evictTokenCache(token: string): void {
+  tokenCache.delete(token);
+}
 
 async function validateGrudgeToken(token: string): Promise<GrudgeUser | null> {
   // Check cache first
@@ -221,17 +228,71 @@ function extractPlayerId(req: Request): string | undefined {
  * Require authenticated user. Use on routes that MUST have a real account
  * (e.g. wallet operations, trading, guild management).
  * Returns 401 with a redirect hint to id.grudge-studio.com.
+ * NEVER redirects to auth-gateway-flax.vercel.app or any third-party gateway.
  */
 export function requireAuth(req: Request, res: Response, next: NextFunction): void {
   if (!req.grudgeUser?.authenticated) {
     res.status(401).json({
       error: "Authentication required",
       loginUrl: `${ID_SERVICE_URL}/auth/login?redirect=${encodeURIComponent(req.originalUrl)}`,
+      provider: "grudge-id",
       message: "Sign in at id.grudge-studio.com to access this feature.",
     });
     return;
   }
   next();
+}
+
+/**
+ * Token refresh endpoint. Called by GrudgeSession keep-alive when a token
+ * is about to expire. Issues a new token and evicts the old one from cache.
+ * POST /auth/refresh  (Authorization: Bearer <old-token>)
+ */
+export function handleTokenRefresh(req: Request, res: Response): void {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer ")) {
+    res.status(401).json({ error: "No token" });
+    return;
+  }
+  const oldToken = authHeader.slice(7).trim();
+
+  // In production, proxy refresh to id.grudge-studio.com and return the new token.
+  // In development, extend the cached session by re-caching the same user.
+  if (IS_DEV) {
+    const cached = tokenCache.get(oldToken);
+    if (!cached) {
+      res.status(401).json({ error: "Token not found in cache" });
+      return;
+    }
+    // Extend TTL
+    const newExpiry = Date.now() + CACHE_TTL_MS;
+    tokenCache.set(oldToken, { user: cached.user, expiresAt: newExpiry });
+    res.json({ token: oldToken, expiresAt: newExpiry });
+    return;
+  }
+
+  // Production: forward to id.grudge-studio.com
+  fetch(`${ID_SERVICE_URL}/auth/refresh`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${oldToken}`,
+    },
+  })
+    .then(async (r) => {
+      if (!r.ok) {
+        evictTokenCache(oldToken);
+        res.status(r.status).json({ error: "Refresh rejected" });
+        return;
+      }
+      const data = await r.json();
+      if (data.token) evictTokenCache(oldToken);
+      res.json(data);
+    })
+    .catch((err) => {
+      console.warn("[auth] Refresh proxy failed:", (err as Error).message);
+      res.status(502).json({ error: "Auth service unavailable" });
+    });
 }
 
 /**

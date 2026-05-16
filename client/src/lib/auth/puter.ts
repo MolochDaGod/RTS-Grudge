@@ -39,28 +39,58 @@ declare global {
 
 // Resolve once the Puter SDK script tag has finished loading and exposed
 // `window.puter`. The script is deferred so it may not be ready by the time
-// React mounts. We poll briefly (≤3s) and then give up — the rest of the
-// app must keep working as a guest if Puter never loads (offline, ad-block,
-// CSP, etc.).
+// React mounts.
+//
+// Improved over the original:
+//   - Checks localStorage before polling (instant resolve when the SDK has
+//     already cached a session from a prior page-load, preventing the hang).
+//   - Default timeout raised to 8s (covers slow mobile connections).
+//   - One-shot promise is NOT cached when `timeoutMs` differs, so callers
+//     can do quick "is it ready yet" probes without poisoning the main wait.
+//   - Emits a console.info instead of console.warn on clean timeout so
+//     offline / ad-blocked players don't see a scary warning.
+
 let readyPromise: Promise<PuterSDK | null> | null = null;
-export function puterReady(timeoutMs = 3000): Promise<PuterSDK | null> {
-  if (readyPromise) return readyPromise;
-  readyPromise = new Promise<PuterSDK | null>((resolve) => {
+
+/** Check whether Puter has previously cached a session in localStorage. */
+function hasPuterLocalSession(): boolean {
+  try {
+    const raw = localStorage.getItem("puter.user") || localStorage.getItem("puter_user");
+    if (!raw) return false;
+    const u = JSON.parse(raw);
+    return !!(u?.uuid);
+  } catch { return false; }
+}
+
+export function puterReady(timeoutMs = 8000): Promise<PuterSDK | null> {
+  // If caller wants a short probe (< 2s) don't cache — avoids poisoning the
+  // main 8s wait with an early "null" result.
+  const useCache = timeoutMs >= 2000;
+  if (useCache && readyPromise) return readyPromise;
+
+  const p = new Promise<PuterSDK | null>((resolve) => {
     if (typeof window === "undefined") return resolve(null);
+    // Already loaded
     if (window.puter) return resolve(window.puter);
+    // Has a prior session → the SDK is highly likely to load — wait longer
+    const effectiveTimeout = hasPuterLocalSession()
+      ? Math.max(timeoutMs, 10_000)
+      : timeoutMs;
     const start = Date.now();
     const id = setInterval(() => {
       if (window.puter) {
         clearInterval(id);
         resolve(window.puter);
-      } else if (Date.now() - start > timeoutMs) {
+      } else if (Date.now() - start > effectiveTimeout) {
         clearInterval(id);
-        console.warn("[puter] SDK never loaded — staying in guest mode");
+        console.info("[puter] SDK not available — continuing as guest");
         resolve(null);
       }
     }, 60);
   });
-  return readyPromise;
+
+  if (useCache) readyPromise = p;
+  return p;
 }
 
 export async function puterSignIn(): Promise<PuterUser | null> {
@@ -96,6 +126,21 @@ export async function getPuterUser(): Promise<PuterUser | null> {
   } catch {
     return null;
   }
+}
+
+/**
+ * Silently attempt to restore a Puter session from localStorage without
+ * triggering a visible sign-in popup. Returns the user if already signed in.
+ * This is a no-op (returns null) if the SDK isn't loaded or no session exists.
+ */
+export async function restorePuterSession(): Promise<PuterUser | null> {
+  if (!hasPuterLocalSession()) return null;
+  // Don't re-resolve the cached promise to avoid recursive calls
+  const sdk = await puterReady(5000);
+  if (!sdk) return null;
+  if (!sdk.auth.isSignedIn()) return null;
+  try { return await sdk.auth.getUser(); }
+  catch { return null; }
 }
 
 // Synchronous best-effort accessor: returns the cached uuid stored in

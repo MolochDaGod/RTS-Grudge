@@ -5,7 +5,14 @@ import {
   equipmentConfig, armorData, consumableData,
 } from "@shared/schema";
 
-const OBJECT_STORE_BASE = "https://grudge-objectstore.pages.dev/api/v1";
+// Use the Cloudflare objectstore worker (objectstore.grudge-studio.com) or the
+// explicit override from the environment. The old grudge-objectstore.pages.dev
+// URL is retired — never reference it.
+const OBJECT_STORE_BASE =
+  process.env.OBJECT_STORE_BASE ||
+  process.env.OBJECTSTORE_WORKER_URL ||
+  process.env.ASSET_API_BASE ||
+  "https://objectstore.grudge-studio.com/api/v1";
 
 // ── Object Store Sync ────────────────────────────────────────────────────────
 

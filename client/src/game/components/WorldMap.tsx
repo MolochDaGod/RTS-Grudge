@@ -17,6 +17,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useWorldMap, WAYPOINT_COLORS, WAYPOINT_ICONS } from "@/lib/stores/useWorldMap";
 import { useGame } from "@/lib/stores/useGame";
+import { getPortMapPins } from "@/game/world/PortRegistry";
+import { getNamedDistricts } from "@/game/world/DistrictRegistry";
+import { useWorldEvents } from "@/lib/stores/useWorldEvents";
+
+const MISSION_TYPE_ICON: Record<string, string> = {
+  kill:    "⚔️",
+  gather:  "📦",
+  explore: "🗺️",
+};
+
+// Pre-computed static data for map rendering (safe to call at module level)
+const PORT_PINS   = getPortMapPins();
+const DISTRICTS   = getNamedDistricts();
 import {
   ISLAND_LAYOUT,
   WORLD_MAP_IMAGE_PATH,
@@ -27,6 +40,12 @@ import {
   worldToImage,
   type ResolvedIslandLayout,
 } from "@/game/world/IslandLayout";
+import {
+  WORLD_ZONES,
+  ZONE_WORLD_BOUNDS,
+  type ZoneId,
+} from "@/game/world/WorldZoneRegistry";
+import { useSinkingIslands } from "@/game/world/SinkingIslandSystem";
 
 const LOCATION_ICONS: Record<string, { symbol: string; color: string; label: string }> = {
   spawn: { symbol: "🏠", color: "#4fc3f7", label: "Spawn" },
@@ -177,32 +196,226 @@ export default function WorldMap() {
         ctx.drawImage(img, tl.x, tl.y, IMAGE_WORLD_W * z, IMAGE_WORLD_H * z);
       }
 
-      // Island pins. We rely on the image to convey shape; pins exist
-      // mostly so islands have a name on hover and a clear click
-      // target for "select / centre on this island" later.
+      // ── Zone quadrant overlays ──────────────────────────────────────────
+      // Draw semi-transparent zone tints over each quadrant so the player
+      // can immediately see which part of the map belongs to which biome.
+      for (const zone of Object.values(WORLD_ZONES)) {
+        const [minX, minZ, maxX, maxZ] = ZONE_WORLD_BOUNDS[zone.id as ZoneId];
+        const topLeft = worldToScreen(minX, minZ, w, h);
+        const bottomRight = worldToScreen(maxX, maxZ, w, h);
+        ctx.fillStyle = zone.overlayColor;
+        ctx.fillRect(
+          topLeft.x,
+          topLeft.y,
+          bottomRight.x - topLeft.x,
+          bottomRight.y - topLeft.y
+        );
+      }
+
+      // ── Island pins ─────────────────────────────────────────────────────
+      // We rely on the reference image to convey island shape; pins add
+      // interactivity (hover, click, name labels) and now carry zone colour.
+      const sinkingState = useSinkingIslands.getState();
+
       for (const isl of ISLAND_LAYOUT) {
         const p = worldToScreen(isl.worldX, isl.worldZ, w, h);
         const r = Math.max(3, isl.worldRadius * z * 0.3);
+        const zone = WORLD_ZONES[isl.zoneId as ZoneId];
+        const pinColor = zone?.pinColor ?? isl.color;
+
+        // Sinkable boss-zone islands get faded + dashed treatment when submerged.
+        const sinkProgress = sinkingState.getSinkProgress(isl.id);
+        const isSunk = sinkingState.isSunk(isl.id);
+        const alpha = isSunk ? 0.35 : 1.0 - sinkProgress * 0.6;
+
+        ctx.save();
+        ctx.globalAlpha = alpha;
+
+        // Sinking islands show a downward-pointing arrow hint
+        if (sinkProgress > 0 && !isSunk) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, r + 6, 0, Math.PI * 2);
+          ctx.strokeStyle = "#ff4444";
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([3, 3]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
         ctx.beginPath();
         ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-        ctx.fillStyle = isl.color + "cc";
+        ctx.fillStyle = isSunk ? "#555555cc" : pinColor + "cc";
         ctx.fill();
-        ctx.strokeStyle = isl.isTutorial ? "#ffffff" : "rgba(0,0,0,0.55)";
-        ctx.lineWidth = isl.isTutorial ? 2 : 1;
-        ctx.stroke();
+
+        // Hub / tutorial gets a double-ring treatment
+        if (isl.isTutorial) {
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, r + 4, 0, Math.PI * 2);
+          ctx.strokeStyle = "rgba(255,255,255,0.4)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        } else if (isSunk) {
+          ctx.strokeStyle = "rgba(80,80,80,0.6)";
+          ctx.setLineDash([4, 3]);
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          ctx.setLineDash([]);
+        } else {
+          ctx.strokeStyle = "rgba(0,0,0,0.55)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
 
         // Name label (skipped on islets and when zoomed too far out
         // to avoid label spam over the world).
         if (!isl.isIslet && z > 0.45) {
           ctx.font = `${Math.max(11, 12 * Math.min(z, 1.2))}px 'Cinzel', serif`;
           ctx.textAlign = "center";
-          ctx.fillStyle = "rgba(0,0,0,0.7)";
+          ctx.fillStyle = isSunk ? "rgba(100,100,100,0.7)" : "rgba(0,0,0,0.7)";
           ctx.fillText(isl.name, p.x + 1, p.y + r + 14 + 1);
-          ctx.fillStyle = "#f4e6c0";
+          ctx.fillStyle = isSunk ? "#888888" : (isl.isTutorial ? "#ffe4a0" : "#f4e6c0");
           ctx.fillText(isl.name, p.x, p.y + r + 14);
+        }
+
+        ctx.restore();
+      }
+
+      // ── Mission markers ──────────────────────────────────────────────────────────────
+      // Drawn on their own layer between island pins and user waypoints.
+      // Pulsing outer ring driven by sin(elapsed) makes them pop at a glance.
+      const missionMarkers = useWorldMap.getState().missionMarkers;
+      const pulse = (Math.sin(Date.now() / 500) + 1) / 2; // 0..1 oscillating at ~2Hz
+
+      for (const mm of missionMarkers) {
+        const p = worldToScreen(mm.worldX, mm.worldZ, w, h);
+        const baseR = 9;
+        const ringR = baseR + 4 + pulse * 4; // 13-17 px, breathing
+
+        // Pulsing outer ring in faction colour
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, ringR, 0, Math.PI * 2);
+        ctx.strokeStyle = mm.faction;
+        ctx.lineWidth = 1.5;
+        ctx.globalAlpha = 0.45 + pulse * 0.4;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+
+        // Filled pin
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, baseR, 0, Math.PI * 2);
+        ctx.fillStyle = mm.faction + "cc";
+        ctx.fill();
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Type icon inside pin
+        const icon = MISSION_TYPE_ICON[mm.type] ?? "❓";
+        ctx.font = "11px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(icon, p.x, p.y + 1);
+        ctx.textBaseline = "alphabetic";
+
+        // Label below pin (only when zoomed in enough)
+        if (z > 0.5) {
+          ctx.font = `bold ${Math.max(9, 10 * Math.min(z, 1.2))}px 'Cinzel', serif`;
+          ctx.textAlign = "center";
+          ctx.fillStyle = "rgba(0,0,0,0.7)";
+          ctx.fillText(mm.title, p.x + 1, p.y + baseR + 13 + 1);
+          ctx.fillStyle = mm.faction;
+          ctx.fillText(mm.title, p.x, p.y + baseR + 13);
         }
       }
 
+      // ── Port anchor icons ──────────────────────────────────────────────────────────
+      // ⚓ anchor at each port position (from PortRegistry)
+      for (const port of PORT_PINS) {
+        const p = worldToScreen(port.worldX, port.worldZ, w, h);
+        // Subtle outer ring
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 10, 0, Math.PI * 2);
+        ctx.strokeStyle = port.color + "55";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        // Filled disc
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 7, 0, Math.PI * 2);
+        ctx.fillStyle = port.color + "cc";
+        ctx.fill();
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.font = "10px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("⚓", p.x, p.y + 1);
+        ctx.textBaseline = "alphabetic";
+        if (z > 0.55) {
+          ctx.font = `${Math.max(8, 9 * Math.min(z, 1.2))}px 'Cinzel', serif`;
+          ctx.textAlign = "center";
+          ctx.fillStyle = "rgba(0,0,0,0.65)";
+          ctx.fillText(port.label, p.x + 1, p.y + 14 + 1);
+          ctx.fillStyle = port.color;
+          ctx.fillText(port.label, p.x, p.y + 14);
+        }
+      }
+
+      // ── District / town icons ────────────────────────────────────────────────────
+      // Small settlement / landmark icons only visible when zoomed in.
+      if (z > 0.6) {
+        for (const dist of DISTRICTS) {
+          // Skip harbors — they're already shown as port pins
+          if (dist.id.startsWith("harbor_")) continue;
+          const p = worldToScreen(dist.center[0], dist.center[1], w, h);
+          // Small coloured square pin
+          const half = 5;
+          ctx.fillStyle = dist.mapColor + "cc";
+          ctx.fillRect(p.x - half, p.y - half, half * 2, half * 2);
+          ctx.strokeStyle = "rgba(255,255,255,0.6)";
+          ctx.lineWidth = 1;
+          ctx.strokeRect(p.x - half, p.y - half, half * 2, half * 2);
+          ctx.font = "9px sans-serif";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(dist.mapIcon, p.x, p.y + 1);
+          ctx.textBaseline = "alphabetic";
+          if (z > 0.9) {
+            ctx.font = `${Math.max(8, 8 * Math.min(z, 1.4))}px 'Cinzel', serif`;
+            ctx.textAlign = "center";
+            ctx.fillStyle = "rgba(0,0,0,0.6)";
+            ctx.fillText(dist.name, p.x + 1, p.y + 12 + 1);
+            ctx.fillStyle = dist.mapColor;
+            ctx.fillText(dist.name, p.x, p.y + 12);
+          }
+        }
+      }
+
+      // ── Active world event indicators ────────────────────────────────────────────
+      // Pulsing event banner near the WORLD MAP title (screen-space, not world).
+      const activeEvents = useWorldEvents.getState().active;
+      if (activeEvents.length > 0) {
+        const ev = activeEvents[0]; // show most recent
+        const remainMs = Math.max(0, ev.endsAt - Date.now());
+        const remainMin = Math.ceil(remainMs / 60000);
+        const evPulse = (Math.sin(Date.now() / 600) + 1) / 2;
+        ctx.save();
+        ctx.globalAlpha = 0.7 + evPulse * 0.3;
+        ctx.fillStyle = ev.def.bannerColor;
+        ctx.font = "bold 11px 'Cinzel', serif";
+        ctx.textAlign = "left";
+        ctx.fillText(
+          `${ev.def.icon} ${ev.def.title} \u2014 ${remainMin}m`,
+          12, h - 28,
+        );
+        ctx.globalAlpha = 1;
+        ctx.restore();
+      }
+
+      // ── Discovered locations ──────────────────────────────────────────────────────
       // Discovered locations — auto-found landmarks from
       // LocationDiscovery. Drawn under user waypoints so the player's
       // own pins always sit on top.
@@ -426,49 +639,95 @@ export default function WorldMap() {
         <MapButton onClick={() => setShowWaypointList((s) => !s)} label="📌" title="Waypoints list" active={showWaypointList} />
       </div>
 
-      {hoverIsland && (
-        <div style={{
-          position: "absolute", bottom: 60, left: "50%", transform: "translateX(-50%)",
-          background: "rgba(0,0,0,0.85)", border: "1px solid rgba(197,160,89,0.4)",
-          borderRadius: 8, padding: "10px 18px", color: "#fff",
-          fontFamily: "'Cinzel', serif", pointerEvents: "none",
-        }}>
-          <div style={{ color: "#c5a059", fontSize: 14, fontWeight: "bold" }}>
-            {hoverIsland.name}
+      {hoverIsland && (() => {
+        const zone = WORLD_ZONES[hoverIsland.zoneId as ZoneId];
+        const sinkEntry = useSinkingIslands.getState().getIsland(hoverIsland.id);
+        const sunkLabel = sinkEntry?.sinkState === "sunk"
+          ? " · SUBMERGED"
+          : sinkEntry?.sinkState === "sinking"
+          ? ` · SINKING ${Math.round((sinkEntry?.sinkProgress ?? 0) * 100)}%`
+          : sinkEntry?.sinkState === "respawning"
+          ? " · RESPAWNING"
+          : "";
+        return (
+          <div style={{
+            position: "absolute", bottom: 60, left: "50%", transform: "translateX(-50%)",
+            background: "rgba(0,0,0,0.85)",
+            border: `1px solid ${zone?.color ?? "rgba(197,160,89,0.4)"}44`,
+            borderRadius: 8, padding: "10px 18px", color: "#fff",
+            fontFamily: "'Cinzel', serif", pointerEvents: "none",
+          }}>
+            <div style={{ color: zone?.color ?? "#c5a059", fontSize: 14, fontWeight: "bold" }}>
+              {hoverIsland.name}{sunkLabel}
+            </div>
+            {zone && (
+              <div style={{ fontSize: 10, color: zone.color + "bb", marginTop: 1 }}>
+                {zone.name} · {zone.subtitle}
+              </div>
+            )}
+            <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>
+              {hoverIsland.isTutorial ? "Hub Island · " : ""}
+              ({Math.round(hoverIsland.worldX)}, {Math.round(hoverIsland.worldZ)})
+            </div>
           </div>
-          <div style={{ fontSize: 11, color: "#aaa", marginTop: 2 }}>
-            {hoverIsland.isTutorial ? "Tutorial · " : ""}
-            {hoverIsland.faction ? `${hoverIsland.faction.toUpperCase()} faction · ` : ""}
-            ({Math.round(hoverIsland.worldX)}, {Math.round(hoverIsland.worldZ)})
-          </div>
-        </div>
-      )}
+        );
+      })()}
 
       {showLegend && (
         <div style={{
           position: "absolute", bottom: 12, left: 12,
           background: "rgba(0,0,0,0.85)", border: "1px solid rgba(255,255,255,0.15)",
-          borderRadius: 8, padding: 12, minWidth: 180,
+          borderRadius: 8, padding: 12, minWidth: 200, maxHeight: "70vh", overflowY: "auto",
         }}>
-          <div style={{ color: "#c5a059", fontSize: 12, fontWeight: "bold", marginBottom: 8, fontFamily: "'Cinzel', serif" }}>
-            Islands
+          {/* Zone legend */}
+          <div style={{ color: "#c5a059", fontSize: 12, fontWeight: "bold", marginBottom: 6, fontFamily: "'Cinzel', serif" }}>
+            Zones
           </div>
-          {ISLAND_LAYOUT.filter((i) => !i.isIslet).map((isl) => (
-            <div
-              key={isl.id}
-              onClick={() => centerOnIsland(isl)}
-              style={{
-                display: "flex", alignItems: "center", gap: 6, marginBottom: 4,
-                cursor: "pointer", padding: "2px 4px", borderRadius: 3,
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-            >
-              <div style={{ width: 10, height: 10, borderRadius: "50%", background: isl.color, border: isl.isTutorial ? "1.5px solid #fff" : "1px solid rgba(0,0,0,0.4)" }} />
-              <span style={{ color: "#ccc", fontSize: 10 }}>{isl.name}</span>
+          {Object.values(WORLD_ZONES).map((zone) => (
+            <div key={zone.id} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+              <div style={{
+                width: 10, height: 10, borderRadius: 2,
+                background: zone.overlayColor.replace(/,[^,]+\)$/, ",0.6)"),
+                border: `1px solid ${zone.color}66`,
+              }} />
+              <span style={{ color: zone.color, fontSize: 10, fontWeight: "bold" }}>{zone.name}</span>
+              <span style={{ color: "#666", fontSize: 9 }}>{zone.subtitle.split(" — ")[0]}</span>
             </div>
           ))}
-          <div style={{ fontSize: 10, color: "#aaa", marginBottom: 4, marginTop: 8 }}>Markers:</div>
+
+          {/* Island list per zone */}
+          {Object.values(WORLD_ZONES).map((zone) => {
+            const zoneIslands = ISLAND_LAYOUT.filter((i) => !i.isIslet && i.zoneId === zone.id);
+            if (zoneIslands.length === 0) return null;
+            return (
+              <div key={zone.id} style={{ marginTop: 8 }}>
+                <div style={{ color: zone.color + "99", fontSize: 9, fontFamily: "'Cinzel', serif", marginBottom: 3 }}>
+                  {zone.name.toUpperCase()}
+                </div>
+                {zoneIslands.map((isl) => (
+                  <div
+                    key={isl.id}
+                    onClick={() => centerOnIsland(isl)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 6, marginBottom: 3,
+                      cursor: "pointer", padding: "2px 4px", borderRadius: 3,
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                  >
+                    <div style={{
+                      width: 8, height: 8, borderRadius: "50%",
+                      background: zone.pinColor,
+                      border: isl.isTutorial ? "1.5px solid #fff" : "1px solid rgba(0,0,0,0.4)",
+                    }} />
+                    <span style={{ color: "#ccc", fontSize: 10 }}>{isl.name}</span>
+                  </div>
+                ))}
+              </div>
+            );
+          })}
+
+          <div style={{ fontSize: 10, color: "#aaa", marginBottom: 4, marginTop: 10 }}>Markers:</div>
           {Object.entries(LOCATION_ICONS).map(([type, info]) => (
             <div key={type} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
               <span style={{ fontSize: 11 }}>{info.symbol}</span>

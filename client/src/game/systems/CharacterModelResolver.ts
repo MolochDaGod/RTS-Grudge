@@ -73,6 +73,7 @@ const LOCAL_CHARACTER_FILES = new Set<string>([
   "vampire_aristocrat-female.glb",
   "vampire_aristocrat-male.glb",
   "werewolf.glb",
+  "stylized_nightmarish_werewolf.glb",
 ]);
 
 export function resolveCharacterModelPath(path: string): string {

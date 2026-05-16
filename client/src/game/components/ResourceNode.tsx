@@ -5,6 +5,7 @@ import { useInventory } from "@/lib/stores/useInventory";
 import { useHarvest } from "@/lib/stores/useHarvest";
 import { useCampaign } from "@/lib/stores/useCampaign";
 import { getTerrainHeight, globalHeightData } from "./Terrain";
+import { getBiomeAtPosition } from "../systems/BiomeSpawnRegistry";
 
 interface ResourceNodeProps {
   playerPosition: THREE.Vector3;
@@ -142,6 +143,37 @@ const RESOURCE_YIELDS: Record<ResourceType, { min: number; max: number }> = {
 // The nearest in-range ResourceNodeMesh consumes it on the next frame.
 export const globalHarvestTriggerRef = { current: false };
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Zone-aware resource type weights
+// Each row maps biomeId → probability weights for each ResourceType.
+// Weights are relative; they're normalised at roll time.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const ZONE_RESOURCE_WEIGHTS: Record<string, Record<ResourceType, number>> = {
+  //           wood  stone fiber iron  meat  berry herb  gold  crystal
+  plains:   { wood:15, stone:12, fiber:15, iron_ore:10, raw_meat:12, berry:12, herb:12, gold_ore:6,  crystal:6  },
+  forest:   { wood:30, stone:5,  fiber:22, iron_ore:5,  raw_meat:12, berry:14, herb:14, gold_ore:0,  crystal:0  },
+  tropical: { wood:32, stone:4,  fiber:26, iron_ore:4,  raw_meat:10, berry:14, herb:10, gold_ore:0,  crystal:0  },
+  desert:   { wood:2,  stone:22, fiber:10, iron_ore:18, raw_meat:4,  berry:4,  herb:10, gold_ore:14, crystal:8  },
+  swamp:    { wood:10, stone:4,  fiber:30, iron_ore:4,  raw_meat:20, berry:14, herb:18, gold_ore:0,  crystal:0  },
+  snow:     { wood:4,  stone:20, fiber:4,  iron_ore:26, raw_meat:10, berry:0,  herb:8,  gold_ore:12, crystal:16 },
+  lava:     { wood:0,  stone:10, fiber:0,  iron_ore:30, raw_meat:0,  berry:0,  herb:0,  gold_ore:30, crystal:22 },
+  mountains:{ wood:4,  stone:28, fiber:4,  iron_ore:26, raw_meat:6,  berry:0,  herb:4,  gold_ore:16, crystal:12 },
+  jungle:   { wood:26, stone:4,  fiber:22, iron_ore:4,  raw_meat:22, berry:10, herb:14, gold_ore:0,  crystal:0  },
+  coast:    { wood:10, stone:10, fiber:16, iron_ore:10, raw_meat:26, berry:10, herb:10, gold_ore:4,  crystal:4  },
+};
+
+function rollZoneResource(biomeId: string, rng: () => number): ResourceType {
+  const w = ZONE_RESOURCE_WEIGHTS[biomeId] ?? ZONE_RESOURCE_WEIGHTS.plains;
+  const total = Object.values(w).reduce((a, b) => a + b, 0);
+  let roll = rng() * total;
+  for (const [type, weight] of Object.entries(w)) {
+    roll -= weight;
+    if (roll <= 0) return type as ResourceType;
+  }
+  return "wood";
+}
+
 export default function ResourceNodes({ playerPosition }: ResourceNodeProps) {
   const resourcesRef = useRef<ResourceInstance[]>([]);
   const initialized = useRef(false);
@@ -177,8 +209,6 @@ export default function ResourceNodes({ playerPosition }: ResourceNodeProps) {
       };
     };
     const rand = rng(123);
-    const types: ResourceType[] = ["wood", "stone", "fiber", "iron_ore", "raw_meat", "berry", "herb", "gold_ore", "crystal"];
-
     for (let i = 0; i < 150; i++) {
       const x = (rand() - 0.5) * 180;
       const z = (rand() - 0.5) * 180;
@@ -186,8 +216,9 @@ export default function ResourceNodes({ playerPosition }: ResourceNodeProps) {
       const h = getTerrainHeight(x, z, globalHeightData);
       if (h < 0.2) continue;
 
-      const typeIndex = Math.floor(rand() * types.length);
-      const type = types[typeIndex];
+      // Zone-aware type selection: biome at this position drives the probability.
+      const biomeId = getBiomeAtPosition(x, z).id;
+      const type = rollZoneResource(biomeId, rand);
 
       let scale = 0.8 + rand() * 0.5;
       if (type === "wood") scale = 1.0 + rand() * 0.8;
