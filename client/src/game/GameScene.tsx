@@ -253,7 +253,7 @@ export default function GameScene() {
         <Canvas
           shadows
           dpr={[1, 1.5]}
-          camera={{ position: [0, 15, 15], fov: 50, near: 0.1, far: 500 }}
+          camera={{ position: [0, 6, 2], fov: 50, near: 0.1, far: 500 }}
           gl={{
             antialias: false,
             powerPreference: "high-performance",
@@ -348,7 +348,7 @@ export default function GameScene() {
         shadows
         dpr={[1, 1.5]}
         camera={{
-          position: [0, 15, 15],
+          position: [0, 6, 2],
           fov: 50,
           near: 0.1,
           far: 500,

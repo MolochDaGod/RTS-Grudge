@@ -7,6 +7,11 @@ import { useCombatLog } from "@/lib/stores/useCombatLog";
 
 export type CameraMode = "mmo" | "action" | "overhead";
 
+// World bounds — camera target position is clamped to this box so the
+// camera never drifts outside the playable area. Matches the spawn bounds
+// used by WaveSpawner and the terrain system.
+const WORLD_BOUNDS = 90;
+
 const MMO_CONFIG = {
   minDistance: 5,
   maxDistance: 35,
@@ -153,15 +158,24 @@ export default function Camera({ playerPosition }: CameraProps) {
 
   const yawRef = useRef(MMO_CONFIG.defaultYaw);
   const pitchRef = useRef(MMO_CONFIG.defaultPitch);
-  const distRef = useRef(MMO_CONFIG.defaultDistance);
+  // Start zoomed in tight on the command center — the intro lerp below
+  // will smoothly pull out to the normal play distance over ~2 seconds.
+  const distRef = useRef(8);
 
   const targetYawRef = useRef(MMO_CONFIG.defaultYaw);
   const targetPitchRef = useRef(MMO_CONFIG.defaultPitch);
   const targetDistRef = useRef(MMO_CONFIG.defaultDistance);
 
-  const smoothPosRef = useRef(new THREE.Vector3(0, 15, 15));
+  const smoothPosRef = useRef(new THREE.Vector3(0, 6, 2));
   const smoothLookRef = useRef(new THREE.Vector3());
   const smoothShoulderRef = useRef(0);
+
+  // Intro zoom-out: on first mount the camera sits close to the command
+  // center then eases out to the default MMO distance. The timer counts
+  // down from 1.0 → 0.0 over ~2s; while > 0 the zoom-smoothing is
+  // slowed so the pull-back reads as a cinematic reveal rather than a
+  // snap.
+  const introTimerRef = useRef(1.0);
 
   const isDraggingRef = useRef(false);
   const modeRef = useRef<CameraMode>("mmo");
@@ -313,11 +327,19 @@ export default function Camera({ playerPosition }: CameraProps) {
       modeTransitionRef.current = Math.max(0, modeTransitionRef.current - dt * 3);
     }
 
+    // Intro zoom-out — slow the zoom lerp while the intro is active so
+    // the camera eases out cinematically instead of snapping.
+    if (introTimerRef.current > 0) {
+      introTimerRef.current = Math.max(0, introTimerRef.current - dt * 0.5);
+    }
+
     const orbitT = 1 - Math.exp(-cfg.orbitSmoothing * dt);
     yawRef.current += (targetYawRef.current - yawRef.current) * orbitT;
     pitchRef.current += (targetPitchRef.current - pitchRef.current) * orbitT;
 
-    const zoomT = 1 - Math.exp(-cfg.zoomSmoothing * dt);
+    // During the intro, use a slower zoom factor for the cinematic pull-back.
+    const introFactor = introTimerRef.current > 0 ? 0.35 : 1.0;
+    const zoomT = 1 - Math.exp(-cfg.zoomSmoothing * introFactor * dt);
     distRef.current += (targetDistRef.current - distRef.current) * zoomT;
 
     const dist = distRef.current;
@@ -341,6 +363,11 @@ export default function Camera({ playerPosition }: CameraProps) {
       playerPosition.y + lookH + camOffsetY,
       playerPosition.z + camOffsetZ
     );
+
+    // Clamp camera to world bounds so it never drifts outside the
+    // playable zone — the skybox / terrain edge stays hidden.
+    targetCamPos.x = Math.max(-WORLD_BOUNDS, Math.min(WORLD_BOUNDS, targetCamPos.x));
+    targetCamPos.z = Math.max(-WORLD_BOUNDS, Math.min(WORLD_BOUNDS, targetCamPos.z));
 
     let shoulderX = 0;
     if (modeRef.current === "action") {

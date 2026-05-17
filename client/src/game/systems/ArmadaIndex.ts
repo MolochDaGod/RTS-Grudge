@@ -20,6 +20,49 @@
 const CDN = "https://assets.grudge-studio.com/grudge-armada";
 
 // ---------------------------------------------------------------------------
+// Unit icon mapping — maps unit/building IDs to their icon image paths.
+// Icons live under /icons/grudge/entities/ in the public folder.
+// ---------------------------------------------------------------------------
+export const UNIT_ICONS: Record<string, string> = {
+  // Units
+  aw_infantry:     "/icons/grudge/entities/Human Warrior.png",
+  aw_mech:         "/icons/grudge/entities/Brute Mecha Icon.png",
+  aw_tank:         "/icons/grudge/entities/Heavy Human Merc.PNG",
+  mech_tripod:     "/icons/grudge/entities/Brute Mecha Icon.png",
+  scifi_soldier:   "/icons/grudge/entities/Human Merc.PNG",
+  cyborg_unit:     "/icons/grudge/entities/heavy barb merc.PNG",
+  cyborg_soldier:  "/icons/grudge/entities/Heavy Undead Merc.PNG",
+  shadow_soldier:  "/icons/grudge/entities/Heavy Orc Merc.PNG",
+  scifi_trooper:   "/icons/grudge/entities/Barb merc.PNG",
+  scifi_officer:   "/icons/grudge/entities/barb paladin.png",
+  // Buildings
+  barracks:        "/icons/grudge/entities/Armory Icon.png",
+  mech_factory:    "/icons/grudge/entities/Foundry Icon.png",
+  vehicle_plant:   "/icons/grudge/entities/Arsenal Icon.png",
+  tech_lab:        "/icons/grudge/entities/Laboritory.PNG",
+  turret_platform: "/icons/grudge/entities/tower.PNG",
+  turret_bud:      "/icons/grudge/entities/tower 2.PNG",
+  reactor:         "/icons/grudge/entities/Large Furnace Icon.png",
+  refinery:        "/icons/grudge/entities/Refinery Icon.png",
+  command_center:  "/icons/grudge/entities/Castle Gate Icon.png",
+  drill_station:   "/icons/grudge/entities/Recycler Icon.png",
+  warehouse:       "/icons/grudge/entities/Storage.PNG",
+  farm:            "/icons/grudge/entities/Workbench.PNG",
+  sawmill:         "/icons/grudge/entities/Sawmill Icon.png",
+  drill_rig:       "/icons/grudge/entities/Recycler Icon.png",
+  repair_dock:     "/icons/grudge/entities/Blacksmith Icon.png",
+  solar_array:     "/icons/grudge/entities/Lamp Icon.png",
+  cargo_depot:     "/icons/grudge/entities/Market Icon.png",
+  landing_pad:     "/icons/grudge/entities/Flag Icon.png",
+  drone_bay:       "/icons/grudge/entities/YoloCopter Icon.png",
+  space_dock:      "/icons/grudge/entities/Boat Icon.png",
+};
+
+export function getUnitIcon(id: string): string {
+  return UNIT_ICONS[id] ?? "/icons/grudge/entities/Human Warrior.png";
+}
+
+// ---------------------------------------------------------------------------
 // Resource types the player harvests / earns
 // ---------------------------------------------------------------------------
 export type ResourceType =
@@ -73,6 +116,7 @@ export type BuildingId =
   | "vehicle_plant"
   | "tech_lab"
   | "turret_platform"
+  | "turret_bud"
   | "reactor"
   | "refinery"
   | "drone_bay"
@@ -247,6 +291,23 @@ export const BUILDINGS: BuildingDefinition[] = [
     health: 400,
     produces: [],
     description: "Automated laser turret. Fires at enemies within range. Cannot produce units.",
+  },
+
+  // ── Turret Bud — cheap deployable turret ─────────────────────────────
+  {
+    id: "turret_bud",
+    name: "Turret Bud",
+    modelUrl: `${CDN}/effects/turret_bud/scene.gltf`,
+    textures: [],
+    assetPack: "turret_bud",
+    buildCost: [
+      { type: "gold", amount: 100 },
+      { type: "iron", amount: 50 },
+    ],
+    buildTime: 10,
+    health: 150,
+    produces: [],
+    description: "Small deployable auto-turret. Cheap and fast to place. Lower range and damage than the laser platform but spammable for area denial.",
   },
 
   // ── Reactor — power generation ──────────────────────────────────────
@@ -496,6 +557,40 @@ export const BUILDINGS: BuildingDefinition[] = [
     health: 500,
     produces: [],
     description: "Serves as a drop-off point for harvested resources. Speeds up supply chain.",
+  },
+
+  // ═════════════════════════════════════════════════════════════════════════
+  //  STARTER MINING VEHICLES — already rendering with spinning wheels,
+  //  just needed economy wiring. Placed near command center at game start.
+  // ═════════════════════════════════════════════════════════════════════════
+  {
+    id: "sawmill" as BuildingId,
+    name: "Sawmill",
+    modelUrl: "/models/village_quaternius/Sawmill_saw.glb",
+    textures: [],
+    assetPack: "village_quaternius",
+    buildCost: [],
+    buildTime: 0,
+    health: 300,
+    produces: [],
+    generates: [{ type: "biomass" as ResourceType, perMinute: 12 }],
+    description: "Starter harvester. Spinning saw blade cuts wood and produces biomass. Free at game start.",
+  },
+  {
+    id: "drill_rig" as BuildingId,
+    name: "Drill Rig",
+    modelUrl: "/models/rpg_tools/handdrill.glb",
+    textures: [],
+    assetPack: "rpg_tools",
+    buildCost: [],
+    buildTime: 0,
+    health: 300,
+    produces: [],
+    generates: [
+      { type: "iron" as ResourceType, perMinute: 6 },
+      { type: "crystal" as ResourceType, perMinute: 2 },
+    ],
+    description: "Starter harvester. Spinning drill extracts iron and crystal from the ground. Free at game start.",
   },
 ];
 
@@ -949,6 +1044,74 @@ export const UNITS: ArmadaUnit[] = [
     description: "Support commander. Buffs allies, reveals stealth. Force multiplier.",
   },
 ];
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  WEAPONS — turrets, attachable weapon models, deployable armaments
+// ═══════════════════════════════════════════════════════════════════════════
+
+export interface WeaponAsset {
+  id: string;
+  name: string;
+  modelUrl: string;
+  textures: string[];
+  assetPack: string;
+  /** Which unit can equip this as an upgrade (empty = building-only) */
+  equippableBy: string[];
+  /** Projectile this weapon fires */
+  projectile: ProjectileType;
+  damage: number;
+  range: number;
+  cooldown: number;
+  description: string;
+}
+
+export const WEAPONS: WeaponAsset[] = [
+  {
+    id: "laser_turret_weapon",
+    name: "Laser Turret",
+    modelUrl: `${CDN}/weapons/laser_turret/scene.gltf`,
+    textures: [
+      "base_BAKED_baseColor.jpeg", "base_BAKED_metallicRoughness.png", "base_BAKED_normal.png",
+      "body_-_wear_out_baseColor.jpeg", "body_-_wear_out_metallicRoughness.png", "body_-_wear_out_normal.png",
+      "body_BAKED_baseColor.jpeg", "body_BAKED_metallicRoughness.png", "body_BAKED_normal.png",
+      "body_details_BAKED_baseColor.jpeg", "body_details_BAKED_metallicRoughness.png", "body_details_BAKED_normal.png",
+      "platform_details_BAKED_baseColor.jpeg", "platform_details_BAKED_metallicRoughness.png", "platform_details_BAKED_normal.png",
+      "platform_main_BAKED_baseColor.jpeg", "platform_main_BAKED_metallicRoughness.png", "platform_main_BAKED_normal.png",
+    ],
+    assetPack: "laser_turret",
+    equippableBy: ["aw_mech", "mech_tripod"],
+    projectile: "laser",
+    damage: 20,
+    range: 18,
+    cooldown: 1.5,
+    description: "Full PBR laser turret. Can be mounted on mechs or placed as a static defense platform. High accuracy, instant-hit beam.",
+  },
+  {
+    id: "turret_bud_weapon",
+    name: "Turret Bud",
+    modelUrl: `${CDN}/effects/turret_bud/scene.gltf`,
+    textures: [],
+    assetPack: "turret_bud",
+    equippableBy: [],
+    projectile: "bullet",
+    damage: 8,
+    range: 10,
+    cooldown: 0.6,
+    description: "Small deployable auto-turret. Fast fire rate, low damage. Deploy anywhere for area denial.",
+  },
+];
+
+const _weaponMap = new Map<string, WeaponAsset>();
+for (const w of WEAPONS) _weaponMap.set(w.id, w);
+
+export function getWeapon(id: string): WeaponAsset | undefined {
+  return _weaponMap.get(id);
+}
+
+/** All weapons equippable by a given unit. */
+export function getWeaponsForUnit(unitId: string): WeaponAsset[] {
+  return WEAPONS.filter((w) => w.equippableBy.includes(unitId));
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 //  VEHICLES (air/space — not trainable yet, listed for future reference)
