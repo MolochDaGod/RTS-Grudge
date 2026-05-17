@@ -31,26 +31,48 @@ export function AccountPanel() {
   const { user, loading, signIn, signOut } = useGrudgeSession();
   const wallet = useWallet();
 
+  // ——— All hooks MUST be called before any early return (Rules of Hooks) ———
+
   // Init session on mount (idempotent — GrudgeSession deduplicates)
   useEffect(() => { initSession(); }, []);
 
   // Auto-provision Solana wallet when signed in
   useEffect(() => {
     if (!user?.authenticated) return;
-    // user.email is string|null; wallet.provision expects string|undefined
     if (wallet.status === "idle") wallet.provision(user.email ?? undefined);
   }, [user, wallet.status, wallet.provision]);
 
-  const handleSignIn = useCallback(async () => {
-    // Try Puter silent sign-in first; falls through to id.grudge-studio.com redirect
-    await signIn();
-  }, [signIn]);
+  const handleSignIn = useCallback(async () => { await signIn(); }, [signIn]);
+  const handleSignOut = useCallback(async () => { await signOut(); }, [signOut]);
 
-  const handleSignOut = useCallback(async () => {
-    await signOut();
-  }, [signOut]);
+  // Pet + NFT hooks (always called; guards inside handle unauthenticated state)
+  const activePet = usePets(s => s.getActivePet());
+  const furnacePending = usePets(s => s.furnacePending);
+  const furnaceHatch = usePets(s => s.furnaceHatch);
+  const checkFurnaceHatch = usePets(s => s.checkFurnaceHatch);
+  const inventory = useInventory(s => s.items);
+  const removeFromInventory = useInventory(s => s.removeItem);
+  // useNFTs handles null/undefined address gracefully (returns empty)
+  const { nftCount, hasDragonEgg: walletHasEgg } = useNFTs(wallet.wallet?.address);
 
-  // ——— Loading: very brief (max 8s for Puter SDK, then instant guest fallback) ———
+  const hasDragonEggInInventory = inventory.some(i => i.id === "dragon_egg" && i.quantity > 0);
+
+  // Furnace cook countdown (1s tick, only active while cooking)
+  const [cookSecsLeft, setCookSecsLeft] = useState(0);
+  useEffect(() => {
+    if (!furnacePending) { setCookSecsLeft(0); return; }
+    const update = () => {
+      const ms = new Date(furnacePending.completesAt).getTime() - Date.now();
+      if (ms <= 0) { checkFurnaceHatch(); setCookSecsLeft(0); }
+      else setCookSecsLeft(Math.ceil(ms / 1000));
+    };
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, [furnacePending, checkFurnaceHatch]);
+
+  // ——— Early returns ——— (safe: all hooks already called above)
+
   if (loading) {
     return (
       <div className="fixed top-3 left-3 z-20 flex items-center gap-2 px-3 py-1.5
@@ -61,7 +83,6 @@ export function AccountPanel() {
     );
   }
 
-  // ——— Signed out: show Grudge ID button + guest play hint ———
   if (!user?.authenticated) {
     return (
       <div className="fixed top-3 left-3 z-20 flex flex-col gap-1">
@@ -82,35 +103,6 @@ export function AccountPanel() {
       </div>
     );
   }
-
-  // ——— Pet + NFT state ———
-  const activePet = usePets(s => s.getActivePet());
-  const furnacePending = usePets(s => s.furnacePending);
-  const furnaceHatch = usePets(s => s.furnaceHatch);
-  const checkFurnaceHatch = usePets(s => s.checkFurnaceHatch);
-  const inventory = useInventory(s => s.items);
-  const removeFromInventory = useInventory(s => s.removeItem);
-  const { nftCount, hasDragonEgg: walletHasEgg } = useNFTs(wallet.wallet?.address);
-
-  const hasDragonEggInInventory = inventory.some(i => i.id === "dragon_egg" && i.quantity > 0);
-
-  // Furnace cook timer countdown (updates every second)
-  const [cookSecsLeft, setCookSecsLeft] = useState(0);
-  useEffect(() => {
-    if (!furnacePending) { setCookSecsLeft(0); return; }
-    const update = () => {
-      const ms = new Date(furnacePending.completesAt).getTime() - Date.now();
-      if (ms <= 0) {
-        checkFurnaceHatch();
-        setCookSecsLeft(0);
-      } else {
-        setCookSecsLeft(Math.ceil(ms / 1000));
-      }
-    };
-    update();
-    const id = setInterval(update, 1000);
-    return () => clearInterval(id);
-  }, [furnacePending, checkFurnaceHatch]);
 
   // ——— Signed in ———
   const displayId = user.displayName || user.playerId.replace(/^(grudge_|puter_)/, "").slice(0, 12);

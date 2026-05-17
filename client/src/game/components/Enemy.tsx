@@ -111,6 +111,11 @@ const ENEMY_MODEL_PATHS: Record<EnemyType, string> = {
   thrower_assassin: "/models/characters/assassin-male.glb",
   thrower_soldier: "/models/characters/undead_grave_knight-male.glb",
   thrower_berserker: "/models/characters/night_stalker-male.glb",
+  // Dark elf camp enemies — local elf-male.glb (CDN upgrade: ELF_ranger.glb when ready)
+  dark_elf: "/models/characters/elf-male.glb",
+  // Flying boss enemies
+  armabee: "/models/monsters/flying/Armabee.glb",
+  alpaking: "/models/monsters/flying/Alpaking.glb",
   // Advance Wars / sci-fi units — loaded from object storage CDN
   aw_infantry: `${UNIT_CDN_BASE}/units/advance_wars_infantry__mech_units/scene.gltf`,
   aw_mech: `${UNIT_CDN_BASE}/units/advance_wars_infantry__mech_units/scene.gltf`,
@@ -162,6 +167,9 @@ const ENEMY_TARGET_HEIGHTS: Record<EnemyType, number> = {
   shadow_soldier: 1.85,
   scifi_trooper: 1.8,
   scifi_officer: 1.9,
+  dark_elf: 1.8,
+  armabee: 1.4,
+  alpaking: 2.5,
 };
 
 const ENEMY_TINTS: Record<EnemyType, string | null> = {
@@ -202,6 +210,9 @@ const ENEMY_TINTS: Record<EnemyType, string | null> = {
   shadow_soldier: "#333344",
   scifi_trooper: "#558866",
   scifi_officer: "#aa6633",
+  dark_elf: "#3a2255",
+  armabee: "#ffcc00",
+  alpaking: "#ff88aa",
 };
 
 const USES_MONSTER_MODEL: Record<EnemyType, boolean> = {
@@ -215,6 +226,8 @@ const USES_MONSTER_MODEL: Record<EnemyType, boolean> = {
   aw_infantry: true, aw_mech: true, aw_tank: true, mech_tripod: true,
   scifi_soldier: true, cyborg_unit: true, cyborg_soldier: true,
   shadow_soldier: true, scifi_trooper: true, scifi_officer: true,
+  // New enemies
+  dark_elf: false, armabee: true, alpaking: true,
 };
 
 const EMOTE_ICONS: Record<EmoteType, string> = {

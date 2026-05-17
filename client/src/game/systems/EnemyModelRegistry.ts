@@ -43,9 +43,9 @@ export const ENEMY_MODEL_REGISTRY: Partial<Record<EnemyType, EnemyModelDef>> = {
   bunny:     { modelPath: "/models/monsters/blob/Cat.glb",             scale: 0.6 },
   alien:     { modelPath: "/models/monsters/big/Alien.glb",            scale: 1.8 },
 
-  // ── Dark Elf camp enemies (replace pirate camps) ─────────────────────────
-  // Uses CDN faction elf models; fallback to Ninja for local dev
-  dark_elf:  { modelPath: `${CDN}/ELF_ranger.glb`,       scale: 1.0, animPack: "ELF_" },
+  // ── Dark Elf camp enemies (replace pirate camps) ───────────────────────────────────────────────
+  // Local: elf-male.glb (existing character model). CDN override once ELF_ranger uploads.
+  dark_elf:  { modelPath: "/models/characters/elf-male.glb", scale: 1.0, animPack: "ELF_" },
 
   // ── Dinosaurs ────────────────────────────────────────────────────────────
   dino:         { modelPath: "/models/monsters/dinosaurs/Apatosaurus.glb",    scale: 3.0 },

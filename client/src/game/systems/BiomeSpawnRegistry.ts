@@ -229,6 +229,10 @@ export const BIOME_ZONES: BiomeZone[] = [
       { type: "thrower_berserker", minDistance: 20, weight: 3 },
       { type: "cyborg_unit", minDistance: 25, weight: 2 },
       { type: "mech_tripod", minDistance: 45, weight: 1 },
+      // Armabee swarms rise from the lava vents
+      { type: "armabee", minDistance: 10, weight: 3 },
+      // Alpaking circles the caldera rim
+      { type: "alpaking", minDistance: 35, weight: 2 },
     ],
     wildlife: [],
     envProps: [
@@ -248,10 +252,13 @@ export const BIOME_ZONES: BiomeZone[] = [
       { type: "raptor", minDistance: 15, weight: 4 },
       { type: "dino", minDistance: 35, weight: 2 },
       { type: "trex", minDistance: 55, weight: 1 },
-      { type: "pirate", minDistance: 20, weight: 3 },
+      // Dark elves have displaced pirates in deep jungle camp spawns
+      { type: "dark_elf", minDistance: 20, weight: 3 },
       { type: "thrower_assassin", minDistance: 25, weight: 2 },
       { type: "scifi_officer", minDistance: 30, weight: 2 },
       { type: "aw_infantry", minDistance: 20, weight: 3 },
+      // Armabee swarm in the jungle canopy
+      { type: "armabee", minDistance: 15, weight: 3 },
     ],
     wildlife: [
       WILDLIFE_MODELS.zebra, WILDLIFE_MODELS.pigeon,
@@ -261,17 +268,20 @@ export const BIOME_ZONES: BiomeZone[] = [
   },
   {
     id: "coast",
-    label: "Pirate Coast",
+    label: "Dark Elf Coast",
     center: [-50, 0],
     radius: 25,
     terrainTint: "#c4b890",
     ambientTint: "#eeffff",
     enemies: [
-      { type: "pirate", minDistance: 0, weight: 6 },
+      // Dark elves have taken over coastal pirate camps
+      { type: "dark_elf", minDistance: 0, weight: 6 },
       { type: "skeleton", minDistance: 0, weight: 4 },
       { type: "ninja", minDistance: 20, weight: 3 },
       { type: "ghost", minDistance: 15, weight: 2, nightOnly: true },
       { type: "thrower_soldier", minDistance: 15, weight: 3 },
+      // Alpaking patrol the coast from the air
+      { type: "alpaking", minDistance: 20, weight: 2 },
     ],
     wildlife: [
       WILDLIFE_MODELS.fish, WILDLIFE_MODELS.pigeon,
