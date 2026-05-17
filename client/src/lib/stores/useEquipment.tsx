@@ -5,15 +5,16 @@ export type EquipSlot = "helm" | "shoulder" | "chest" | "legs" | "boots" | "belt
 
 export type ItemTier = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
+// WCS canonical tier labels (D5 rename: T5=Heroic, T8=Legendary)
 export const TIER_INFO: Record<ItemTier, { label: string; color: string; glow: string }> = {
-  1: { label: "Common", color: "#8b7355", glow: "none" },
-  2: { label: "Uncommon", color: "#a8a8a8", glow: "0 0 4px #a8a8a844" },
-  3: { label: "Rare", color: "#4a9eff", glow: "0 0 6px #4a9eff44" },
-  4: { label: "Epic", color: "#9d4dff", glow: "0 0 8px #9d4dff44" },
-  5: { label: "Legendary", color: "#ff4d4d", glow: "0 0 10px #ff4d4d66" },
-  6: { label: "Mythic", color: "#ffaa00", glow: "0 0 12px #ffaa0066" },
-  7: { label: "Ancient", color: "#d4a84b", glow: "0 0 14px #d4a84b88" },
-  8: { label: "Artifact", color: "#f0d890", glow: "0 0 16px #f0d89088" },
+  1: { label: "Common",    color: "#8b7355", glow: "none" },
+  2: { label: "Uncommon",  color: "#a8a8a8", glow: "0 0 4px #a8a8a844" },
+  3: { label: "Rare",      color: "#4a9eff", glow: "0 0 6px #4a9eff44" },
+  4: { label: "Epic",      color: "#9d4dff", glow: "0 0 8px #9d4dff44" },
+  5: { label: "Heroic",    color: "#e05050", glow: "0 0 10px #e0505066" },
+  6: { label: "Mythic",    color: "#ffaa00", glow: "0 0 12px #ffaa0066" },
+  7: { label: "Ancient",   color: "#d4a84b", glow: "0 0 14px #d4a84b88" },
+  8: { label: "Legendary", color: "#f0d890", glow: "0 0 18px #f0d890aa, 0 0 32px #f0d89044" },
 };
 
 export const CDN_BASE = "https://molochdagod.github.io/ObjectStore/icons/pack";

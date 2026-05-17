@@ -106,10 +106,20 @@ function HeroModel({ heroId }: { heroId: string }) {
   // dailyState or hasCamp changes (e.g. hero transitions outbound→adventuring).
   const heroWorldState = useFactionHeroes((s) => s.heroes.get(heroId));
 
+  // Derive weapon type from heroClass so the correct BRB animation pack loads
+  // (warrior/worge → greatsword combos, mage → staff casts, ranger → bow draws).
+  const HERO_WEAPON_TYPE: Record<HeroClass, import("@/lib/stores/useGame").WeaponType> = {
+    warrior: "sword",
+    worge:   "greatsword",
+    mage:    "staff",
+    ranger:  "bow",
+  };
+
   // Model
   const { scene, playAnimation, update, setMovementSpeed, bounds } = useCharacterController({
     modelPath: heroDef.modelPath,
     targetHeight: heroDef.targetHeight,
+    weaponType: HERO_WEAPON_TYPE[heroDef.heroClass],
     disableCombatLayer: true,
   });
 

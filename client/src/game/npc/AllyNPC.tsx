@@ -51,12 +51,15 @@ function AllyModel({ data }: { data: AllyData }) {
   const combatRetreatTimer = useRef(0);
   const combatCircleAngle = useRef(Math.random() * Math.PI * 2);
 
-  // Migrated to the new controller pipeline. Combat layering is disabled
-  // because allies don't currently load weapon packs, so attack states (when
-  // they happen) should occupy the full body for a visible reaction.
+  // Controller: weapon pack determined by ally type so BRB combat animations
+  // load (sword combos, staff casts, bow draws, etc.). Farmers use extraPacks
+  // for harvesting animations; disableCombatLayer stays true so attacks play
+  // full-body rather than upper-body-only (NPC AI, not player input-driven).
   const { scene, playAnimation, update, setMovementSpeed, bounds } = useCharacterController({
     modelPath: data.modelPath,
     targetHeight: data.targetHeight,
+    weaponType: data.weaponType,
+    extraPacks: data.extraPacks,
     disableCombatLayer: true,
   });
 
