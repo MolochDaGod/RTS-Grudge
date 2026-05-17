@@ -9,7 +9,11 @@ export type EnemyType =
   | "yeti" | "ghost" | "frog" | "blob" | "cactoro" | "tribal" | "dino"
   | "bunny" | "alien"
   | "thrower_brute" | "thrower_assassin" | "thrower_soldier" | "thrower_berserker"
-  | "raptor" | "trex" | "triceratops";
+  | "raptor" | "trex" | "triceratops"
+  // Advance Wars / sci-fi units from object storage
+  | "aw_infantry" | "aw_mech" | "aw_tank" | "mech_tripod"
+  | "scifi_soldier" | "cyborg_unit" | "cyborg_soldier"
+  | "shadow_soldier" | "scifi_trooper" | "scifi_officer";
 
 export type EnemyTier = "common" | "uncommon" | "rare" | "elite" | "boss";
 
@@ -146,6 +150,18 @@ const ENEMY_TEMPLATES: Partial<Record<EnemyType, Omit<EnemyData, "id" | "positio
   thrower_assassin:  { health: 55,  maxHealth: 55,  speed: 5.0, damage: 10, type: "thrower_assassin",  tier: "uncommon", isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 1.6, detectionRange: 24, attackRange: 14, color: "#aa3366", scale: 1.0, xpReward: 25 },
   thrower_soldier:   { health: 100, maxHealth: 100, speed: 3.5, damage: 12, type: "thrower_soldier",   tier: "uncommon", isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 2.0, detectionRange: 24, attackRange: 15, color: "#4466aa", scale: 1.0, xpReward: 28 },
   thrower_berserker: { health: 120, maxHealth: 120, speed: 4.0, damage: 16, type: "thrower_berserker", tier: "rare",     isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 1.8, detectionRange: 26, attackRange: 16, color: "#cc6600", scale: 1.0, xpReward: 40 },
+
+  // ── Advance Wars / sci-fi units (loaded from object storage CDN) ─────
+  aw_infantry:     { health: 50,  maxHealth: 50,  speed: 3.5, damage: 10, type: "aw_infantry",     tier: "common",   isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 1.0, detectionRange: 20, attackRange: 2.5,  color: "#5577aa", scale: 1.0, xpReward: 15 },
+  aw_mech:         { health: 140, maxHealth: 140, speed: 2.5, damage: 22, type: "aw_mech",         tier: "rare",     isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 1.8, detectionRange: 22, attackRange: 3.5,  color: "#886633", scale: 1.6, xpReward: 55 },
+  aw_tank:         { health: 250, maxHealth: 250, speed: 4.0, damage: 35, type: "aw_tank",         tier: "elite",    isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 2.2, detectionRange: 28, attackRange: 14,   color: "#556644", scale: 2.0, xpReward: 100 },
+  mech_tripod:     { health: 400, maxHealth: 400, speed: 3.0, damage: 45, type: "mech_tripod",     tier: "boss",     isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 2.5, detectionRange: 35, attackRange: 16,   color: "#444455", scale: 3.5, xpReward: 220 },
+  scifi_soldier:   { health: 60,  maxHealth: 60,  speed: 4.5, damage: 14, type: "scifi_soldier",   tier: "uncommon", isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 0.9, detectionRange: 24, attackRange: 12,   color: "#336699", scale: 1.0, xpReward: 25 },
+  cyborg_unit:     { health: 180, maxHealth: 180, speed: 5.0, damage: 28, type: "cyborg_unit",     tier: "elite",    isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 1.2, detectionRange: 28, attackRange: 14,   color: "#44cccc", scale: 1.4, xpReward: 85 },
+  cyborg_soldier:  { health: 150, maxHealth: 150, speed: 4.0, damage: 24, type: "cyborg_soldier",  tier: "rare",     isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 1.4, detectionRange: 26, attackRange: 13,   color: "#6688aa", scale: 1.2, xpReward: 65 },
+  shadow_soldier:  { health: 70,  maxHealth: 70,  speed: 5.5, damage: 16, type: "shadow_soldier",  tier: "uncommon", isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 0.8, detectionRange: 26, attackRange: 14,   color: "#333344", scale: 1.0, xpReward: 30 },
+  scifi_trooper:   { health: 55,  maxHealth: 55,  speed: 4.0, damage: 12, type: "scifi_trooper",   tier: "common",   isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 1.0, detectionRange: 22, attackRange: 12,   color: "#558866", scale: 1.0, xpReward: 20 },
+  scifi_officer:   { health: 80,  maxHealth: 80,  speed: 3.5, damage: 18, type: "scifi_officer",   tier: "rare",     isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 1.6, detectionRange: 28, attackRange: 16,   color: "#aa6633", scale: 1.0, xpReward: 45 },
 };
 
 export function getEnemyTierColor(tier: EnemyTier): string {
