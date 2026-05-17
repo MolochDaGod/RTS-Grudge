@@ -10,6 +10,10 @@ export type EnemyType =
   | "bunny" | "alien"
   | "thrower_brute" | "thrower_assassin" | "thrower_soldier" | "thrower_berserker"
   | "raptor" | "trex" | "triceratops"
+  // Dark Elf camp enemies — replace pirate camps as spawnable dark elf camps
+  | "dark_elf"
+  // Flying boss enemies
+  | "armabee" | "alpaking"
   // Advance Wars / sci-fi units from object storage
   | "aw_infantry" | "aw_mech" | "aw_tank" | "mech_tripod"
   | "scifi_soldier" | "cyborg_unit" | "cyborg_soldier"
@@ -98,10 +102,12 @@ const ELITE_LOOT: LootDrop[] = [
 
 const BOSS_LOOT: LootDrop[] = [
   ...ELITE_LOOT,
-  { itemId: "boss_trophy", name: "Boss Trophy", icon: "🏆", chance: 1.0, quantity: [1, 1], type: "equipment" },
-  { itemId: "legendary_shard", name: "Legendary Shard", icon: "✨", chance: 0.4, quantity: [1, 1], type: "material" },
-  { itemId: "potion_health_supreme", name: "Supreme Health Potion", icon: "❤️", chance: 0.5, quantity: [1, 2], type: "potion" },
-  { itemId: "potion_elixir", name: "Elixir of Power", icon: "💜", chance: 0.3, quantity: [1, 1], type: "potion" },
+  { itemId: "boss_trophy",         name: "Boss Trophy",           icon: "🏆", chance: 1.0,  quantity: [1, 1], type: "equipment" },
+  { itemId: "legendary_shard",     name: "Legendary Shard",       icon: "✨", chance: 0.4,  quantity: [1, 1], type: "material" },
+  { itemId: "potion_health_supreme",name: "Supreme Health Potion", icon: "❤️", chance: 0.5, quantity: [1, 2], type: "potion" },
+  { itemId: "potion_elixir",        name: "Elixir of Power",       icon: "💜", chance: 0.3,  quantity: [1, 1], type: "potion" },
+  // Dragon eggs: boss-tier drops — placed in a Furnace to cook and hatch a baby dragon
+  { itemId: "dragon_egg",           name: "Dragon Egg",            icon: "🥚", chance: 0.15, quantity: [1, 1], type: "material" },
 ];
 
 function lootForTier(tier: EnemyTier): LootDrop[] {
@@ -125,7 +131,7 @@ const ENEMY_TEMPLATES: Partial<Record<EnemyType, Omit<EnemyData, "id" | "positio
   orc: { health: 80, maxHealth: 80, speed: 3, damage: 16, type: "orc", tier: "uncommon", isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 1.3, detectionRange: 18, attackRange: 3.0, color: "#4a6b3a", scale: 1.4, xpReward: 35 },
   demon: { health: 150, maxHealth: 150, speed: 4, damage: 25, type: "demon", tier: "elite", isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 1.5, detectionRange: 25, attackRange: 3.5, color: "#cc2222", scale: 2.0, xpReward: 80 },
   blue_demon: { health: 100, maxHealth: 100, speed: 3.5, damage: 18, type: "blue_demon", tier: "rare", isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 1.4, detectionRange: 22, attackRange: 3.0, color: "#3344cc", scale: 1.6, xpReward: 55 },
-  dragon: { health: 300, maxHealth: 300, speed: 5, damage: 40, type: "dragon", tier: "boss", isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 2.0, detectionRange: 35, attackRange: 5.0, color: "#aa3300", scale: 3.0, xpReward: 200 },
+  dragon: { health: 300, maxHealth: 300, speed: 5, damage: 40, type: "dragon", tier: "boss", isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 2.0, detectionRange: 35, attackRange: 5.0, color: "#aa3300", scale: 3.0, xpReward: 300 },
   mushroom_king: { health: 200, maxHealth: 200, speed: 2, damage: 22, type: "mushroom_king", tier: "elite", isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 1.8, detectionRange: 15, attackRange: 4.0, color: "#aa4455", scale: 2.5, xpReward: 100 },
   yeti: { health: 180, maxHealth: 180, speed: 3, damage: 30, type: "yeti", tier: "elite", isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 2.0, detectionRange: 20, attackRange: 3.5, color: "#ccddee", scale: 2.2, xpReward: 90 },
   ghost: { health: 45, maxHealth: 45, speed: 4, damage: 14, type: "ghost", tier: "uncommon", isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 1.0, detectionRange: 20, attackRange: 3.0, color: "#aabbcc", scale: 1.2, xpReward: 30 },
@@ -150,6 +156,14 @@ const ENEMY_TEMPLATES: Partial<Record<EnemyType, Omit<EnemyData, "id" | "positio
   thrower_assassin:  { health: 55,  maxHealth: 55,  speed: 5.0, damage: 10, type: "thrower_assassin",  tier: "uncommon", isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 1.6, detectionRange: 24, attackRange: 14, color: "#aa3366", scale: 1.0, xpReward: 25 },
   thrower_soldier:   { health: 100, maxHealth: 100, speed: 3.5, damage: 12, type: "thrower_soldier",   tier: "uncommon", isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 2.0, detectionRange: 24, attackRange: 15, color: "#4466aa", scale: 1.0, xpReward: 28 },
   thrower_berserker: { health: 120, maxHealth: 120, speed: 4.0, damage: 16, type: "thrower_berserker", tier: "rare",     isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 1.8, detectionRange: 26, attackRange: 16, color: "#cc6600", scale: 1.0, xpReward: 40 },
+
+  // ── Dark Elf camp enemies — spawnable pirate camps replaced by dark elf camps ──
+  // dark_elf soldiers are uncommon, their captains are elite, their warlord is boss
+  dark_elf:  { health: 60, maxHealth: 60, speed: 4, damage: 14, type: "dark_elf", tier: "uncommon", isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 1.0, detectionRange: 22, attackRange: 2.8, color: "#3a2255", scale: 1.0, xpReward: 30 },
+
+  // ── Flying boss enemies ──────────────────────────────────────────────────────
+  armabee:  { health: 80,  maxHealth: 80,  speed: 6, damage: 16, type: "armabee",  tier: "rare",  isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 0.9, detectionRange: 24, attackRange: 3.5, color: "#ffcc00", scale: 1.2, xpReward: 50 },
+  alpaking:  { health: 220, maxHealth: 220, speed: 4, damage: 28, type: "alpaking",  tier: "elite", isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 1.8, detectionRange: 30, attackRange: 4.5, color: "#ff88aa", scale: 2.0, xpReward: 110 },
 
   // ── Advance Wars / sci-fi units (loaded from object storage CDN) ─────
   aw_infantry:     { health: 50,  maxHealth: 50,  speed: 3.5, damage: 10, type: "aw_infantry",     tier: "common",   isAttacking: false, isHit: false, isDying: false, lastAttackTime: 0, attackCooldown: 1.0, detectionRange: 20, attackRange: 2.5,  color: "#5577aa", scale: 1.0, xpReward: 15 },

@@ -1,13 +1,14 @@
 /**
  * usePets — Dragon companion management store.
  *
- * Handles the full pet lifecycle:
- *   hatchEgg()   → consumes dragon_egg from inventory, creates stage-2 pet
- *   feedPet()    → consume materials from inventory/storage to gain XP
- *   mountPet()   → fly adult+ dragon; player becomes dragon rider
- *   dismountPet()→ return to ground, restore normal controls
- *   releasePet() → remove pet (cannot be undone unless NFT-backed)
- *   mintAsNFT()  → call /api/nfts/mint to create Solana NFT for this pet
+ * Dragon egg lifecycle (updated):
+ *   1. Egg drops from boss/dungeon chest into inventory.
+ *   2. Player interacts with a Furnace and places the egg inside.
+ *   3. furnaceHatch() starts a cook timer (FURNACE_COOK_SECONDS).
+ *   4. completeFurnaceHatch() / checkFurnaceHatch() resolves it to a hatchling.
+ *   5. Pet levels through feeding and combat XP (stages 2–3).
+ *   6. At player character level 20 → checkLevelGate() promotes stage-3 → stage-4 (Adult mount).
+ *   7. Stage 4+ → mountPet() lets player ride the dragon (R key).
  *
  * Persisted in localStorage under 'grudge_pets'.
  * Up to 5 pets per account. NFT-backed pets survive through release.
@@ -26,6 +27,19 @@ import {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type PetType = "dragon";  // extensible for future pet types
+
+/** How long the egg cooks in the furnace before hatching (seconds) */
+export const FURNACE_COOK_SECONDS = 90;
+
+/** Character level required to unlock stage-3 → stage-4 (Adult mount) promotion */
+export const DRAGON_ADULT_LEVEL = 20;
+
+/** Pending furnace hatch slot (one at a time — a furnace can only cook one egg) */
+export interface FurnaceHatchEntry {
+  /** ISO timestamp when hatching finishes */
+  completesAt: string;
+  color: DragonColor;
+}
 
 export interface PetEntry {
   id: string;
@@ -56,7 +70,38 @@ interface PetsState {
   pets: PetEntry[];
   maxPets: number;
 
-  /** Consume a dragon_egg from inventory and create a stage-2 hatchling. */
+  /** Active furnace cook slot. null = no egg in furnace. */
+  furnacePending: FurnaceHatchEntry | null;
+
+  /**
+   * Place a dragon_egg in the furnace. Consumes the egg from inventory and
+   * starts FURNACE_COOK_SECONDS countdown. Only one egg can cook at a time.
+   * Call checkFurnaceHatch() on a tick to complete it.
+   */
+  furnaceHatch: (
+    eggItemId: string,
+    removeFromInventory: (id: string, qty: number) => void,
+    color?: DragonColor,
+  ) => boolean;
+
+  /**
+   * Poll this every frame (or on furnace UI open). If the cook timer has
+   * expired, creates the hatchling and clears furnacePending.
+   * Returns the new PetEntry if hatched, null otherwise.
+   */
+  checkFurnaceHatch: () => PetEntry | null;
+
+  /**
+   * Check if a juvenile (stage 3) dragon qualifies for promotion to
+   * Adult (stage 4) based on character level. Call whenever character levels up.
+   * Returns true if any pet was promoted.
+   */
+  checkLevelGate: (characterLevel: number) => boolean;
+
+  /**
+   * Legacy direct-hatch (kept for backwards compat / dev use).
+   * Consume a dragon_egg from inventory and create a stage-2 hatchling immediately.
+   */
   hatchEgg: (
     eggItemId: string,
     removeFromInventory: (id: string, qty: number) => void,
@@ -128,8 +173,71 @@ export const usePets = create<PetsState>()(
     (set, get) => ({
       pets: [],
       maxPets: 5,
+      furnacePending: null,
 
-      // ── hatchEgg ──────────────────────────────────────────────────────────
+      // ── furnaceHatch ──────────────────────────────────────────────────────
+      // Player places egg in furnace. Starts the cook timer.
+      furnaceHatch: (eggItemId, removeFromInventory, color = "red") => {
+        const { pets, maxPets, furnacePending } = get();
+        // Can't hatch: already cooking, pet cap reached, or no egg
+        if (furnacePending) return false;
+        if (pets.length >= maxPets) return false;
+
+        removeFromInventory(eggItemId, 1);
+
+        const completesAt = new Date(
+          Date.now() + FURNACE_COOK_SECONDS * 1000
+        ).toISOString();
+
+        set({ furnacePending: { completesAt, color } });
+        return true;
+      },
+
+      // ── checkFurnaceHatch ─────────────────────────────────────────────────
+      // Call this from the furnace UI or a game tick. Spawns the hatchling
+      // once the cook timer expires.
+      checkFurnaceHatch: () => {
+        const { furnacePending, pets } = get();
+        if (!furnacePending) return null;
+        if (new Date().toISOString() < furnacePending.completesAt) return null;
+
+        const newPet: PetEntry = {
+          id: makePetId(),
+          type: "dragon",
+          name: randomDragonName(),
+          stage: 2,
+          color: furnacePending.color,
+          xp: 0,
+          feedCount: 0,
+          hatchedAt: new Date().toISOString(),
+          nftMintAddress: undefined,
+          isMounted: false,
+          isActive: pets.length === 0,
+          combatAssists: 0,
+        };
+
+        set(s => ({ pets: [...s.pets, newPet], furnacePending: null }));
+        return newPet;
+      },
+
+      // ── checkLevelGate ────────────────────────────────────────────────────
+      // Promote any stage-3 Juvenile → stage-4 Adult when player hits level 20.
+      checkLevelGate: (characterLevel) => {
+        if (characterLevel < DRAGON_ADULT_LEVEL) return false;
+        let promoted = false;
+        set(s => ({
+          pets: s.pets.map(p => {
+            if (p.stage === 3) {
+              promoted = true;
+              return { ...p, stage: 4 as DragonStage };
+            }
+            return p;
+          }),
+        }));
+        return promoted;
+      },
+
+      // ── hatchEgg (legacy) ─────────────────────────────────────────────────
       hatchEgg: (eggItemId, removeFromInventory, color = "red") => {
         const { pets, maxPets } = get();
         if (pets.length >= maxPets) return null;
@@ -279,7 +387,7 @@ export const usePets = create<PetsState>()(
         try { return localStorage; }
         catch { return { getItem: () => null, setItem: () => {}, removeItem: () => {} }; }
       }),
-      partialize: s => ({ pets: s.pets }),
+      partialize: s => ({ pets: s.pets, furnacePending: s.furnacePending }),
     }
   )
 );

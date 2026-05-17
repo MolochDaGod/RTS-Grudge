@@ -1,9 +1,13 @@
-import { useEffect, useCallback } from "react";
-import { LogIn, LogOut, Wallet, Loader2, ShieldCheck, AlertTriangle, ExternalLink } from "lucide-react";
+import { useEffect, useCallback, useState } from "react";
+import { LogIn, LogOut, Wallet, Loader2, ShieldCheck, AlertTriangle, ExternalLink, Flame } from "lucide-react";
 import { useGrudgeSession } from "@/lib/auth/useGrudgeSession";
 import { buildLoginUrl, buildAccountUrl, handleAuthCallback } from "@/lib/auth/authRedirect";
 import { initSession } from "@/lib/auth/GrudgeSession";
 import { useWallet } from "@/lib/wallet/useWallet";
+import { usePets, FURNACE_COOK_SECONDS } from "@/lib/stores/usePets";
+import { useInventory } from "@/lib/stores/useInventory";
+import { useNFTs } from "@/lib/hooks/useNFTs";
+import { DRAGON_STAGES } from "@/game/systems/DragonPetRegistry";
 
 /**
  * Top-left account panel — Grudge Studio branding.
@@ -79,6 +83,35 @@ export function AccountPanel() {
     );
   }
 
+  // ——— Pet + NFT state ———
+  const activePet = usePets(s => s.getActivePet());
+  const furnacePending = usePets(s => s.furnacePending);
+  const furnaceHatch = usePets(s => s.furnaceHatch);
+  const checkFurnaceHatch = usePets(s => s.checkFurnaceHatch);
+  const inventory = useInventory(s => s.items);
+  const removeFromInventory = useInventory(s => s.removeItem);
+  const { nftCount, hasDragonEgg: walletHasEgg } = useNFTs(wallet.wallet?.address);
+
+  const hasDragonEggInInventory = inventory.some(i => i.id === "dragon_egg" && i.quantity > 0);
+
+  // Furnace cook timer countdown (updates every second)
+  const [cookSecsLeft, setCookSecsLeft] = useState(0);
+  useEffect(() => {
+    if (!furnacePending) { setCookSecsLeft(0); return; }
+    const update = () => {
+      const ms = new Date(furnacePending.completesAt).getTime() - Date.now();
+      if (ms <= 0) {
+        checkFurnaceHatch();
+        setCookSecsLeft(0);
+      } else {
+        setCookSecsLeft(Math.ceil(ms / 1000));
+      }
+    };
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, [furnacePending, checkFurnaceHatch]);
+
   // ——— Signed in ———
   const displayId = user.displayName || user.playerId.replace(/^(grudge_|puter_)/, "").slice(0, 12);
   const providerBadge = user.provider === "grudge"
@@ -126,6 +159,47 @@ export function AccountPanel() {
         </button>
       </div>
 
+      {/* — Pet row — */}
+      {(activePet || furnacePending || hasDragonEggInInventory || walletHasEgg) && (
+        <div className="border-t border-zinc-800 pt-1.5 flex items-center gap-2">
+          <span className="text-base shrink-0" aria-label="dragon">🐲</span>
+          <div className="flex flex-col leading-tight flex-1 min-w-0">
+            {activePet && (
+              <span className="text-[10px] text-orange-300 font-semibold truncate">
+                {DRAGON_STAGES[activePet.stage].icon} {activePet.name}
+                <span className="text-zinc-500 font-normal"> — {DRAGON_STAGES[activePet.stage].name}</span>
+              </span>
+            )}
+            {furnacePending && cookSecsLeft > 0 && (
+              <span className="text-[9px] text-yellow-400 flex items-center gap-1">
+                <Flame className="w-2.5 h-2.5" />
+                Hatching in {cookSecsLeft}s…
+              </span>
+            )}
+            {furnacePending && cookSecsLeft === 0 && (
+              <span className="text-[9px] text-green-400">🥚 Ready! Visit furnace to collect.</span>
+            )}
+            {!furnacePending && (hasDragonEggInInventory || walletHasEgg) && (
+              <span className="text-[9px] text-zinc-500">
+                Dragon Egg — place in a Furnace to hatch
+              </span>
+            )}
+          </div>
+          {/* Quick-hatch button: shown at a furnace (UI calls furnaceHatch via HousingScene proximity) */}
+          {!furnacePending && hasDragonEggInInventory && (
+            <button
+              type="button"
+              onClick={() => furnaceHatch("dragon_egg", removeFromInventory)}
+              className="text-[9px] px-1.5 py-0.5 bg-orange-700/80 text-orange-200 rounded
+                         hover:bg-orange-600 transition-colors shrink-0"
+              title="Place egg in nearest Furnace to cook"
+            >
+              Hatch
+            </button>
+          )}
+        </div>
+      )}
+
       {/* — Wallet row — */}
       <div className="border-t border-zinc-800 pt-1.5 flex items-center gap-2">
         <Wallet className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
@@ -143,6 +217,16 @@ export function AccountPanel() {
           >
             {w!.chain.toUpperCase()} {shortAddr}
           </button>
+        )}
+        {/* NFT badge — shows owned Grudge NFT count */}
+        {nftCount > 0 && (
+          <span
+            className="text-[9px] px-1 py-0.5 bg-purple-900/60 border border-purple-600/50 rounded
+                       text-purple-300 font-semibold shrink-0"
+            title={`${nftCount} Grudge Studio NFT${nftCount !== 1 ? "s" : ""} in wallet`}
+          >
+            NFT ×{nftCount}
+          </span>
         )}
         {wallet.status === "idle" && (
           <button
