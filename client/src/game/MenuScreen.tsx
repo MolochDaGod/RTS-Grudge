@@ -1,16 +1,63 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Play,
   Settings,
   Accessibility,
-  Keyboard,
-  MousePointer2,
 } from "lucide-react";
 import { useGame } from "@/lib/stores/useGame";
 import { useCampaign } from "@/lib/stores/useCampaign";
 import { kickoffHeroForgePreload } from "./heroForge/preload";
 import { kickoffIntroAnimPreload } from "./intro/preload";
 import { AccountPanel } from "./AccountPanel";
+
+// Production class backgrounds (from Grudge Warlords class-selector reference)
+const CLASS_BACKGROUNDS: Record<string, string> = {
+  mage:    "https://i.imgur.com/vKQR4UT.png",
+  warrior: "https://i.imgur.com/Wj2mUH2.png",
+  ranger:  "https://i.imgur.com/5A6e5kL.png",
+  worge:   "https://i.imgur.com/BrQH0Bx.png",
+};
+
+// Class accent colors matching the production class-selector
+const CLASS_COLORS: Record<string, string> = {
+  mage:    "#6aa9ff",
+  warrior: "#ff6b57",
+  ranger:  "#6bdc8b",
+  worge:   "#c792ff",
+};
+
+// Particle count
+const PARTICLE_COUNT = 60;
+
+// CSS keyframes injected once
+const MENU_CSS = `
+@keyframes menu-drift{
+  0%{opacity:0;transform:translateY(0) scale(.6)}
+  10%{opacity:.9}
+  100%{opacity:0;transform:translateY(-110vh) scale(1.3)}
+}
+@keyframes menu-spin{to{transform:rotate(360deg)}}
+@keyframes menu-bg-fade{
+  0%{opacity:0}
+  100%{opacity:1}
+}
+.menu-stage-bg{
+  position:absolute;inset:-4%;background-size:cover;background-position:center;
+  filter:saturate(1.1) brightness(.45);
+  transform:scale(1.06);
+  transition:opacity 1.4s ease,transform 8s ease;
+  opacity:0;
+}
+.menu-stage-bg.active{opacity:1;transform:scale(1.02)}
+`;
+
+function injectMenuCSS() {
+  if (document.getElementById("grudge-menu-css")) return;
+  const style = document.createElement("style");
+  style.id = "grudge-menu-css";
+  style.textContent = MENU_CSS;
+  document.head.appendChild(style);
+}
 
 const FONTS = {
   title: "'MorkDungeon', 'Cinzel', serif",
@@ -21,66 +68,95 @@ const FONTS = {
 
 const noop = () => {};
 
+// Cycling class showcase: cycles through classes to animate the background
+const CLASS_CYCLE = ["warrior", "mage", "ranger", "worge"] as const;
+
 export default function MenuScreen() {
   const { goToGGE, goToController, goToCharacterSelect, enterTutorialIsland } = useGame();
   const startCampaign = useCampaign((s) => s.startCampaign);
+  const [activeClass, setActiveClass] = useState<string>("warrior");
+  const [particles] = useState(() =>
+    Array.from({ length: PARTICLE_COUNT }, (_, i) => ({
+      id: i,
+      left: `${Math.random() * 100}%`,
+      delay: `${Math.random() * 20}s`,
+      duration: `${8 + Math.random() * 18}s`,
+      size: `${1 + Math.random() * 2}px`,
+      opacity: 0.3 + Math.random() * 0.7,
+    }))
+  );
 
-  // SHIPWRECK — direct drop onto the tutorial island GLB without character
-  // select or intro. This is now the PRIMARY fast-start path recommended
-  // for all players, not just QA. Character customisation can happen from
-  // within the game.
-  const handleShipwreck = () => {
-    enterTutorialIsland(null);
-  };
-
-  // OPEN WORLD — admin / dev access to the procedural GameScene.
-  // Should only be exposed in dev builds or to admin users.
-  const handleOpenWorld = () => {
-    // Go directly to playing WITHOUT setting inTutorialIsland so
-    // App.tsx routes to GameScene (the procedural open world admin area).
-    useGame.setState({ inTutorialIsland: false, phase: "playing" as any });
-  };
-
-  // Warm the Hero Forge model cache while the user is reading the menu so the
-  // character preview shows up instantly instead of as a wireframe placeholder.
-  // Same idea for the intro cutscene's animation pack: ~19 separate Mixamo
-  // clip files used to download serially when the cutscene mounted, leaving
-  // the user staring at a blank loading screen. Warming them here on the
-  // menu (and again on character select for safety) hides that latency
-  // behind the time the user spends picking a hero.
   useEffect(() => {
+    injectMenuCSS();
     kickoffHeroForgePreload();
     kickoffIntroAnimPreload();
+    // Slowly cycle through class backgrounds
+    let idx = 0;
+    const timer = setInterval(() => {
+      idx = (idx + 1) % CLASS_CYCLE.length;
+      setActiveClass(CLASS_CYCLE[idx]);
+    }, 7000);
+    return () => clearInterval(timer);
   }, []);
 
-  // PLAY — full campaign flow.
-  //   Starts the campaign, sets inTutorialIsland: true so the shipwreck
-  //   scene loads after character select + intro. This is the "proper"
-  //   story flow; for an immediate jump use SHIPWRECK.
+  const handleShipwreck = () => enterTutorialIsland(null);
   const handlePlay = () => {
     startCampaign();
     useGame.setState({ inTutorialIsland: true });
     goToCharacterSelect();
   };
 
+  const accentColor = CLASS_COLORS[activeClass] ?? "#6ee7b7";
+
   return (
     <div
-      className="min-h-screen w-screen relative flex flex-col items-center"
       style={{
-        backgroundColor: "#0a0502",
-        backgroundImage: "url('/textures/menu_bg.png')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundAttachment: "fixed",
+        minHeight: "100vh", width: "100vw", position: "relative",
+        display: "flex", flexDirection: "column", alignItems: "center",
+        backgroundColor: "#05060c",
         fontFamily: FONTS.body,
+        overflow: "hidden",
       }}
     >
-      {/* Background scrim for predictable contrast (a11y). Fixed so it
-          covers the viewport on a long page that scrolls. */}
-      <div
-        className="fixed inset-0 bg-black/70 backdrop-blur-md z-0 pointer-events-none"
-        aria-hidden="true"
-      />
+      {/* ── Animated class stage backgrounds ── */}
+      <div style={{ position: "fixed", inset: 0, zIndex: 0, overflow: "hidden" }}>
+        {CLASS_CYCLE.map(cls => (
+          <div
+            key={cls}
+            className={`menu-stage-bg${cls === activeClass ? " active" : ""}`}
+            style={{ backgroundImage: `url('${CLASS_BACKGROUNDS[cls]}')` }}
+          />
+        ))}
+        {/* Dark vignette overlay */}
+        <div style={{
+          position: "absolute", inset: 0, pointerEvents: "none",
+          background: [
+            "radial-gradient(1200px 700px at 50% 110%,rgba(0,0,0,.78),transparent 55%)",
+            "radial-gradient(900px 500px at 10% -10%,rgba(5,6,18,.65),transparent 60%)",
+            "linear-gradient(180deg,rgba(5,6,12,.5),rgba(5,6,12,.88))",
+          ].join(","),
+        }} />
+        {/* Conic gradient sheen */}
+        <div style={{
+          position: "absolute", inset: "-20%", pointerEvents: "none",
+          background: `conic-gradient(from 0deg at 30% 40%,${accentColor}18,transparent 25%,rgba(199,146,255,.10) 55%,transparent 80%)`,
+          filter: "blur(60px)",
+          animation: "menu-spin 40s linear infinite",
+          opacity: 0.8,
+        }} />
+        {/* Floating particles */}
+        <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden", mixBlendMode: "screen", opacity: 0.7 }}>
+          {particles.map(p => (
+            <span key={p.id} style={{
+              position: "absolute", display: "block",
+              width: p.size, height: p.size, borderRadius: "50%",
+              background: "#fff", opacity: 0,
+              left: p.left, bottom: "-10px",
+              animation: `menu-drift ${p.duration} ${p.delay} linear infinite`,
+            }} />
+          ))}
+        </div>
+      </div>
 
       {/* Account / wallet surface — Puter sign-in + Crossmint Solana
           wallet status. Hidden when the Puter SDK isn't reachable. */}
@@ -102,26 +178,41 @@ export default function MenuScreen() {
       </div>
 
       <main className="relative z-10 flex flex-col items-center w-full max-w-3xl px-4 py-6">
-        {/* Compact branding block — title + subtitle + tagline on one card. */}
-        <header className="text-center mb-4 bg-black/40 px-6 py-3 rounded-xl border border-zinc-800/50 backdrop-blur-sm w-full max-w-xl">
-          <h1
-            className="text-4xl md:text-5xl font-normal text-amber-400 leading-none drop-shadow-lg"
-            style={{ fontFamily: FONTS.title, letterSpacing: "4px" }}
-          >
-            GRUDGE
-          </h1>
-          <h2
-            className="text-xl md:text-2xl text-amber-500 leading-none mt-1 drop-shadow-md"
-            style={{ fontFamily: FONTS.title, letterSpacing: "6px" }}
-          >
-            SURVIVAL
-          </h2>
-          <p
-            className="text-xs md:text-sm text-zinc-200 font-bold tracking-widest uppercase mt-2"
-            style={{ fontFamily: FONTS.body }}
-          >
-            Fight. Gather. Survive.
-          </p>
+        {/* Gold gradient brand block — matches production class-selector design */}
+        <header style={{
+          textAlign: "center", marginBottom: 20, padding: "20px 32px 16px",
+          background: "linear-gradient(135deg,rgba(14,22,48,.7),rgba(20,26,43,.5))",
+          border: "1px solid rgba(246,201,69,.18)", borderRadius: 18,
+          backdropFilter: "blur(14px)",
+          width: "100%", maxWidth: 560,
+          boxShadow: "0 20px 60px -20px rgba(0,0,0,.55)",
+        }}>
+          <div style={{
+            fontFamily: FONTS.title,
+            fontWeight: 900, letterSpacing: "4px", fontSize: 40,
+            background: "linear-gradient(90deg,#f6c945,#fff3c2 50%,#f6c945)",
+            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+            textShadow: "none",
+            filter: "drop-shadow(0 0 24px rgba(246,201,69,.2))",
+          }}>GRUDGE WARLORDS</div>
+          <div style={{
+            fontFamily: FONTS.header, fontSize: 10, letterSpacing: "4px",
+            color: "#9aa3c7", fontWeight: 600, marginTop: 4,
+          }}>FORGE YOUR LEGEND</div>
+          {/* Animated class indicator */}
+          <div style={{
+            marginTop: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+          }}>
+            {CLASS_CYCLE.map(cls => (
+              <div key={cls} style={{
+                width: 8, height: 8, borderRadius: "50%",
+                background: cls === activeClass ? CLASS_COLORS[cls] : "rgba(255,255,255,.15)",
+                boxShadow: cls === activeClass ? `0 0 12px ${CLASS_COLORS[cls]}` : "none",
+                transition: "all .4s ease",
+              }} />
+            ))}
+          </div>
         </header>
 
         {/* Primary CTA — full-width, prominent. */}
@@ -197,45 +288,40 @@ export default function MenuScreen() {
           </button>
         </div>
 
-        {/* Compact controls cheat sheet — three columns, smaller text. */}
-        <section
-          className="w-full max-w-xl bg-black/80 border border-zinc-700 rounded-xl px-4 py-3"
-          aria-label="Controls Cheat Sheet"
-        >
-          <h3 className="sr-only">Controls</h3>
-          <div
-            className="grid grid-cols-3 gap-4 text-zinc-200 text-xs"
-            style={{ fontFamily: FONTS.mono }}
-          >
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-1.5 text-amber-400 border-b border-zinc-800 pb-1 mb-1">
-                <Keyboard className="w-3.5 h-3.5" />
-                <span className="font-bold">Move</span>
+        {/* Compact controls cheat sheet */}
+        <section style={{
+          width: "100%", maxWidth: 560,
+          background: "linear-gradient(135deg,rgba(16,20,36,.75),rgba(8,10,20,.75))",
+          border: "1px solid rgba(255,255,255,.08)",
+          borderRadius: 14, padding: "12px 16px",
+          backdropFilter: "blur(12px)",
+        }} aria-label="Controls">
+          <div style={{
+            display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16,
+            color: "#dfe3f7", fontSize: 11, fontFamily: FONTS.mono,
+          }}>
+            {[
+              { icon: "⌨️", label: "Move",   rows: [["WASD","Move"],["Shift","Sprint"],["Space","Jump"]] },
+              { icon: "🖱️", label: "Action", rows: [["Click","Attack"],["RMB","Block"],["C","Craft"]] },
+              { icon: "⚙️", label: "System", rows: [["E/R/X","Skills"],["1-0","Hotbar"],["ESC","Pause"]] },
+            ].map(col => (
+              <div key={col.label} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 5,
+                  color: "#f6c945", borderBottom: "1px solid rgba(255,255,255,.06)",
+                  paddingBottom: 4, marginBottom: 2, fontSize: 11,
+                }}>
+                  <span>{col.icon}</span>
+                  <span style={{ fontFamily: FONTS.header, fontWeight: "bold", letterSpacing: 1 }}>{col.label}</span>
+                </div>
+                {col.rows.map(([key, val]) => (
+                  <div key={key} style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span>{key}</span>
+                    <span style={{ color: "#9aa3c7" }}>{val}</span>
+                  </div>
+                ))}
               </div>
-              <div className="flex justify-between"><span>WASD</span><span className="text-zinc-400">Move</span></div>
-              <div className="flex justify-between"><span>Shift</span><span className="text-zinc-400">Sprint</span></div>
-              <div className="flex justify-between"><span>Space</span><span className="text-zinc-400">Jump</span></div>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-1.5 text-amber-400 border-b border-zinc-800 pb-1 mb-1">
-                <MousePointer2 className="w-3.5 h-3.5" />
-                <span className="font-bold">Action</span>
-              </div>
-              <div className="flex justify-between"><span>Click</span><span className="text-zinc-400">Attack</span></div>
-              <div className="flex justify-between"><span>RMB</span><span className="text-zinc-400">Block</span></div>
-              <div className="flex justify-between"><span>C</span><span className="text-zinc-400">Craft</span></div>
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-1.5 text-amber-400 border-b border-zinc-800 pb-1 mb-1">
-                <Settings className="w-3.5 h-3.5" />
-                <span className="font-bold">System</span>
-              </div>
-              <div className="flex justify-between"><span>E/R/X</span><span className="text-zinc-400">Skills</span></div>
-              <div className="flex justify-between"><span>1-0</span><span className="text-zinc-400">Hotbar</span></div>
-              <div className="flex justify-between"><span>ESC</span><span className="text-zinc-400">Pause</span></div>
-            </div>
+            ))}
           </div>
         </section>
       </main>

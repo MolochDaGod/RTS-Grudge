@@ -199,10 +199,79 @@ const REMOVED_HERO_FORGE_MODELS = new Set<string>([
 ]);
 const PRESET_CATEGORIES: { key: StylePreset["category"]; label: string; color: string }[] = [
   { key: "warrior", label: "Warriors", color: "#c9950a" },
-  { key: "tank", label: "Tanks", color: "#a0845a" },
-  { key: "magic", label: "Mages", color: "#7c4dff" },
-  { key: "ranged", label: "Rangers", color: "#66bb6a" },
+  { key: "tank",    label: "Tanks",    color: "#a0845a" },
+  { key: "magic",   label: "Mages",    color: "#7c4dff" },
+  { key: "ranged",  label: "Rangers",  color: "#66bb6a" },
 ];
+
+// Production class backgrounds matching class-selector.html
+const CHAR_CLASS_BG: Record<string, string> = {
+  melee:   "https://i.imgur.com/Wj2mUH2.png",   // warrior
+  caster:  "https://i.imgur.com/vKQR4UT.png",   // mage
+  ranger:  "https://i.imgur.com/5A6e5kL.png",   // ranger
+};
+const CHAR_CLASS_COLORS: Record<string, { main: string; bg: string; border: string }> = {
+  melee:  { main: "#ff6b57", bg: "rgba(255,107,87,.08)",  border: "rgba(255,107,87,.35)" },
+  caster: { main: "#6aa9ff", bg: "rgba(106,169,255,.08)", border: "rgba(106,169,255,.35)" },
+  ranger: { main: "#6bdc8b", bg: "rgba(107,220,139,.08)", border: "rgba(107,220,139,.35)" },
+};
+
+// Race portrait tiles data — uses existing entity icons from the game
+const RACE_PORTRAITS: { id: string; name: string; modelFilter: string; icon: string; portrait: string }[] = [
+  { id: "elf",       name: "Elf",       modelFilter: "/elf-",                icon: "🧝", portrait: "/icons/grudge/entities/elf%20warrior.png" },
+  { id: "human",     name: "Human",     modelFilter: "assassin",             icon: "👤", portrait: "/icons/grudge/entities/Human%20Warrior.png" },
+  { id: "dwarf",     name: "Dwarf",     modelFilter: "/dwarf-",              icon: "⛏️", portrait: "/icons/grudge/entities/dwarf%20warrior.png" },
+  { id: "orc",       name: "Orc",       modelFilter: "orc_scout",            icon: "👹", portrait: "/icons/grudge/entities/orc%20warrior.png" },
+  { id: "barbarian", name: "Barbarian",  modelFilter: "battle_mage",         icon: "🪓", portrait: "/icons/grudge/entities/barb%20warrior.png" },
+  { id: "undead",    name: "Undead",    modelFilter: "vampire_aristocrat",   icon: "💀", portrait: "/icons/grudge/entities/undead%20warrior.png" },
+  { id: "worge",     name: "Worge",     modelFilter: "night_stalker",        icon: "🐺", portrait: "/icons/grudge/entities/orc%20warrior.png" },
+  { id: "goblin",    name: "Goblin",    modelFilter: "goblin_backstabber",   icon: "🗡️", portrait: "/icons/grudge/entities/orc%20archer.png" },
+];
+
+// CSS for animated stage backgrounds + race portrait hover
+const CHAR_SELECT_CSS = `
+.cs-stage-bg{
+  position:absolute;inset:-4%;background-size:cover;background-position:center;
+  filter:saturate(1.1) brightness(.35);
+  transform:scale(1.06);
+  transition:opacity 1.2s ease,transform 8s ease;
+  opacity:0;
+}
+.cs-stage-bg.active{opacity:1;transform:scale(1.02)}
+.cs-race-card{
+  position:relative;cursor:pointer;border:1px solid rgba(255,255,255,.08);border-radius:10px;
+  overflow:hidden;aspect-ratio:1/1;background:#0b0f1e;
+  transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease;
+}
+.cs-race-card:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.22)}
+.cs-race-card.active{
+  border-color:transparent;
+  box-shadow:0 0 0 1px rgba(246,201,69,.6),0 14px 40px -14px rgba(246,201,69,.5);
+}
+.cs-race-card .cs-portrait{
+  position:absolute;inset:0;background-size:cover;background-position:center top;
+  transform:scale(1.03);transition:transform .5s ease,filter .3s ease;
+  filter:saturate(.9) brightness(.85);
+}
+.cs-race-card:hover .cs-portrait{transform:scale(1.1);filter:saturate(1.1) brightness(1)}
+.cs-race-card::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,transparent 40%,rgba(6,8,16,.82));
+}
+.cs-race-card .cs-race-label{
+  position:absolute;left:0;right:0;bottom:4px;z-index:2;text-align:center;
+  font-family:'Cinzel',serif;font-size:9px;letter-spacing:1.5px;color:#fff;
+  text-shadow:0 2px 6px rgba(0,0,0,.9);
+}
+`;
+
+function injectCharSelectCSS() {
+  if (document.getElementById("grudge-charselect-css")) return;
+  const s = document.createElement("style");
+  s.id = "grudge-charselect-css";
+  s.textContent = CHAR_SELECT_CSS;
+  document.head.appendChild(s);
+}
 
 const ALL_WEAPON_TYPES: WeaponType[] = ["sword", "greatsword", "axe", "poleaxe", "hammer", "dagger", "staff", "wand", "bow", "crossbow", "gun", "shield", "fists"];
 
@@ -1186,6 +1255,7 @@ export default function CharacterSelectScreen() {
   // the cutscene from stalling on cold network/disk. Both kickoff functions
   // are idempotent and a no-op if already warm.
   useEffect(() => {
+    injectCharSelectCSS();
     kickoffHeroForgePreload();
     kickoffIntroAnimPreload();
   }, []);
@@ -1194,6 +1264,7 @@ export default function CharacterSelectScreen() {
   const [scale, setScale] = useState(1.0);
   const [speedMult, setSpeedMult] = useState(1.0);
   const [previewAnim, setPreviewAnim] = useState("Idle");
+  const [raceFilter, setRaceFilter] = useState<string | null>(null);
   const [combatClass, setCombatClass] = useState<CombatClass>(BASE_CHARACTER.defaultClass);
   const [weaponRight, setWeaponRight] = useState<WeaponType>(BASE_CHARACTER.defaultWeaponRight);
   const [weaponLeft, setWeaponLeft] = useState<WeaponType | null>(BASE_CHARACTER.defaultWeaponLeft);
@@ -1319,9 +1390,16 @@ export default function CharacterSelectScreen() {
   const availableWeaponModels = ALL_WEAPON_CATALOG.filter(w => w.weaponType === weaponRight);
 
   const filteredPresets = useMemo(() => {
-    if (presetFilter === "all") return STYLE_PRESETS;
-    return STYLE_PRESETS.filter(p => p.category === presetFilter);
-  }, [presetFilter]);
+    let list = presetFilter === "all" ? STYLE_PRESETS : STYLE_PRESETS.filter(p => p.category === presetFilter);
+    if (raceFilter) {
+      const rf = RACE_PORTRAITS.find(r => r.id === raceFilter);
+      if (rf) list = list.filter(p => p.modelPath?.includes(rf.modelFilter));
+    }
+    return list;
+  }, [presetFilter, raceFilter]);
+
+  // Class color palette for the active combatClass
+  const classPalette = CHAR_CLASS_COLORS[combatClass] ?? { main: "#c9950a", bg: "rgba(201,149,10,.08)", border: "rgba(201,149,10,.3)" };
 
   const applyPreset = useCallback((preset: StylePreset) => {
     setCombatClass(preset.combatClass);
@@ -1619,24 +1697,63 @@ export default function CharacterSelectScreen() {
   return (
     <div style={{
       width: "100vw", height: "100vh",
-      background: "linear-gradient(135deg, #0a0705 0%, #12100d 40%, #0f0a06 100%)",
+      background: "#05060c",
       display: "flex", color: "#fff", fontFamily: "'Crimson Text', serif", overflow: "hidden",
+      position: "relative",
     }}>
+      {/* ── Animated class background ── */}
+      <div style={{ position: "absolute", inset: 0, zIndex: 0, overflow: "hidden", pointerEvents: "none" }}>
+        {(["melee", "caster", "ranger"] as (keyof typeof CHAR_CLASS_BG)[]).map(cls => (
+          <div
+            key={cls}
+            className={`cs-stage-bg${cls === combatClass ? " active" : ""}`}
+            style={{ backgroundImage: `url('${CHAR_CLASS_BG[cls]}')` }}
+          />
+        ))}
+        {/* Vignette */}
+        <div style={{
+          position: "absolute", inset: 0, pointerEvents: "none",
+          background: [
+            "radial-gradient(1200px 700px at 50% 110%,rgba(0,0,0,.82),transparent 55%)",
+            "linear-gradient(180deg,rgba(5,6,12,.55),rgba(5,6,12,.90))",
+          ].join(","),
+        }} />
+        {/* Class-color sheen */}
+        <div style={{
+          position: "absolute", inset: "-20%", pointerEvents: "none",
+          background: `conic-gradient(from 0deg at 60% 30%,${classPalette.main}14,transparent 30%,rgba(199,146,255,.06) 60%,transparent 80%)`,
+          filter: "blur(50px)", opacity: 0.7,
+          transition: "background 1.2s ease",
+        }} />
+      </div>
+
+      {/* All panels are z:1 to sit above background */}
       <div style={{
-        flex: "0 0 260px", borderRight: "1px solid rgba(201,149,10,0.12)",
-        display: "flex", flexDirection: "column", background: "rgba(0,0,0,0.4)",
+        position: "relative", zIndex: 1,
+        flex: "0 0 280px", borderRight: `1px solid ${classPalette.border}`,
+        display: "flex", flexDirection: "column",
+        background: "linear-gradient(180deg,rgba(6,8,14,.88),rgba(4,6,12,.9))",
+        backdropFilter: "blur(12px)",
       }}>
-        <div style={{ padding: "10px 10px 6px", borderBottom: "1px solid rgba(201,149,10,0.12)" }}>
+        <div style={{ padding: "10px 12px 8px", borderBottom: `1px solid ${classPalette.border}` }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
-              <h2 style={{ margin: 0, fontSize: 20, letterSpacing: 2, fontFamily: "'MorkDungeon', 'Cinzel', serif", color: "#f0d68a", textShadow: "0 0 10px rgba(201,149,10,0.3)" }}>HERO FORGE</h2>
-              <p style={{ margin: "2px 0 0", color: "rgba(201,149,10,0.4)", fontSize: 9, fontFamily: "'Cinzel', serif", letterSpacing: 1 }}>Character Creator</p>
+              {/* Gold gradient brand */}
+              <div style={{
+                fontFamily: "'MorkDungeon', 'Cinzel', serif",
+                fontWeight: 900, letterSpacing: "3px", fontSize: 18,
+                background: "linear-gradient(90deg,#f6c945,#fff3c2 50%,#f6c945)",
+                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+                filter: "drop-shadow(0 0 12px rgba(246,201,69,.2))",
+              }}>HERO FORGE</div>
+              <div style={{ fontSize: 8, color: "#9aa3c7", letterSpacing: "2px", fontFamily: "'Cinzel',serif", marginTop: 1 }}>CHARACTER CREATOR</div>
             </div>
             <button onClick={() => useGame.getState().goToGGE()}
               style={{
-                padding: "3px 6px", fontSize: 8, borderRadius: 3, cursor: "pointer",
-                background: "rgba(201,149,10,0.15)", border: "1px solid rgba(201,149,10,0.3)",
-                color: "#c9950a", textTransform: "uppercase",
+                padding: "3px 8px", fontSize: 8, borderRadius: 6, cursor: "pointer",
+                background: classPalette.bg, border: `1px solid ${classPalette.border}`,
+                color: classPalette.main, textTransform: "uppercase", letterSpacing: 1,
               }}>GGE</button>
           </div>
         </div>
@@ -1669,10 +1786,45 @@ export default function CharacterSelectScreen() {
           </div>
         </div>
 
-        <div style={{ padding: "6px 10px 4px", borderBottom: "1px solid rgba(201,149,10,0.1)" }}>
+        {/* Race portrait grid — click to filter presets by race */}
+        <div style={{ padding: "8px 10px 6px", borderBottom: `1px solid ${classPalette.border}` }}>
+          <div style={{ fontSize: 8, color: "#9aa3c7", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 6, fontFamily: "'Cinzel',serif" }}>Race</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 6 }}>
+            {RACE_PORTRAITS.map(race => {
+              const isActive = raceFilter === race.id;
+              return (
+                <div
+                  key={race.id}
+                  className={`cs-race-card${isActive ? " active" : ""}`}
+                  onClick={() => setRaceFilter(isActive ? null : race.id)}
+                  title={race.name}
+                >
+                  <div
+                    className="cs-portrait"
+                    style={{ backgroundImage: `url('${race.portrait}')` }}
+                  />
+                  <span className="cs-race-label">{race.name}</span>
+                </div>
+              );
+            })}
+          </div>
+          {raceFilter && (
+            <button
+              onClick={() => setRaceFilter(null)}
+              style={{
+                marginTop: 5, width: "100%", padding: "3px 0", fontSize: 8,
+                background: "rgba(246,201,69,.08)", border: "1px solid rgba(246,201,69,.25)",
+                borderRadius: 5, color: "#f6c945", cursor: "pointer",
+                fontFamily: "'Cinzel',serif", letterSpacing: 1,
+              }}
+            >✕ Clear Race Filter</button>
+          )}
+        </div>
+
+        <div style={{ padding: "6px 10px 4px", borderBottom: `1px solid ${classPalette.border}` }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-            <div style={{ fontSize: 9, color: "#c9a86c", textTransform: "uppercase", letterSpacing: 1, fontFamily: "'Cinzel', serif" }}>Style Presets</div>
-            <span style={{ fontSize: 7, color: "#555" }}>{STYLE_PRESETS.length} styles</span>
+            <div style={{ fontSize: 9, color: classPalette.main, textTransform: "uppercase", letterSpacing: 1, fontFamily: "'Cinzel', serif" }}>Style Presets</div>
+            <span style={{ fontSize: 7, color: "#555" }}>{filteredPresets.length} styles</span>
           </div>
           <div style={{ display: "flex", gap: 2, flexWrap: "wrap", marginBottom: 4 }}>
             <button onClick={() => setPresetFilter("all")}
@@ -1701,16 +1853,19 @@ export default function CharacterSelectScreen() {
             return (
               <div key={preset.id} onClick={() => applyPreset(preset)}
                 style={{
-                  padding: "6px 8px", marginBottom: 2, borderRadius: 4, cursor: "pointer",
-                  background: isActive ? "linear-gradient(135deg, rgba(201,149,10,0.2), rgba(155,117,32,0.15))" : "rgba(255,255,255,0.02)",
-                  border: isActive ? "1px solid rgba(201,149,10,0.4)" : "1px solid transparent",
+                  padding: "6px 8px", marginBottom: 2, borderRadius: 8, cursor: "pointer",
+                  background: isActive
+                    ? `linear-gradient(135deg, ${classPalette.bg}, rgba(0,0,0,.4))`
+                    : "rgba(255,255,255,0.02)",
+                  border: isActive ? `1px solid ${classPalette.border}` : "1px solid transparent",
+                  borderLeft: isActive ? `3px solid ${classPalette.main}` : "3px solid transparent",
                   transition: "all 0.15s",
                 }}
-                onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = "rgba(255,255,255,0.05)"; }}
-                onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = isActive ? "linear-gradient(135deg, rgba(201,149,10,0.2), rgba(155,117,32,0.15))" : "rgba(255,255,255,0.02)"; }}
+                onMouseEnter={(e) => { if (!isActive) { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.borderColor = "rgba(255,255,255,.1)"; }}}
+                onMouseLeave={(e) => { if (!isActive) { e.currentTarget.style.background = "rgba(255,255,255,0.02)"; e.currentTarget.style.borderColor = "transparent"; }}}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: 11, fontWeight: isActive ? "bold" : "normal" }}>
+                  <span style={{ fontSize: 11, fontWeight: isActive ? "bold" : "normal", color: isActive ? classPalette.main : "#f0e8d8" }}>
                     <span style={{ marginRight: 4 }}>{preset.icon}</span>{preset.name}
                   </span>
                   <div style={{ display: "flex", gap: 3, alignItems: "center" }}>
@@ -1718,7 +1873,7 @@ export default function CharacterSelectScreen() {
                     <span style={{ fontSize: 9, color: "#888" }}>{CLASS_INFO[preset.combatClass].icon}</span>
                   </div>
                 </div>
-                {isActive && <div style={{ fontSize: 8, color: "#999", marginTop: 2, lineHeight: 1.3 }}>{preset.description}</div>}
+                {isActive && <div style={{ fontSize: 8, color: classPalette.main, marginTop: 2, lineHeight: 1.3, opacity: 0.85 }}>{preset.description}</div>}
               </div>
             );
           })}
@@ -1746,7 +1901,7 @@ export default function CharacterSelectScreen() {
         </div>
       </div>
 
-      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+      <div style={{ position: "relative", zIndex: 1, flex: 1, display: "flex", flexDirection: "column" }}>
         <div style={{ flex: 1, position: "relative", minHeight: 0 }}>
           <PreviewCanvas
             modelPath={currentModelPath} scale={scale} materialColors={matColors}
@@ -1763,8 +1918,15 @@ export default function CharacterSelectScreen() {
             weaponModelLeft={weaponModelLeft}
             backAccessoryId={backAccessoryId}
           />
-          <div style={{ position: "absolute", top: 8, left: 8, background: "rgba(0,0,0,0.7)", padding: "6px 10px", borderRadius: 5, border: "1px solid rgba(255,255,255,0.1)" }}>
-            <div style={{ fontSize: 16, fontWeight: "bold" }}>{heroName || "Hero"}</div>
+          <div style={{
+            position: "absolute", top: 8, left: 8,
+            background: "linear-gradient(135deg,rgba(6,8,16,.85),rgba(4,5,12,.9))",
+            padding: "8px 12px", borderRadius: 10,
+            border: `1px solid ${classPalette.border}`,
+            backdropFilter: "blur(10px)",
+            boxShadow: `0 8px 24px rgba(0,0,0,.4)`,
+          }}>
+            <div style={{ fontSize: 16, fontWeight: "bold", color: classPalette.main }}>{heroName || "Hero"}</div>
             <div style={{ fontSize: 9, color: "#aaa", marginTop: 2 }}>
               {CLASS_INFO[combatClass].icon} {CLASS_INFO[combatClass].label} &bull; {getWeaponPairDescription(weaponRight, weaponLeft)}
               {activePreset && <span style={{ color: "#666", marginLeft: 6 }}>({STYLE_PRESETS.find(p => p.id === activePreset)?.name})</span>}
@@ -1827,7 +1989,12 @@ export default function CharacterSelectScreen() {
           </div>
         </div>
 
-        <div style={{ background: "rgba(10,7,4,0.85)", borderTop: "1px solid rgba(201,149,10,0.15)", display: "flex", flexDirection: "column", height: panelHeight, overflow: "hidden", flexShrink: 0 }}>
+        <div style={{
+          background: "linear-gradient(180deg,rgba(8,6,12,.92),rgba(4,5,10,.95))",
+          borderTop: `1px solid ${classPalette.border}`,
+          display: "flex", flexDirection: "column", height: panelHeight, overflow: "hidden", flexShrink: 0,
+          backdropFilter: "blur(14px)",
+        }}>
           <div onMouseDown={handlePanelDragStart}
             style={{
               height: 6, cursor: "ns-resize", display: "flex", alignItems: "center", justifyContent: "center",
@@ -1841,9 +2008,11 @@ export default function CharacterSelectScreen() {
                 style={{
                   flex: 1, padding: "6px", fontSize: 9, textTransform: "uppercase", letterSpacing: 0.5,
                   fontFamily: "'Cinzel', serif",
-                  background: activeTab === tab.key ? "rgba(201,149,10,0.12)" : "transparent",
-                  border: "none", borderBottom: activeTab === tab.key ? "2px solid #c9950a" : "2px solid transparent",
-                  color: activeTab === tab.key ? "#f0d68a" : "#8a7e6a", cursor: "pointer",
+                  background: activeTab === tab.key ? classPalette.bg : "transparent",
+                  border: "none",
+                  borderBottom: activeTab === tab.key ? `2px solid ${classPalette.main}` : "2px solid transparent",
+                  color: activeTab === tab.key ? classPalette.main : "#8a7e6a", cursor: "pointer",
+                  transition: "color .15s, background .15s",
                 }}>{tab.label}</button>
             ))}
             <button
