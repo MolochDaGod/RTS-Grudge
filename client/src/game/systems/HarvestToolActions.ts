@@ -18,15 +18,49 @@ import type { WeaponTier } from "./WeaponPrefabDatabase";
 // ---------------------------------------------------------------------------
 // Tool types and their professions
 // ---------------------------------------------------------------------------
-export type HarvestToolType = "pickaxe" | "axe" | "hoe" | "sickle" | "fishing_rod" | "shovel";
+/**
+ * WCS canonical 6 gather types:
+ *   mining · logging · skinning · fishing · herbalism · scavenging
+ *
+ * Tool → Profession mapping:
+ *   pickaxe       → miner    (mining)
+ *   axe           → forester (logging)
+ *   skinning_knife→ forester (skinning)
+ *   fishing_rod   → chef     (fishing)
+ *   sickle        → mystic   (herbalism)
+ *   toolkit       → engineer (scavenging)
+ *   shovel        → (terrain editor only, no gather profession)
+ */
+export type HarvestToolType =
+  | "pickaxe"        // Miner   · Mining
+  | "axe"            // Forester · Logging
+  | "skinning_knife" // Forester · Skinning
+  | "sickle"         // Mystic  · Herbalism
+  | "fishing_rod"    // Chef    · Fishing
+  | "toolkit"        // Engineer · Scavenging
+  | "shovel"         // Terrain editor (no profession XP)
+  ;
 
-export const TOOL_PROFESSIONS: Record<HarvestToolType, string> = {
-  pickaxe:     "mining",
-  axe:         "logging",
-  hoe:         "farming",
-  sickle:      "herbalism",
-  fishing_rod: "fishing",
-  shovel:      "mining",
+export type WCSGatherType = "mining" | "logging" | "skinning" | "fishing" | "herbalism" | "scavenging";
+
+export const TOOL_GATHER_TYPE: Partial<Record<HarvestToolType, WCSGatherType>> = {
+  pickaxe:        "mining",
+  axe:            "logging",
+  skinning_knife: "skinning",
+  fishing_rod:    "fishing",
+  sickle:         "herbalism",
+  toolkit:        "scavenging",
+  // shovel has no gather type — it edits terrain
+};
+
+export const TOOL_PROFESSIONS: Record<string, string> = {
+  pickaxe:        "miner",
+  axe:            "forester",
+  skinning_knife: "forester",
+  sickle:         "mystic",
+  fishing_rod:    "chef",
+  toolkit:        "engineer",
+  shovel:         "",
 };
 
 // ---------------------------------------------------------------------------
@@ -115,27 +149,53 @@ export const TOOL_ACTIONS: Record<HarvestToolType, HarvestAction[]> = {
     },
   ],
 
-  hoe: [
+  // ── skinning_knife: Forester / Skinning ─────────────────────────────────────
+  skinning_knife: [
     {
-      id: "hoe_action", name: "Till", kind: "action", icon: "🌱",
+      id: "skin_action", name: "Skin", kind: "action", icon: "🔪",
       animation: "attack", cooldown: 0, staminaCost: 2, harvestMult: 1.0,
-      description: "Till the soil to prepare for planting or harvest crops.",
+      description: "Carefully skin a creature to gather hide and leather.",
     },
     {
-      id: "hoe_action2", name: "Deep Furrow", kind: "action2", icon: "🌾",
-      animation: "heavyAttack", cooldown: 3, staminaCost: 4, harvestMult: 1.4,
-      description: "Deep tilling that increases crop quality and yield.",
+      id: "skin_action2", name: "Expert Cut", kind: "action2", icon: "✂️",
+      animation: "heavyAttack", cooldown: 2, staminaCost: 4, harvestMult: 1.6,
+      description: "Precision cut that yields higher quality hides and bonus bones.",
     },
     {
-      id: "hoe_auto", name: "Auto-Farm", kind: "auto", icon: "🔄",
+      id: "skin_auto", name: "Auto-Skin", kind: "auto", icon: "🔄",
       animation: "attack", cooldown: 0, staminaCost: 0, staminaDrainPerSec: 3, harvestMult: 0.7,
-      description: "Toggle automatic farming. Plants, waters, and harvests nearby plots.", isToggle: true,
+      description: "Toggle automatic skinning of nearby fallen creatures.", isToggle: true,
     },
     {
-      id: "hoe_special", name: "Bountiful Harvest", kind: "special", icon: "🌻",
+      id: "skin_special", name: "Master Flay", kind: "special", icon: "🐍",
       animation: "combo3", cooldown: 20, staminaCost: 15, harvestMult: 3.0,
-      description: "Harvest all mature crops in a wide area with bonus yield.",
-      rareFindBonus: 0.2, aoeRadius: 5,
+      description: "Perfect the skin in one pass — tripled yield, chance for rare hide.",
+      rareFindBonus: 0.25, aoeRadius: 2,
+    },
+  ],
+
+  // ── toolkit: Engineer / Scavenging ──────────────────────────────────────────
+  toolkit: [
+    {
+      id: "kit_action", name: "Salvage", kind: "action", icon: "🔧",
+      animation: "attack", cooldown: 0, staminaCost: 2, harvestMult: 1.0,
+      description: "Dismantle mechanical objects to gather components and scrap.",
+    },
+    {
+      id: "kit_action2", name: "Precise Dismantle", kind: "action2", icon: "⚙️",
+      animation: "heavyAttack", cooldown: 3, staminaCost: 5, harvestMult: 1.5,
+      description: "Careful disassembly that preserves rare parts and circuits.",
+    },
+    {
+      id: "kit_auto", name: "Auto-Scavenge", kind: "auto", icon: "🔄",
+      animation: "attack", cooldown: 0, staminaCost: 0, staminaDrainPerSec: 4, harvestMult: 0.7,
+      description: "Toggle automatic scavenging of nearby mechanical debris.", isToggle: true,
+    },
+    {
+      id: "kit_special", name: "Deep Salvage", kind: "special", icon: "💥",
+      animation: "combo3", cooldown: 18, staminaCost: 20, harvestMult: 3.5,
+      description: "Tear apart a full mechanical unit — massive component yield. Chance for rare circuits.",
+      rareFindBonus: 0.3, aoeRadius: 3,
     },
   ],
 
@@ -252,11 +312,22 @@ export function getScaledAction(action: HarvestAction, tier: WeaponTier): Harves
 
 /** Detect tool type from an inventory item ID */
 export function detectToolType(itemId: string): HarvestToolType | null {
-  if (itemId.includes("pick")) return "pickaxe";
+  if (itemId.includes("pick"))                          return "pickaxe";
   if (itemId.includes("axe") && !itemId.includes("pick")) return "axe";
-  if (itemId.includes("hoe")) return "hoe";
-  if (itemId.includes("sickle")) return "sickle";
+  if (itemId.includes("skinning") || itemId.includes("skin_knife")) return "skinning_knife";
+  if (itemId.includes("sickle"))                        return "sickle";
   if (itemId.includes("rod") || itemId.includes("fish")) return "fishing_rod";
-  if (itemId.includes("shovel")) return "shovel";
+  if (itemId.includes("toolkit") || itemId.includes("wrench")) return "toolkit";
+  if (itemId.includes("shovel"))                        return "shovel";
   return null;
+}
+
+/** Get the WCS gather type for a tool type */
+export function getGatherType(toolType: HarvestToolType): WCSGatherType | null {
+  return TOOL_GATHER_TYPE[toolType] ?? null;
+}
+
+/** Get the profession ID for a tool type */
+export function getToolProfession(toolType: HarvestToolType): string {
+  return TOOL_PROFESSIONS[toolType] ?? "";
 }

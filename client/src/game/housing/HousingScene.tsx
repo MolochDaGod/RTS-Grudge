@@ -1,4 +1,4 @@
-import { Suspense, useRef, useEffect, useMemo } from "react";
+import { Suspense, useRef, useEffect, useMemo, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { KeyboardControls, useTexture } from "@react-three/drei";
 import { Physics, RigidBody, CuboidCollider } from "@react-three/rapier";
@@ -10,6 +10,7 @@ import { AssetLoaderInit } from "../systems/AssetLoaderInit";
 import { useGame } from "@/lib/stores/useGame";
 import { useHousing, FURNITURE_CATALOG, type PlacedFurniture, type FurnitureType } from "@/lib/stores/useHousing";
 import HousingUI from "./HousingUI";
+import CraftingStationUI from "./CraftingStationUI";
 import { VFXSystem } from "../vfx";
 
 const ROOM_WIDTH = 12;
@@ -519,13 +520,276 @@ function CastleDecorations() {
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Crafting Station 3D mesh with pulsing glow + E-key proximity prompt
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface CraftingStationProps {
+  position: [number, number, number];
+  stationId: string;
+  glowColor: string;
+  playerPosRef: React.MutableRefObject<THREE.Vector3>;
+  onOpen: (id: string) => void;
+}
+
+function CraftingStation3D({ position, stationId, glowColor, playerPosRef, onOpen }: CraftingStationProps) {
+  const groupRef = useRef<THREE.Group>(null);
+  const lightRef = useRef<THREE.PointLight>(null);
+  const promptRef = useRef<THREE.Group>(null);
+  const glowTime = useRef(Math.random() * Math.PI * 2); // stagger pulse
+
+  const stationIcons: Record<string, string> = {
+    forge: "🔨", workbench: "🛠️", alchemy_table: "⚗️",
+    loom: "🧵", tannery: "🦴", enchanting_altar: "✨",
+  };
+
+  // Station-specific geometry styles
+  const stationHeight: Record<string, number> = {
+    forge: 1.1, workbench: 0.9, alchemy_table: 1.0,
+    loom: 1.3, tannery: 1.0, enchanting_altar: 1.2,
+  };
+
+  const INTERACT_RANGE = 3.0;
+  const h = stationHeight[stationId] ?? 1.0;
+
+  // E-key prompt texture
+  const promptTex = useMemo(() => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 256; canvas.height = 64;
+    const ctx = canvas.getContext("2d")!;
+    ctx.clearRect(0, 0, 256, 64);
+    ctx.fillStyle = "rgba(0,0,0,0.7)";
+    ctx.beginPath(); ctx.roundRect?.(4, 8, 248, 48, 8); ctx.fill();
+    ctx.font = "bold 24px Arial";
+    ctx.fillStyle = glowColor;
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText("[E] Craft", 128, 32);
+    const t = new THREE.CanvasTexture(canvas);
+    t.needsUpdate = true;
+    return t;
+  }, [glowColor]);
+
+  useFrame((_, delta) => {
+    glowTime.current += delta * 1.8;
+    const pulse = 0.6 + 0.4 * Math.sin(glowTime.current);
+
+    if (lightRef.current) {
+      lightRef.current.intensity = 1.5 * pulse;
+    }
+
+    if (!promptRef.current || !groupRef.current) return;
+    const stationWorldPos = new THREE.Vector3(...position);
+    const dist = playerPosRef.current.distanceTo(stationWorldPos);
+    const inRange = dist < INTERACT_RANGE;
+    promptRef.current.visible = inRange;
+
+    if (inRange) {
+      (window as any).__nearStation = stationId;
+    } else if ((window as any).__nearStation === stationId) {
+      (window as any).__nearStation = null;
+    }
+  });
+
+  // Build the station mesh shape based on its type
+  const stationMesh = () => {
+    if (stationId === "forge") {
+      return (
+        <group>
+          {/* Base block */}
+          <mesh castShadow position={[0, h / 2, 0]}>
+            <boxGeometry args={[1.1, h, 0.8]} />
+            <meshStandardMaterial color="#555" roughness={0.6} metalness={0.5} />
+          </mesh>
+          {/* Top anvil surface */}
+          <mesh position={[0, h + 0.06, 0]}>
+            <boxGeometry args={[0.9, 0.12, 0.6]} />
+            <meshStandardMaterial color="#333" roughness={0.4} metalness={0.7} />
+          </mesh>
+          {/* Glow emissive coal */}
+          <mesh position={[0, h + 0.18, 0]}>
+            <sphereGeometry args={[0.12, 8, 8]} />
+            <meshStandardMaterial color={glowColor} emissive={glowColor} emissiveIntensity={2.5} />
+          </mesh>
+        </group>
+      );
+    }
+    if (stationId === "workbench") {
+      return (
+        <group>
+          <mesh castShadow position={[0, h / 2, 0]}>
+            <boxGeometry args={[1.3, h, 0.65]} />
+            <meshStandardMaterial color="#7a5c3a" roughness={0.9} />
+          </mesh>
+          {/* Tabletop planks */}
+          <mesh position={[0, h + 0.04, 0]}>
+            <boxGeometry args={[1.3, 0.08, 0.65]} />
+            <meshStandardMaterial color="#a07848" roughness={0.85} />
+          </mesh>
+          {/* Tools indicator */}
+          <mesh position={[0, h + 0.14, 0.1]}>
+            <boxGeometry args={[0.06, 0.2, 0.06]} />
+            <meshStandardMaterial color={glowColor} emissive={glowColor} emissiveIntensity={1.5} />
+          </mesh>
+        </group>
+      );
+    }
+    if (stationId === "alchemy_table") {
+      return (
+        <group>
+          <mesh castShadow position={[0, h / 2, 0]}>
+            <boxGeometry args={[1.1, h, 0.65]} />
+            <meshStandardMaterial color="#2a3a1a" roughness={0.8} />
+          </mesh>
+          {/* Flask glow */}
+          <mesh position={[0.2, h + 0.2, 0]}>
+            <sphereGeometry args={[0.14, 10, 10]} />
+            <meshStandardMaterial color={glowColor} emissive={glowColor} emissiveIntensity={3} transparent opacity={0.7} />
+          </mesh>
+          <mesh position={[-0.2, h + 0.15, 0]}>
+            <sphereGeometry args={[0.1, 8, 8]} />
+            <meshStandardMaterial color="#ff4400" emissive="#ff4400" emissiveIntensity={2} transparent opacity={0.7} />
+          </mesh>
+        </group>
+      );
+    }
+    if (stationId === "loom") {
+      return (
+        <group>
+          {/* Frame vertical bars */}
+          {[-0.55, 0.55].map((x, i) => (
+            <mesh key={i} castShadow position={[x, h / 2, 0]}>
+              <boxGeometry args={[0.08, h, 0.08]} />
+              <meshStandardMaterial color="#654321" roughness={0.9} />
+            </mesh>
+          ))}
+          {/* Horizontal crossbar */}
+          <mesh position={[0, h * 0.7, 0]}>
+            <boxGeometry args={[1.1, 0.06, 0.06]} />
+            <meshStandardMaterial color="#654321" roughness={0.9} />
+          </mesh>
+          {/* Cloth shimmer */}
+          <mesh position={[0, h * 0.4, 0]} rotation={[0, 0, 0]}>
+            <planeGeometry args={[0.9, h * 0.5]} />
+            <meshStandardMaterial color={glowColor} emissive={glowColor} emissiveIntensity={1.2} transparent opacity={0.4} side={THREE.DoubleSide} />
+          </mesh>
+        </group>
+      );
+    }
+    if (stationId === "tannery") {
+      return (
+        <group>
+          <mesh castShadow position={[0, h / 2, 0]}>
+            <boxGeometry args={[1.1, h, 0.75]} />
+            <meshStandardMaterial color="#5c3a1e" roughness={0.9} />
+          </mesh>
+          {/* Hide drying rack */}
+          <mesh position={[0, h + 0.1, 0]} rotation={[Math.PI / 8, 0, 0]}>
+            <planeGeometry args={[0.8, 0.6]} />
+            <meshStandardMaterial color="#a07050" roughness={0.95} side={THREE.DoubleSide} />
+          </mesh>
+          <mesh position={[0.1, h + 0.3, 0.1]}>
+            <sphereGeometry args={[0.06, 6, 6]} />
+            <meshStandardMaterial color={glowColor} emissive={glowColor} emissiveIntensity={1.5} />
+          </mesh>
+        </group>
+      );
+    }
+    // enchanting_altar default
+    return (
+      <group>
+        <mesh castShadow position={[0, h / 2, 0]}>
+          <cylinderGeometry args={[0.45, 0.55, h, 8]} />
+          <meshStandardMaterial color="#222233" roughness={0.5} metalness={0.4} />
+        </mesh>
+        {/* Rune top */}
+        <mesh position={[0, h + 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[0.44, 16]} />
+          <meshStandardMaterial color="#111122" roughness={0.3} />
+        </mesh>
+        {/* Rune glow ring */}
+        <mesh position={[0, h + 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+          <ringGeometry args={[0.3, 0.42, 16]} />
+          <meshStandardMaterial color={glowColor} emissive={glowColor} emissiveIntensity={3} side={THREE.DoubleSide} transparent opacity={0.8} />
+        </mesh>
+        <mesh position={[0, h + 0.18, 0]}>
+          <sphereGeometry args={[0.12, 12, 12]} />
+          <meshStandardMaterial color={glowColor} emissive={glowColor} emissiveIntensity={4} transparent opacity={0.6} />
+        </mesh>
+      </group>
+    );
+  };
+
+  return (
+    <group ref={groupRef} position={position}>
+      {stationMesh()}
+
+      {/* Proximity glow light */}
+      <pointLight
+        ref={lightRef}
+        color={glowColor}
+        intensity={1.5}
+        distance={5}
+        position={[0, h + 0.5, 0]}
+      />
+
+      {/* E-key prompt sprite (hidden until in range) */}
+      <group ref={promptRef} visible={false} position={[0, h + 0.85, 0]}>
+        <sprite scale={[2.2, 0.55, 1]}>
+          <spriteMaterial map={promptTex} transparent />
+        </sprite>
+      </group>
+    </group>
+  );
+}
+
+// Station layout in the housing interior — placed along the walls
+const HOUSING_STATIONS: { id: string; position: [number,number,number]; glowColor: string }[] = [
+  { id: "forge",            position: [-4.5, 0, -3.5], glowColor: "#ff8800" },  // back-left
+  { id: "workbench",        position: [ 4.5, 0, -3.5], glowColor: "#d4a437" },  // back-right
+  { id: "alchemy_table",    position: [-4.5, 0,  1.5], glowColor: "#3ddc7b" },  // mid-left
+  { id: "loom",             position: [ 4.5, 0,  1.5], glowColor: "#9966ee" },  // mid-right
+  { id: "tannery",          position: [-2.5, 0, -4.3], glowColor: "#a07050" },  // back wall left
+  { id: "enchanting_altar", position: [ 2.5, 0, -4.3], glowColor: "#42e8e0" },  // back wall right
+];
+
+function CraftingStations({ playerPosRef, onOpenStation }: { playerPosRef: React.MutableRefObject<THREE.Vector3>; onOpenStation: (id: string) => void }) {
+  return (
+    <>
+      {HOUSING_STATIONS.map(st => (
+        <CraftingStation3D
+          key={st.id}
+          position={st.position}
+          stationId={st.id}
+          glowColor={st.glowColor}
+          playerPosRef={playerPosRef}
+          onOpen={onOpenStation}
+        />
+      ))}
+    </>
+  );
+}
+
 function HousingContent() {
   const playerPosRef = useRef(new THREE.Vector3(0, 1, 3));
+  const [openStation, setOpenStation] = useState<string | null>(null);
 
   const handlePlayerPositionUpdate = (pos: THREE.Vector3) => {
     playerPosRef.current.copy(pos);
     useGame.getState().updatePlayerPosition(pos);
   };
+
+  // E-key handler — opens the nearest station
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.code === "KeyE" && !e.repeat) {
+        const near = (window as any).__nearStation as string | null;
+        if (near) setOpenStation(near);
+      }
+      if (e.code === "Escape") setOpenStation(null);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
 
   return (
     <>
@@ -537,12 +801,22 @@ function HousingContent() {
       <CastleDecorations />
       <ExitDoor playerPosition={playerPosRef.current} />
       <PlacedFurnitureRenderer />
+      <CraftingStations
+        playerPosRef={playerPosRef}
+        onOpenStation={setOpenStation}
+      />
       <Player
         onPositionUpdate={handlePlayerPositionUpdate}
         spawnPosition={[0, 1, 3]}
       />
       <Camera playerPosition={playerPosRef.current} />
       <fog attach="fog" args={["#1A0E00", 8, 20]} />
+      {openStation && (
+        <CraftingStationUI
+          stationId={openStation}
+          onClose={() => setOpenStation(null)}
+        />
+      )}
     </>
   );
 }

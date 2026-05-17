@@ -34,6 +34,11 @@ export interface BuildingDef {
    * Omitting the field defaults to "neutral".
    */
   faction?: FactionId | "neutral";
+  /**
+   * If set, players near this building can press T to enter an interior scene.
+   * Drives the BuildingEntrance proximity detector in GameScene.
+   */
+  interiorType?: "camp" | "house" | "castle";
 }
 
 export interface PlacedBuilding {
@@ -130,7 +135,38 @@ export const BUILDING_REGISTRY: BuildingDef[] = [
   { id: "towncenter_1a_l1", faction: "neutral", name: "Town Center", category: "special", age: "first",  level: 1, maxLevel: 3, modelPath: "/models/rts_quaternius/TownCenter_FirstAge_Level1.glb", cost: { wood: 100, stone: 60,  gold:  30 }, size: [6, 6], description: "Central hub. Unlocks Second Age buildings.", unlockRequirement: "second_age" },
   { id: "wonder_1a_l1",     faction: "neutral", name: "Wonder",      category: "special", age: "first",  level: 1, maxLevel: 3, modelPath: "/models/rts_quaternius/Wonder_FirstAge_Level1.glb",     cost: { wood: 200, stone: 200, gold: 100 }, size: [8, 8], description: "Legendary structure. Victory monument." },
 
-  // ── CRUSADE: Military ─────────────────────────────────────────────────────
+  // ── NEUTRAL: Enterable Player Structures ────────────────────────────────────────────────
+  // Pressing T near these buildings teleports the player into an interior scene
+  // (camp → CampInteriorScene, house → HousingScene, castle → CastleInteriorScene).
+  // Storage, build-editor, and crafting stations are available inside each.
+  {
+    id: "player_camp", faction: "neutral", name: "Camp", category: "special",
+    age: "first", level: 1, maxLevel: 2,
+    modelPath: "/models/rts_quaternius/Farm_FirstAge_Level1.glb",
+    cost: { wood: 30, stone: 10, gold: 0 }, size: [5, 5],
+    description: "Compact camp with campfire, chest, and basic Workbench inside. Press T to enter.",
+    spawnAlly: "farmer", allyCount: 1,
+    interiorType: "camp",
+  },
+  {
+    id: "player_house", faction: "neutral", name: "House", category: "special",
+    age: "first", level: 1, maxLevel: 3,
+    modelPath: "/models/rts_quaternius/Houses_FirstAge_1_Level1.glb",
+    cost: { wood: 80, stone: 40, gold: 20 }, size: [6, 6],
+    description: "Your home. Full housing editor, storage, and all 6 crafting stations inside. Press T to enter.",
+    interiorType: "house",
+  },
+  {
+    id: "player_castle", faction: "neutral", name: "Castle", category: "special",
+    age: "second", level: 1, maxLevel: 3,
+    modelPath: "/models/rts_quaternius/TownCenter_FirstAge_Level1.glb",
+    cost: { wood: 240, stone: 200, gold: 100 }, size: [10, 10],
+    description: "Grand hall with all 5 crafting stations pre-placed, 4 storage chests, and a throne room. Press T to enter.",
+    unlockRequirement: "second_age",
+    interiorType: "castle",
+  },
+
+  // ── CRUSADE: Military
   // Human-race faction buildings. Crusade + pirate (human-adjacent) can build.
   { id: "barracks_1a_l1",    faction: "crusade", name: "Barracks",          category: "military", age: "first",  level: 1, maxLevel: 3, modelPath: "/models/rts_quaternius/Barracks_FirstAge_Level1.glb",    cost: { wood: 80,  stone: 40,  gold:  20 }, size: [5, 5], description: "Trains human soldiers.",             spawnAlly: "soldier",  allyCount: 2 },
   { id: "barracks_1a_l2",    faction: "crusade", name: "Barracks II",        category: "military", age: "first",  level: 2, maxLevel: 3, modelPath: "/models/rts_quaternius/Barracks_FirstAge_Level2.glb",    cost: { wood: 130, stone: 70,  gold:  40 }, size: [5, 5], description: "Upgraded barracks.",                spawnAlly: "soldier",  allyCount: 3 },
@@ -161,6 +197,8 @@ const STARTER_UNLOCKS = new Set([
   "windmill_1a",
   "farm_workers", "warrior_hall", "ranger_lodge",
   "camp", "lumber_camp", "herb_garden", "mining_outpost",
+  // Enterable player structures (always available)
+  "player_camp", "player_house",
 ]);
 
 export const useBuildSystem = create<BuildSystemState>((set, get) => ({
