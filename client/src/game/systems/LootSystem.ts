@@ -10,6 +10,8 @@ const CHEST_LOOT: LootDrop[] = [
   { itemId: "potion_health",    name: "Health Potion",      icon: "❤️", chance: 0.40, quantity: [1, 2],  type: "potion" },
   { itemId: "scroll_arcane",    name: "Arcane Scroll",      icon: "📜", chance: 0.25, quantity: [1, 1],  type: "equipment" },
   { itemId: "wooden_sword",     name: "Wooden Sword",       icon: "🗡️", chance: 0.15, quantity: [1, 1],  type: "equipment" },
+  // Dragon eggs are rare finds in dungeon end chests — place in Furnace to hatch
+  { itemId: "dragon_egg",       name: "Dragon Egg",         icon: "🥚", chance: 0.05, quantity: [1, 1],  type: "material" },
 ];
 
 const SARCOPHAGUS_LOOT: LootDrop[] = [

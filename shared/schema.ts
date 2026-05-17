@@ -67,6 +67,19 @@ export const playerLoadouts = mysqlTable("player_loadouts", {
 ]);
 export type PlayerLoadout = typeof playerLoadouts.$inferSelect;
 
+// ── Player Inventory (account-level, shared across all apps) ─────────────────
+export const playerInventory = mysqlTable("player_inventory", {
+  playerId: varchar("player_id", { length: 64 }).primaryKey(),
+  items:    json("items").notNull().default([]),
+  /** Optimistic-lock version — bump on every write so cross-app races are detected. */
+  version:  int("version").notNull().default(1),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+}, (t) => [
+  index("player_inventory_updated_idx").on(t.playerId, t.updatedAt),
+]);
+export type PlayerInventory = typeof playerInventory.$inferSelect;
+
 // ── Player Wallets ───────────────────────────────────────────────────────────
 export const playerWallets = mysqlTable("player_wallets", {
   playerId: varchar("player_id", { length: 64 }).primaryKey(),

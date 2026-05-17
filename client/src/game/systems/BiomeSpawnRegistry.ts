@@ -105,6 +105,8 @@ export const BIOME_ZONES: BiomeZone[] = [
       { type: "bunny", minDistance: 0, weight: 2 },
       { type: "ghost", minDistance: 20, weight: 2, nightOnly: true },
       { type: "thrower_brute", minDistance: 15, weight: 2 },
+      { type: "aw_infantry", minDistance: 10, weight: 3 },
+      { type: "scifi_trooper", minDistance: 15, weight: 2 },
     ],
     wildlife: [
       WILDLIFE_MODELS.cow, WILDLIFE_MODELS.sheep, WILDLIFE_MODELS.pig,
@@ -131,6 +133,8 @@ export const BIOME_ZONES: BiomeZone[] = [
       { type: "ghost", minDistance: 10, weight: 3, nightOnly: true },
       { type: "mushroom_king", minDistance: 40, weight: 1 },
       { type: "thrower_assassin", minDistance: 25, weight: 2 },
+      { type: "shadow_soldier", minDistance: 20, weight: 3 },
+      { type: "scifi_soldier", minDistance: 30, weight: 2 },
     ],
     wildlife: [
       WILDLIFE_MODELS.pug, WILDLIFE_MODELS.cat, WILDLIFE_MODELS.dog,
@@ -157,6 +161,9 @@ export const BIOME_ZONES: BiomeZone[] = [
       { type: "raptor", minDistance: 30, weight: 3 },
       { type: "dino", minDistance: 50, weight: 1 },
       { type: "triceratops", minDistance: 45, weight: 1 },
+      // Mechs and tanks patrol the deep wastes
+      { type: "aw_mech", minDistance: 35, weight: 2 },
+      { type: "aw_tank", minDistance: 45, weight: 1 },
     ],
     wildlife: [
       WILDLIFE_MODELS.zebra, WILDLIFE_MODELS.llama,
@@ -181,6 +188,7 @@ export const BIOME_ZONES: BiomeZone[] = [
       { type: "ghost", minDistance: 10, weight: 3, nightOnly: true },
       { type: "mushroom_king", minDistance: 30, weight: 2 },
       { type: "thrower_berserker", minDistance: 20, weight: 2 },
+      { type: "cyborg_soldier", minDistance: 25, weight: 2 },
     ],
     wildlife: [
       WILDLIFE_MODELS.fish, WILDLIFE_MODELS.frog,
@@ -219,6 +227,12 @@ export const BIOME_ZONES: BiomeZone[] = [
       { type: "dragon", minDistance: 40, weight: 1 },
       { type: "golem", minDistance: 10, weight: 3 },
       { type: "thrower_berserker", minDistance: 20, weight: 3 },
+      { type: "cyborg_unit", minDistance: 25, weight: 2 },
+      { type: "mech_tripod", minDistance: 45, weight: 1 },
+      // Armabee swarms rise from the lava vents
+      { type: "armabee", minDistance: 10, weight: 3 },
+      // Alpaking circles the caldera rim
+      { type: "alpaking", minDistance: 35, weight: 2 },
     ],
     wildlife: [],
     envProps: [
@@ -238,8 +252,13 @@ export const BIOME_ZONES: BiomeZone[] = [
       { type: "raptor", minDistance: 15, weight: 4 },
       { type: "dino", minDistance: 35, weight: 2 },
       { type: "trex", minDistance: 55, weight: 1 },
-      { type: "pirate", minDistance: 20, weight: 3 },
+      // Dark elves have displaced pirates in deep jungle camp spawns
+      { type: "dark_elf", minDistance: 20, weight: 3 },
       { type: "thrower_assassin", minDistance: 25, weight: 2 },
+      { type: "scifi_officer", minDistance: 30, weight: 2 },
+      { type: "aw_infantry", minDistance: 20, weight: 3 },
+      // Armabee swarm in the jungle canopy
+      { type: "armabee", minDistance: 15, weight: 3 },
     ],
     wildlife: [
       WILDLIFE_MODELS.zebra, WILDLIFE_MODELS.pigeon,
@@ -249,17 +268,20 @@ export const BIOME_ZONES: BiomeZone[] = [
   },
   {
     id: "coast",
-    label: "Pirate Coast",
+    label: "Dark Elf Coast",
     center: [-50, 0],
     radius: 25,
     terrainTint: "#c4b890",
     ambientTint: "#eeffff",
     enemies: [
-      { type: "pirate", minDistance: 0, weight: 6 },
+      // Dark elves have taken over coastal pirate camps
+      { type: "dark_elf", minDistance: 0, weight: 6 },
       { type: "skeleton", minDistance: 0, weight: 4 },
       { type: "ninja", minDistance: 20, weight: 3 },
       { type: "ghost", minDistance: 15, weight: 2, nightOnly: true },
       { type: "thrower_soldier", minDistance: 15, weight: 3 },
+      // Alpaking patrol the coast from the air
+      { type: "alpaking", minDistance: 20, weight: 2 },
     ],
     wildlife: [
       WILDLIFE_MODELS.fish, WILDLIFE_MODELS.pigeon,
@@ -282,6 +304,8 @@ export const BIOME_ZONES: BiomeZone[] = [
       { type: "triceratops", minDistance: 40, weight: 1 },
       { type: "trex", minDistance: 60, weight: 1 },
       { type: "thrower_berserker", minDistance: 30, weight: 2 },
+      { type: "aw_tank", minDistance: 40, weight: 2 },
+      { type: "mech_tripod", minDistance: 55, weight: 1 },
     ],
     wildlife: [
       WILDLIFE_MODELS.llama, WILDLIFE_MODELS.sheep,

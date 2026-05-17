@@ -47,6 +47,7 @@ import {
   HeartIcon, BoltIcon, FoodIcon, TrophyIcon, QuestionIcon,
   SkullIcon, HouseIcon, CrosshairIcon,
 } from "./GameIcons";
+import { WEAPON_TYPE_EMOJI } from "@/lib/data/ItemPrefabRegistry";
 
 const COLORS = {
   bgDark: "#0a0705",
@@ -1306,8 +1307,15 @@ export default function HUD() {
                     opacity: present ? 1 : 0.45, transition: "all 0.15s",
                     boxShadow: present ? COLORS.btnInnerShadow : "none",
                     transform: present && hoveredWeaponSkill === i ? "translateY(-3px)" : "translateY(0)",
+                    fontSize: 22,
                   }}>
-                    <SwordIcon size={20} color={present ? color : "#444"} />
+                    {/* Show weapon-type emoji when a weapon skill is present,
+                        fall back to generic SwordIcon for empty slots. */}
+                    {present && skill
+                      ? <span style={{ filter: "drop-shadow(0 1px 3px #000)" }}>
+                          {WEAPON_TYPE_EMOJI[skill.weapon as keyof typeof WEAPON_TYPE_EMOJI] ?? "⚔️"}
+                        </span>
+                      : <SwordIcon size={20} color="#444" />}
                   </div>
                   <div style={{
                     marginTop: 2, background: "rgba(255,255,255,0.08)", padding: "1px 5px",

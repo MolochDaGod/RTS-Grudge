@@ -9,6 +9,7 @@ import { COLLISION_MASKS } from "../components/BuildingColliders";
 import { useAllies, type AllyData, type AllyBehavior } from "@/lib/stores/useAllies";
 import { useEnemyManager } from "../systems/EnemyManager";
 import { useInventory } from "@/lib/stores/useInventory";
+import { useStorage } from "@/lib/stores/useStorage";
 import { useGame } from "@/lib/stores/useGame";
 import {
   getResourceNodesNear,
@@ -51,12 +52,15 @@ function AllyModel({ data }: { data: AllyData }) {
   const combatRetreatTimer = useRef(0);
   const combatCircleAngle = useRef(Math.random() * Math.PI * 2);
 
-  // Migrated to the new controller pipeline. Combat layering is disabled
-  // because allies don't currently load weapon packs, so attack states (when
-  // they happen) should occupy the full body for a visible reaction.
+  // Controller: weapon pack determined by ally type so BRB combat animations
+  // load (sword combos, staff casts, bow draws, etc.). Farmers use extraPacks
+  // for harvesting animations; disableCombatLayer stays true so attacks play
+  // full-body rather than upper-body-only (NPC AI, not player input-driven).
   const { scene, playAnimation, update, setMovementSpeed, bounds } = useCharacterController({
     modelPath: data.modelPath,
     targetHeight: data.targetHeight,
+    weaponType: data.weaponType,
+    extraPacks: data.extraPacks,
     disableCombatLayer: true,
   });
 
@@ -325,15 +329,33 @@ function AllyModel({ data }: { data: AllyData }) {
 
           if (harvestTimer.current >= 2.5 / Math.max(data.harvestSpeed, 0.5)) {
             const result = harvestNodeByIndex(harvestNodeIndex.current);
-            if (result) {
-              useInventory.getState().addItem({
+          if (result) {
+              // Auto-harvest output goes to global persistent Storage (not dropped
+              // on death, not lost when building is destroyed), separate from the
+              // player's actively-carried Inventory.
+              const itemType = result.type === "berry" || result.type === "raw_meat" ? "food" : "material";
+              const stored = useStorage.getState().addToStorage({
                 id: result.type,
-                name: result.type.replace("_", " ").replace(/\b\w/g, c => c.toUpperCase()),
-                type: result.type === "berry" || result.type === "raw_meat" ? "food" : "material",
-                healAmount: result.type === "berry" ? 8 : result.type === "herb" ? 12 : undefined,
+                name: result.type.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()),
+                type: itemType,
                 icon: RESOURCE_ICONS[result.type] || "📦",
                 quantity: result.qty,
+                source: "auto_harvest",
+                gatherType: data.weaponType === "bow" ? "logging" : "mining", // rough tagging
               });
+
+              // Fallback: if storage is somehow full, write to inventory
+              if (!stored) {
+                useInventory.getState().addItem({
+                  id: result.type,
+                  name: result.type.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()),
+                  type: itemType,
+                  healAmount: result.type === "berry" ? 8 : result.type === "herb" ? 12 : undefined,
+                  icon: RESOURCE_ICONS[result.type] || "📦",
+                  quantity: result.qty,
+                });
+              }
+
               // XP for honest day's work — scales lightly with quantity gathered
               useAllies.getState().awardXp(data.id, 6 + Math.min(10, result.qty), "harvest");
             }

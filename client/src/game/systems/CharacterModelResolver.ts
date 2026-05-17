@@ -73,10 +73,14 @@ const LOCAL_CHARACTER_FILES = new Set<string>([
   "vampire_aristocrat-female.glb",
   "vampire_aristocrat-male.glb",
   "werewolf.glb",
+  "stylized_nightmarish_werewolf.glb",
 ]);
 
 export function resolveCharacterModelPath(path: string): string {
   if (!path || typeof path !== "string") return path;
+
+  // Grudge Object Store CDN URLs — pass through unchanged; no local fallback.
+  if (path.startsWith("https://") || path.startsWith("http://")) return path;
 
   if (path.startsWith("/models/characters/")) {
     const filename = path.substring("/models/characters/".length).split("?")[0];

@@ -15,7 +15,17 @@ export interface InventoryItem {
   description?: string;
 }
 
-export type CraftCategory = "tools" | "weapons" | "food" | "consumables" | "materials" | "armor";
+export type CraftCategory =
+  // Original
+  | "tools" | "weapons" | "food" | "consumables" | "materials" | "armor"
+  // WCS profession categories
+  | "smelt"        // Miner  — ore → ingot chains
+  | "woodwork"     // Forester — log → plank chains
+  | "leatherwork"  // Forester — hide → leather chains
+  | "weave"        // Mystic  — thread/fiber → cloth chains
+  | "alchemy"      // Chef    — potions / elixirs
+  | "enchant"      // All     — enchanting / infusions
+  ;
 
 export interface CraftRecipe {
   id: string;
@@ -230,7 +240,7 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
   {
     id: "leather_vest", name: "Leather Vest", category: "armor",
     ingredients: [{ itemId: "leather", count: 4 }, { itemId: "fiber", count: 2 }],
-    result: { id: "leather_vest", name: "Leather Vest", type: "armor", icon: "🦺", quantity: 1, description: "+5 Defense" },
+    result: { id: "leather_vest", name: "Leather Vest", type: "armor", icon: "🦴", quantity: 1, description: "+5 Defense" },
   },
   {
     id: "iron_helmet", name: "Iron Helmet", category: "armor",
@@ -242,6 +252,72 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
     ingredients: [{ itemId: "iron_ingot", count: 5 }, { itemId: "leather", count: 2 }],
     result: { id: "iron_chestplate", name: "Iron Chestplate", type: "armor", icon: "🛡️", quantity: 1, description: "+15 Defense" },
   },
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // WCS MATERIAL TIER CHAINS — Miner: Smelting (ore → ingot, 8 tiers)
+  // Tier chain: Copper → Iron → Steel → Mithril → Adamantine → Orichalcum → Starmetal → Divine
+  // ─────────────────────────────────────────────────────────────────────────────
+  { id: "smelt_copper",      name: "Smelt Copper Ingot",      category: "smelt", ingredients: [{ itemId: "copper_ore",      count: 2 }], result: { id: "copper_ingot",      name: "Copper Ingot",      type: "material", icon: "🧲", quantity: 1 } },
+  { id: "smelt_iron",        name: "Smelt Iron Ingot",        category: "smelt", ingredients: [{ itemId: "iron_ore",        count: 2 }], result: { id: "iron_ingot",        name: "Iron Ingot",        type: "material", icon: "🔩", quantity: 1 } },
+  { id: "smelt_steel",       name: "Smelt Steel Ingot",       category: "smelt", ingredients: [{ itemId: "iron_ingot",      count: 2 }, { itemId: "coal", count: 1 }], result: { id: "steel_ingot",       name: "Steel Ingot",       type: "material", icon: "⚙️", quantity: 1 } },
+  { id: "smelt_mithril",     name: "Smelt Mithril Ingot",     category: "smelt", ingredients: [{ itemId: "mithril_ore",     count: 2 }], result: { id: "mithril_ingot",     name: "Mithril Ingot",     type: "material", icon: "✨", quantity: 1 } },
+  { id: "smelt_adamantine",  name: "Smelt Adamantine Ingot",  category: "smelt", ingredients: [{ itemId: "adamantine_ore",  count: 2 }], result: { id: "adamantine_ingot",  name: "Adamantine Ingot",  type: "material", icon: "💠", quantity: 1 } },
+  { id: "smelt_orichalcum",  name: "Smelt Orichalcum Ingot",  category: "smelt", ingredients: [{ itemId: "orichalcum_ore",  count: 2 }], result: { id: "orichalcum_ingot",  name: "Orichalcum Ingot",  type: "material", icon: "🌟", quantity: 1 } },
+  { id: "smelt_starmetal",   name: "Smelt Starmetal Ingot",   category: "smelt", ingredients: [{ itemId: "starmetal_ore",   count: 2 }], result: { id: "starmetal_ingot",   name: "Starmetal Ingot",   type: "material", icon: "⭐", quantity: 1 } },
+  { id: "smelt_divine",      name: "Smelt Divine Ingot",      category: "smelt", ingredients: [{ itemId: "divine_ore",      count: 1 }, { itemId: "divine_essence", count: 1 }], result: { id: "divine_ingot",      name: "Divine Ingot",      type: "material", icon: "🌐", quantity: 1 } },
+
+  // ── WCS: Forester: Woodworking (log → plank, 8 tiers) ─────────────────────────────
+  // Tier chain: Pine → Oak → Maple → Ash → Ironwood → Ebony → Wyrmwood → Worldtree
+  { id: "mill_pine",      name: "Mill Pine Planks",      category: "woodwork", ingredients: [{ itemId: "pine_log",      count: 2 }], result: { id: "pine_plank",      name: "Pine Plank",      type: "material", icon: "🪵", quantity: 3 } },
+  { id: "mill_oak",       name: "Mill Oak Planks",       category: "woodwork", ingredients: [{ itemId: "oak_log",       count: 2 }], result: { id: "oak_plank",       name: "Oak Plank",       type: "material", icon: "🪵", quantity: 3 } },
+  { id: "mill_maple",     name: "Mill Maple Planks",     category: "woodwork", ingredients: [{ itemId: "maple_log",     count: 2 }], result: { id: "maple_plank",     name: "Maple Plank",     type: "material", icon: "🪵", quantity: 3 } },
+  { id: "mill_ash",       name: "Mill Ash Planks",       category: "woodwork", ingredients: [{ itemId: "ash_log",       count: 2 }], result: { id: "ash_plank",       name: "Ash Plank",       type: "material", icon: "🪵", quantity: 3 } },
+  { id: "mill_ironwood",  name: "Mill Ironwood Planks",  category: "woodwork", ingredients: [{ itemId: "ironwood_log",  count: 2 }], result: { id: "ironwood_plank",  name: "Ironwood Plank",  type: "material", icon: "🪵", quantity: 2 } },
+  { id: "mill_ebony",     name: "Mill Ebony Planks",     category: "woodwork", ingredients: [{ itemId: "ebony_log",     count: 2 }], result: { id: "ebony_plank",     name: "Ebony Plank",     type: "material", icon: "🪵", quantity: 2 } },
+  { id: "mill_wyrmwood",  name: "Mill Wyrmwood Planks",  category: "woodwork", ingredients: [{ itemId: "wyrmwood_log",  count: 2 }], result: { id: "wyrmwood_plank",  name: "Wyrmwood Plank",  type: "material", icon: "🪵", quantity: 2 } },
+  { id: "mill_worldtree", name: "Mill Worldtree Planks", category: "woodwork", ingredients: [{ itemId: "worldtree_log", count: 1 }, { itemId: "divine_essence", count: 1 }], result: { id: "worldtree_plank", name: "Worldtree Plank", type: "material", icon: "🌳", quantity: 2 } },
+
+  // ── WCS: Forester: Leatherworking (hide → leather, 6+2 tiers) ────────────────────
+  // Tier chain: Rawhide → Thick → Rugged → Hardened → Wyrm → Infernal → Titan → Divine
+  { id: "tan_rawhide",   name: "Tan Rawhide Leather",   category: "leatherwork", ingredients: [{ itemId: "rawhide",      count: 2 }], result: { id: "rawhide_leather",   name: "Rawhide Leather",   type: "material", icon: "🟥", quantity: 2 } },
+  { id: "tan_thick",     name: "Tan Thick Leather",     category: "leatherwork", ingredients: [{ itemId: "thick_hide",    count: 2 }], result: { id: "thick_leather",     name: "Thick Leather",     type: "material", icon: "🟥", quantity: 2 } },
+  { id: "tan_rugged",    name: "Tan Rugged Leather",    category: "leatherwork", ingredients: [{ itemId: "rugged_hide",   count: 2 }], result: { id: "rugged_leather",    name: "Rugged Leather",    type: "material", icon: "🟥", quantity: 2 } },
+  { id: "tan_hardened",  name: "Tan Hardened Leather",  category: "leatherwork", ingredients: [{ itemId: "hardened_hide", count: 2 }], result: { id: "hardened_leather",  name: "Hardened Leather",  type: "material", icon: "🟥", quantity: 1 } },
+  { id: "tan_wyrm",      name: "Tan Wyrm Leather",      category: "leatherwork", ingredients: [{ itemId: "wyrm_hide",     count: 1 }], result: { id: "wyrm_leather",      name: "Wyrm Leather",      type: "material", icon: "🐍", quantity: 1 } },
+  { id: "tan_infernal",  name: "Tan Infernal Leather",  category: "leatherwork", ingredients: [{ itemId: "infernal_hide", count: 1 }], result: { id: "infernal_leather",  name: "Infernal Leather",  type: "material", icon: "🔥", quantity: 1 } },
+  { id: "tan_titan",     name: "Tan Titan Leather",     category: "leatherwork", ingredients: [{ itemId: "titan_hide",    count: 1 }], result: { id: "titan_leather",     name: "Titan Leather",     type: "material", icon: "💪", quantity: 1 } },
+  { id: "tan_divine",    name: "Tan Divine Leather",    category: "leatherwork", ingredients: [{ itemId: "divine_hide",   count: 1 }, { itemId: "divine_essence", count: 1 }], result: { id: "divine_leather",    name: "Divine Leather",    type: "material", icon: "✨", quantity: 1 } },
+
+  // ── WCS: Mystic: Weaving (thread/fiber → cloth, 8 tiers) ────────────────────
+  // Tier chain: Linen → Wool → Cotton → Silk → Moonweave → Starweave → Voidweave → Divine
+  { id: "weave_linen",     name: "Weave Linen Cloth",     category: "weave", ingredients: [{ itemId: "linen",     count: 4 }], result: { id: "linen_cloth",     name: "Linen Cloth",     type: "material", icon: "🧵", quantity: 2 } },
+  { id: "weave_wool",      name: "Weave Wool Cloth",      category: "weave", ingredients: [{ itemId: "wool",      count: 4 }], result: { id: "wool_cloth",      name: "Wool Cloth",      type: "material", icon: "🧵", quantity: 2 } },
+  { id: "weave_cotton",    name: "Weave Cotton Cloth",    category: "weave", ingredients: [{ itemId: "cotton",    count: 4 }], result: { id: "cotton_cloth",    name: "Cotton Cloth",    type: "material", icon: "🧵", quantity: 2 } },
+  { id: "weave_silk",      name: "Weave Silk Cloth",      category: "weave", ingredients: [{ itemId: "silk",      count: 3 }], result: { id: "silk_cloth",      name: "Silk Cloth",      type: "material", icon: "🧵", quantity: 2 } },
+  { id: "weave_moonweave", name: "Weave Moonweave",       category: "weave", ingredients: [{ itemId: "moonweave", count: 3 }, { itemId: "minor_essence", count: 1 }], result: { id: "moonweave_cloth",  name: "Moonweave Cloth",  type: "material", icon: "🌙", quantity: 1 } },
+  { id: "weave_starweave", name: "Weave Starweave",       category: "weave", ingredients: [{ itemId: "starweave", count: 3 }, { itemId: "lesser_essence", count: 1 }], result: { id: "starweave_cloth",  name: "Starweave Cloth",  type: "material", icon: "⭐", quantity: 1 } },
+  { id: "weave_voidweave", name: "Weave Voidweave",       category: "weave", ingredients: [{ itemId: "voidweave", count: 3 }, { itemId: "greater_essence", count: 1 }], result: { id: "voidweave_cloth",  name: "Voidweave Cloth",  type: "material", icon: "🌑", quantity: 1 } },
+  { id: "weave_divine",    name: "Weave Divine Cloth",    category: "weave", ingredients: [{ itemId: "divine_cloth", count: 2 }, { itemId: "divine_essence", count: 1 }], result: { id: "divine_cloth",     name: "Divine Cloth",     type: "material", icon: "✨", quantity: 1 } },
+
+  // ── WCS: Chef: Alchemy (potions T1–T4 starter set) ─────────────────────────────
+  { id: "health_potion_t2", name: "Health Potion (T2)",  category: "alchemy", ingredients: [{ itemId: "herb", count: 5 }, { itemId: "crystal", count: 1 }], result: { id: "health_potion_t2", name: "Health Potion II",  type: "consumable", healAmount: 100, icon: "❤️", quantity: 1 } },
+  { id: "mana_potion_t1",   name: "Mana Potion (T1)",   category: "alchemy", ingredients: [{ itemId: "herb", count: 3 }, { itemId: "berry", count: 4 }],          result: { id: "mana_potion_t1",   name: "Mana Potion",      type: "consumable", icon: "💙", quantity: 1 } },
+  { id: "buff_str_t1",      name: "Strength Elixir",    category: "alchemy", ingredients: [{ itemId: "herb", count: 4 }, { itemId: "raw_meat", count: 2 }],       result: { id: "buff_str_t1",      name: "Strength Elixir",  type: "consumable", icon: "💪", quantity: 1, description: "+20% Damage 3min" } },
+  { id: "buff_def_t1",      name: "Defense Elixir",     category: "alchemy", ingredients: [{ itemId: "herb", count: 3 }, { itemId: "stone", count: 2 }],          result: { id: "buff_def_t1",      name: "Defense Elixir",   type: "consumable", icon: "🛡️", quantity: 1, description: "+20% Defense 3min" } },
+
+  // ── WCS: Miner: T1 Named Weapons at Forge ──────────────────────────────────────
+  // T1 swords (6 named: Bloodfeud, Wraithfang, Oathbreaker, Kinrend, Dusksinger, Emberclad)
+  { id: "sword_bloodfeud_t1",   name: "Bloodfeud Blade",  category: "weapons", ingredients: [{ itemId: "copper_ingot", count: 4 }, { itemId: "pine_plank", count: 1 }],  result: { id: "sword_bloodfeud_t1",   name: "Bloodfeud Blade",  type: "weapon", damage: 22, icon: "⚔️", quantity: 1 } },
+  { id: "sword_wraithfang_t1",  name: "Wraithfang",       category: "weapons", ingredients: [{ itemId: "copper_ingot", count: 4 }, { itemId: "pine_plank", count: 1 }],  result: { id: "sword_wraithfang_t1",  name: "Wraithfang",       type: "weapon", damage: 24, icon: "⚔️", quantity: 1 } },
+  { id: "sword_oathbreaker_t1", name: "Oathbreaker",      category: "weapons", ingredients: [{ itemId: "iron_ingot",   count: 4 }, { itemId: "oak_plank",  count: 1 }],  result: { id: "sword_oathbreaker_t1", name: "Oathbreaker",      type: "weapon", damage: 35, icon: "⚔️", quantity: 1 } },
+  // T1 greatswords
+  { id: "gswrd_doomspire_t1",   name: "Doomspire",         category: "weapons", ingredients: [{ itemId: "iron_ingot",   count: 6 }, { itemId: "oak_plank",  count: 2 }],  result: { id: "gswrd_doomspire_t1",   name: "Doomspire",         type: "weapon", damage: 52, icon: "🗡️", quantity: 1 } },
+  { id: "gswrd_bloodspire_t1",  name: "Bloodspire",        category: "weapons", ingredients: [{ itemId: "iron_ingot",   count: 6 }, { itemId: "oak_plank",  count: 2 }],  result: { id: "gswrd_bloodspire_t1",  name: "Bloodspire",        type: "weapon", damage: 55, icon: "🗡️", quantity: 1 } },
+  // T1 bows (Forester)
+  { id: "bow_wraithbone_t1",    name: "Wraithbone Bow",    category: "weapons", ingredients: [{ itemId: "oak_plank",   count: 4 }, { itemId: "fiber", count: 3 }],        result: { id: "bow_wraithbone_t1",    name: "Wraithbone Bow",    type: "weapon", damage: 28, icon: "🏹", quantity: 1 } },
+  // T1 staves (Mystic)
+  { id: "staff_emberwrath_t1",  name: "Emberwrath Staff",  category: "weapons", ingredients: [{ itemId: "ironwood_log", count: 2 }, { itemId: "crystal", count: 2 }], result: { id: "staff_emberwrath_t1",  name: "Emberwrath Staff",  type: "weapon", damage: 30, icon: "🪄", quantity: 1 } },
+  { id: "staff_glacial_t1",     name: "Glacial Spire",     category: "weapons", ingredients: [{ itemId: "ironwood_log", count: 2 }, { itemId: "crystal", count: 2 }], result: { id: "staff_glacial_t1",     name: "Glacial Spire",     type: "weapon", damage: 28, icon: "❄️", quantity: 1 } },
 ];
 
 export const SURVIVAL_BUILD_RECIPES: SurvivalBuildRecipe[] = [

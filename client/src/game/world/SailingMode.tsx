@@ -109,10 +109,32 @@ export function SailingScene({ onArrive }: { onArrive: () => void }) {
   );
 }
 
+/** Island name override — shown while sailing / arriving. */
+const ISLAND_DISPLAY_NAMES: Record<string, string> = {
+  temperate: "Home Island",
+  tropical: "Tropical Isle",
+  volcanic: "Ember Caldera",
+  arctic: "Frostfall Reach",
+  pirate: "Corsair's Cove",
+  cursed: "The Cursed Deep",
+};
+
+/**
+ * SailingHUD — only shown while actively sailing between islands.
+ * When not sailing, use IslandArrivedBanner instead.
+ */
 export function SailingHUD() {
   const { sailingTarget, currentIslandId, islands } = useIslandWorld();
-  const current = islands.get(currentIslandId);
-  const discovered = Array.from(islands.values()).filter(i => i.discovered);
+  const target = sailingTarget
+    ? islands.get(`island_${sailingTarget.gridX}_${sailingTarget.gridZ}`)
+    : null;
+
+  // Only render during active sailing transit
+  if (!sailingTarget) return null;
+
+  const targetName = target
+    ? (ISLAND_DISPLAY_NAMES[target.biome] ?? `${target.biome.charAt(0).toUpperCase()}${target.biome.slice(1)} Island`)
+    : "Unknown Waters";
 
   return (
     <div style={{
@@ -120,30 +142,19 @@ export function SailingHUD() {
       top: 10,
       left: "50%",
       transform: "translateX(-50%)",
-      background: "rgba(0,0,0,0.7)",
-      color: "white",
-      padding: "10px 20px",
+      background: "rgba(12,8,5,0.88)",
+      color: "#f3eada",
+      padding: "10px 24px",
       borderRadius: 8,
-      fontFamily: "monospace",
+      fontFamily: "'Cinzel', serif",
       fontSize: 14,
       zIndex: 100,
       textAlign: "center",
+      border: "1px solid rgba(197,160,89,0.4)",
+      boxShadow: "0 4px 16px rgba(0,0,0,0.6)",
     }}>
-      {sailingTarget ? (
-        <div>
-          <div style={{ fontSize: 18, marginBottom: 4 }}>Sailing...</div>
-          <div>Heading to island ({sailingTarget.gridX}, {sailingTarget.gridZ})</div>
-        </div>
-      ) : (
-        <div>
-          <div style={{ fontSize: 16 }}>
-            {current?.biome.charAt(0).toUpperCase()}{current?.biome.slice(1)} Island
-          </div>
-          <div style={{ fontSize: 12, opacity: 0.7 }}>
-            Islands discovered: {discovered.length}
-          </div>
-        </div>
-      )}
+      <div style={{ fontSize: 18, marginBottom: 4, color: "#c9950a" }}>⛵ Sailing...</div>
+      <div>Heading to <span style={{ color: "#ffd700", fontWeight: 700 }}>{targetName}</span></div>
     </div>
   );
 }

@@ -1,0 +1,27 @@
+
+> rts-grudge@1.0.0 dev
+> cross-env NODE_ENV=development tsx server/index.ts
+
+[grudge] Integration ready
+[meshy] Pipeline routes registered
+[saves] Save game routes registered
+[loadouts] Hotbar loadout routes registered
+[inventory] Account-level inventory routes registered
+[wallets] Wallet routes registered, provisioning enabled
+7:38:34 PM [warn] model-manifest: 16/401 registry entries reference missing files
+7:38:34 PM [warn]   [ITEM_MODELS] /models/dungeon_kaykit/3dspritesa/coin.glb [id=coin]
+7:38:34 PM [warn]   [ITEM_MODELS] /models/dungeon_kaykit/3dspritesa/coinsMedium.glb [id=coins_medium]
+7:38:34 PM [warn]   [ITEM_MODELS] /models/dungeon_kaykit/3dspritesa/coinsSmall.glb [id=coins_small]
+7:38:34 PM [warn]   [ITEM_MODELS] /models/dungeon_kaykit/3dspritesa/artifact.glb [id=artifact]
+7:38:34 PM [warn]   [ITEM_MODELS] /models/dungeon_kaykit/3dspritesa/spellBook.glb [id=spell_book]
+7:38:34 PM [warn]   ... and 11 more (run `tsx scripts/validate-model-manifest.ts` for the full list)
+7:38:34 PM [express] serving on port 5001
+[grudge] Asset registration error: Failed query: insert into `asset_registry` (`id`, `category`, `name`, `type`, `local_path`, `cdn_url`, `format`, `metadata`, `bone_map`, `animation_pack`, `created_at`, `updated_at`) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, default, default) on duplicate key update `name` = ?, `local_path` = ?, `cdn_url` = ?, `format` = ?, `metadata` = ?, `bone_map` = ?, `animation_pack` = ?
+params: character_assassin-female,character,assassin-female,character,/models/characters/assassin-female.glb,,glb,{"source":"local","originalFile":"assassin-female.glb"},{"root":"Root","hips":"Hips","spine":"Torso","rightHand":"Fist.R","leftHand":"Fist.L","head":"Head","rightFoot":"Foot.R","leftFoot":"Foot.L"},glocomotion_combat,assassin-female,/models/characters/assassin-female.glb,,glb,{"source":"local","originalFile":"assassin-female.glb"},{"root":"Root","hips":"Hips","spine":"Torso","rightHand":"Fist.R","leftHand":"Fist.L","head":"Head","rightFoot":"Foot.R","leftFoot":"Foot.L"},glocomotion_combat
+[grudge] Weapons sync partial: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[grudge] Skills sync partial: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[grudge] Materials sync partial: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[grudge] Equipment sync partial: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[grudge] Armor sync partial: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[grudge] Consumables sync partial: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+[grudge] Synced: 0 weapons, 0 skills, 0 materials, 0 armor, 0 consumables, equipment=false

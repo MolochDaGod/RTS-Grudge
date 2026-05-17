@@ -9,6 +9,7 @@ import { registerMeshyRoutes } from "./meshyRoutes";
 import { registerLocalAssets } from "./registerLocalAssets";
 import { registerSavesRoutes } from "./savesRoutes";
 import { registerLoadoutsRoutes } from "./loadoutsRoutes";
+import { registerInventoryRoutes } from "./inventoryRoutes";
 import { registerWalletsRoutes } from "./walletsRoutes";
 
 interface AIProviderDef {
@@ -256,6 +257,34 @@ export async function registerRoutes(
 ): Promise<Server> {
   // All tables are managed by Drizzle schema — run `drizzle-kit push` to sync.
   // Routes register unconditionally; queries fail gracefully if DB is unreachable.
+  // ── Auth: Grudge ID token refresh + validate proxy ─────────────────────────
+  // All auth flows use id.grudge-studio.com (Cloudflare + Railway).
+  // auth-gateway-flax.vercel.app is RETIRED — never reference or route to it.
+  const { handleTokenRefresh, grudgeAuth } = await import("./authMiddleware");
+
+  // Refresh a near-expiring Grudge token. Called by GrudgeSession keep-alive.
+  app.post("/auth/refresh", grudgeAuth, handleTokenRefresh);
+
+  // Lightweight session check — returns the current user context.
+  app.get("/auth/me", grudgeAuth, (req: Request, res: Response) => {
+    const u = req.grudgeUser;
+    if (!u?.authenticated) {
+      res.status(401).json({
+        error: "Not authenticated",
+        loginUrl: `${process.env.GRUDGE_ID_URL || "https://id.grudge-studio.com"}/auth/login`,
+      });
+      return;
+    }
+    res.json({
+      playerId:    u.playerId,
+      username:    u.username,
+      email:       u.email,
+      tier:        u.tier,
+      provider:    u.provider,
+      authenticated: true,
+    });
+  });
+
   registerGrudgeRoutes(app);
   syncObjectStore().catch((e) => console.warn("[grudge] Background sync error:", e.message));
   registerLocalAssets().catch((e) => console.warn("[grudge] Asset registration error:", e.message));
@@ -271,6 +300,9 @@ export async function registerRoutes(
 
   registerLoadoutsRoutes(app);
   console.log("[loadouts] Hotbar loadout routes registered");
+
+  registerInventoryRoutes(app);
+  console.log("[inventory] Account-level inventory routes registered");
 
   registerWalletsRoutes(app);
   const provisioning = (process.env.CROSSMINT_API_KEY || process.env.CROSSMINT_SERVER_API_KEY) ? "enabled" : "disabled (no CROSSMINT_API_KEY)";

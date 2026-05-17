@@ -28,40 +28,49 @@ export const COLLISION_GROUPS = {
   // Ladders — rungs lightly block the player so they don't clip through
   // the back of the ladder; entry / topout sensors share the same group.
   LADDER:      9,
+  // Hero squad members, recruited ally NPCs, Gouldstone companions.
+  // Separate from NPC(5) so ally-vs-ally stacking is suppressed while
+  // allies still collide with enemies and terrain.
+  ALLY:        10,
+  // Swim volume sensor — only the player capsule triggers it.
+  WATER:       11,
+  // Sailing physics body — collides with terrain, player, and buildings
+  // so the boat doesn't fall through the ocean floor.
+  BOAT:        12,
+  // Dropped loot spheres — trigger-only, only the player can pick them up.
+  LOOT:        13,
 };
 
 export const COLLISION_MASKS = {
-  TERRAIN:     interactionGroups([0], [1, 3, 4, 5]),
-  // Player now collides with NPCs/animals/allies (group 5) too, so the
-  // newly-added kinematic capsules on those characters actually push the
-  // player back instead of being phased through.
-  // Bits 8 (CLIMBABLE) and 9 (LADDER) are added so the climb sensors
-  // (which mask the PLAYER group) actually fire intersection events —
-  // sensor matching is symmetric in Rapier. Player vs CLIMBABLE solid
-  // hull does NOT collide because the hull's mask omits PLAYER, so the
-  // capsule still passes through the wall.
-  PLAYER:      interactionGroups([1], [0, 2, 3, 5, 6, 7, 8, 9]),
-  BUILDING:    interactionGroups([2], [1, 3, 4, 5]),
-  // Enemies collide with each other (group 3) so they form crowds /
-  // shoulder-bump instead of stacking on the same point.
-  ENEMY:       interactionGroups([3], [0, 1, 2, 3, 4]),
+  // Terrain blocks player, enemies, projectiles, NPCs, allies.
+  TERRAIN:     interactionGroups([0], [1, 3, 4, 5, 10, 12]),
+  // Player now collides with NPCs/animals/allies (group 5 + 10) so the
+  // kinematic capsules on those characters push the player back.
+  // Bits 8 (CLIMBABLE) and 9 (LADDER) are added so climb sensors fire;
+  // sensor matching is symmetric in Rapier. Also hits LOOT(13) triggers.
+  PLAYER:      interactionGroups([1], [0, 2, 3, 5, 6, 7, 8, 9, 10, 11, 13]),
+  // Buildings block player, enemies, projectiles, NPCs, allies, boats.
+  BUILDING:    interactionGroups([2], [1, 3, 4, 5, 10, 12]),
+  // Enemies collide with each other (3) plus allies (10).
+  ENEMY:       interactionGroups([3], [0, 1, 2, 3, 4, 10]),
   PROJECTILE:  interactionGroups([4], [0, 2, 3]),
-  // NPCs/animals/allies collide with the player (group 1) so the player
-  // capsule physically bumps into them.
+  // NPCs/animals collide with terrain, player, buildings.
   NPC:         interactionGroups([5], [0, 1, 2]),
   TRIGGER:     interactionGroups([6], [1]),
   RESOURCE:    interactionGroups([7], [1]),
-  // Climbable wall solid hull: projectiles can hit it; player capsule
-  // passes through (no PLAYER bit). Used as `collisionGroups` on the
-  // ConvexHullCollider rendered for a wall-climbable prefab.
   CLIMBABLE:        interactionGroups([8], [4]),
-  // Climbable wall sensor (entry / proximity): only intersects with
-  // PLAYER. Used on a CuboidCollider with `sensor` in front of the wall.
   CLIMBABLE_SENSOR: interactionGroups([8], [1]),
-  // Ladder solid rungs: blocks player capsule slightly, projectiles too.
   LADDER:           interactionGroups([9], [1, 4]),
-  // Ladder entry / topout sensor: only intersects with PLAYER.
   LADDER_SENSOR:    interactionGroups([9], [1]),
+  // Allies collide with terrain, buildings, enemies. NOT with each other
+  // (no group 10 in the mask) — prevents squad members stacking.
+  ALLY:        interactionGroups([10], [0, 2, 3]),
+  // Water sensor — only triggers on the player capsule.
+  WATER:       interactionGroups([11], [1]),
+  // Boat physics — terrain, player, buildings.
+  BOAT:        interactionGroups([12], [0, 1, 2]),
+  // Loot pickup triggers — player only.
+  LOOT:        interactionGroups([13], [1]),
 };
 
 interface ColliderDef {

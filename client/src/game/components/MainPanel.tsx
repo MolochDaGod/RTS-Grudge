@@ -23,6 +23,10 @@ import {
 } from "@/lib/stores/useCharacterStats";
 import { useBuildSystem, BUILDING_REGISTRY, type BuildingCategory } from "@/lib/stores/useBuildSystem";
 import { useAllies, type AllyType } from "@/lib/stores/useAllies";
+import { useStorage } from "@/lib/stores/useStorage";
+import { useProfessions, PROFESSION_DEFS, type ProfessionId } from "@/lib/stores/useProfessions";
+import { getUnitIcon, getRacePortrait, getClassIcon, getProfessionIcon, type IconRace } from "@/lib/data/icons";
+import { FACTIONS_BY_ID } from "@/lib/data/factions";
 
 const AVAILABLE_ANIMATIONS = [
   { name: "skill1", label: "Skill 1", icon: "🔥", type: "skill" as const, cooldown: 3, key: "1" },
@@ -149,19 +153,35 @@ const BUILDING_CATEGORY_ICONS: Record<BuildingCategory, string> = {
   defense: "🏰", economy: "💰", military: "⚔️", housing: "🏠", special: "✨",
 };
 
-type PanelTab = "equipment" | "attributes" | "classSkill" | "skillTree" | "upgrade" | "craft" | "building" | "bestiary" | "allies";
+type PanelTab = "equipment" | "attributes" | "classSkill" | "skillTree" | "upgrade" | "craft" | "building" | "bestiary" | "allies" | "professions" | "storage";
 
 const TABS: { id: PanelTab; label: string }[] = [
-  { id: "equipment", label: "Equipment" },
-  { id: "attributes", label: "Attributes" },
-  { id: "classSkill", label: "Class Skills" },
-  { id: "skillTree", label: "Weapon Skills" },
-  { id: "upgrade", label: "Base" },
-  { id: "craft", label: "Crafting" },
-  { id: "building", label: "Building" },
-  { id: "bestiary", label: "Bestiary" },
-  { id: "allies", label: "Allies" },
+  { id: "equipment",   label: "Equipment" },
+  { id: "attributes",  label: "Attributes" },
+  { id: "classSkill",  label: "Class Skills" },
+  { id: "skillTree",   label: "Weapon Skills" },
+  { id: "upgrade",     label: "Base" },
+  { id: "craft",       label: "Crafting" },
+  { id: "building",    label: "Building" },
+  { id: "bestiary",    label: "Bestiary" },
+  { id: "allies",      label: "Allies" },
+  { id: "professions", label: "Professions" },
+  { id: "storage",     label: "Storage" },
 ];
+
+/** Resolve character portrait URL from race + heroClass. */
+function resolvePortrait(race: string | undefined, heroClass: HeroClass | null): string {
+  const r = (race ?? "human") as IconRace;
+  const arch = heroClass === "ranger" ? "archer" : heroClass === "mage" ? "mage" : "warrior";
+  return getUnitIcon(r, arch);
+}
+
+/** Faction color for a given faction ID string. */
+function factionColor(factionId?: string): string {
+  if (!factionId) return "#c9950a";
+  const def = Object.values(FACTIONS_BY_ID).find(f => f.id === factionId);
+  return def?.color ?? "#c9950a";
+}
 
 function formatStat(value: number, format: string): string {
   switch (format) {
@@ -282,13 +302,41 @@ function EquipmentTabContent() {
             <EquipSlotBox key={slot} slot={slot} size={58} onClick={() => setSelectedSlot(slot)} />
           ))}
         </div>
-        <div style={{
-          width: 110, height: 180, border: "2px solid #c9950a", borderRadius: 10, alignSelf: "center",
-          background: "radial-gradient(ellipse at 50% 40%, rgba(212,164,0,.08), transparent 70%), linear-gradient(135deg, #2e1f14, #1a0f08)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontFamily: f.display, fontSize: 9, color: "#6b5535", textTransform: "uppercase", letterSpacing: 1,
-          textAlign: "center",
-        }}>⚔<br/>Character</div>
+        {/* Character portrait in equipment slot center — reads current character from stores */}
+        {(() => {
+          const charId2   = useGame.getState().selectedCharacter.characterId ||
+                            useSurvival.getState().activeCharacterId;
+          const heroClass2 = charId2 ? useCharacterStats.getState().getHeroClass(charId2) : null;
+          const heroDef2   = charId2 ? HERO_DEFINITIONS.find(h => h.characterId === charId2) : null;
+          const race2      = (heroDef2?.race ?? "human") as IconRace;
+          const arch2      = heroClass2 === "ranger" ? "archer" : heroClass2 === "mage" ? "mage" : "warrior";
+          const portraitEq = getUnitIcon(race2, arch2);
+          const fColor2    = factionColor(useGame.getState().selectedCharacter.faction);
+          return (
+            <div style={{
+              width: 110, height: 180, border: `2px solid ${fColor2}`, borderRadius: 10,
+              alignSelf: "center", overflow: "hidden", position: "relative", flexShrink: 0,
+              background: `radial-gradient(ellipse at 50% 40%, ${fColor2}12, transparent 60%), linear-gradient(135deg, #2e1f14, #1a0f08)`,
+            }}>
+              <img
+                src={portraitEq}
+                alt="Character"
+                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center" }}
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.opacity = "0";
+                }}
+              />
+              <div style={{
+                position: "absolute", bottom: 0, left: 0, right: 0,
+                background: "linear-gradient(transparent, rgba(0,0,0,0.8))",
+                padding: "8px 4px 3px", textAlign: "center",
+                fontSize: 8, fontFamily: f.display, color: fColor2, textTransform: "uppercase",
+              }}>
+                {heroClass2 ?? "hero"}
+              </div>
+            </div>
+          );
+        })()}
         <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "center" }}>
           {rightSlots.map(slot => (
             <EquipSlotBox key={slot} slot={slot} size={58} onClick={() => setSelectedSlot(slot)} />
@@ -821,49 +869,126 @@ function UpgradesTabContent() {
   );
 }
 
-const CRAFT_CATEGORIES: { id: CraftCategory; label: string; icon: string }[] = [
-  { id: "tools", label: "Tools", icon: "🔧" },
-  { id: "weapons", label: "Weapons", icon: "⚔️" },
-  { id: "food", label: "Food", icon: "🍖" },
-  { id: "consumables", label: "Consumables", icon: "🧪" },
-  { id: "materials", label: "Materials", icon: "🪵" },
-  { id: "armor", label: "Armor", icon: "🛡️" },
+// WCS-aligned crafting category list with all 12 categories (6 original + 6 profession)
+const CRAFT_CATEGORIES: { id: CraftCategory; label: string; icon: string; profOnly?: boolean }[] = [
+  { id: "tools",       label: "Tools",       icon: "🔧" },
+  { id: "weapons",     label: "Weapons",     icon: "⚔️" },
+  { id: "armor",       label: "Armor",       icon: "🛡️" },
+  { id: "food",        label: "Food",        icon: "🍖" },
+  { id: "consumables", label: "Potions",     icon: "🧪" },
+  { id: "materials",   label: "Materials",   icon: "🪵" },
+  // WCS profession categories
+  { id: "smelt",       label: "Smelt",       icon: "🔥",  profOnly: true },
+  { id: "woodwork",    label: "Woodwork",    icon: "🚵",  profOnly: true },
+  { id: "leatherwork", label: "Leather",     icon: "🦴",  profOnly: true },
+  { id: "weave",       label: "Weave",       icon: "🧵",  profOnly: true },
+  { id: "alchemy",     label: "Alchemy",     icon: "⚗️",  profOnly: true },
+  { id: "enchant",     label: "Enchant",     icon: "✨",  profOnly: true },
 ];
 
 function CraftingTabContent() {
-  const { craft, hasItem, items } = useInventory();
+  const { craft, hasItem, items, removeItem } = useInventory();
+  const storageEntries = useStorage(s => s.entries);
+  const consumeIngredients = useStorage(s => s.consumeIngredients);
+  const addToStorage = useStorage(s => s.addToStorage);
   const [activeCat, setActiveCat] = useState<CraftCategory>("tools");
+  const [showProf, setShowProf] = useState(false);
+  const [lastCrafted, setLastCrafted] = useState<string | null>(null);
 
   const filtered = useMemo(() =>
     CRAFT_RECIPES.filter(r => r.category === activeCat), [activeCat]);
 
+  // Combined ingredient check: storage + inventory
+  function canCraftCombined(recipe: typeof filtered[0]): boolean {
+    return recipe.ingredients.every(ing => {
+      const stored = storageEntries.find(e => e.id === ing.itemId)?.quantity ?? 0;
+      const carried = items.find(i => i.id === ing.itemId)?.quantity ?? 0;
+      return stored + carried >= ing.count;
+    });
+  }
+
+  function handleCraft(recipe: typeof filtered[0]) {
+    const isMaterialsProf = CRAFT_CATEGORIES.find(c => c.id === recipe.category)?.profOnly;
+    if (isMaterialsProf) {
+      // Profession recipes: consume from storage first → output to storage
+      const success = consumeIngredients(recipe.ingredients, items, removeItem);
+      if (success) {
+        addToStorage({
+          id: recipe.result.id, name: recipe.result.name, icon: recipe.result.icon,
+          quantity: recipe.result.quantity, type: recipe.result.type as any, source: "crafted",
+        });
+        setLastCrafted(`${recipe.name} → Storage`);
+        setTimeout(() => setLastCrafted(null), 2500);
+      }
+    } else {
+      // Regular recipes: consume from inventory only → add to inventory
+      const success = craft(recipe);
+      if (success) {
+        setLastCrafted(recipe.name);
+        setTimeout(() => setLastCrafted(null), 2000);
+      }
+    }
+  }
+
+  const visibleCats = CRAFT_CATEGORIES.filter(c => showProf ? true : !c.profOnly);
+
   return (
     <div>
-      <SectionTitle>Crafting</SectionTitle>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+        <SectionTitle>Crafting</SectionTitle>
+        <button
+          onClick={() => setShowProf(p => !p)}
+          style={{
+            fontSize: 9, padding: "3px 8px", borderRadius: 4, cursor: "pointer",
+            background: showProf ? "rgba(73,222,149,.15)" : "rgba(50,40,30,.4)",
+            border: showProf ? "1px solid #49de95" : "1px solid #3a2a1a",
+            color: showProf ? "#49de95" : "#9b7d52", fontFamily: f.display,
+          }}
+        >⛓ Profession Recipes
+        </button>
+      </div>
+
+      {lastCrafted && (
+        <div style={{
+          marginBottom: 8, padding: "6px 10px", borderRadius: 6,
+          background: "#1a2814", border: "1px solid #4ddd4d",
+          color: "#6ec96e", fontSize: 11,
+        }}>✓ Crafted: {lastCrafted}</div>
+      )}
+
       <div style={{ display: "flex", gap: 4, marginBottom: 12, flexWrap: "wrap" }}>
-        {CRAFT_CATEGORIES.map(cat => (
+        {visibleCats.map(cat => (
           <button key={cat.id} onClick={() => setActiveCat(cat.id)}
             style={{
-              padding: "6px 12px", fontSize: 10, borderRadius: 6, fontWeight: 700,
-              background: activeCat === cat.id ? "rgba(212,164,0,.15)" : "rgba(50,40,30,.4)",
-              border: activeCat === cat.id ? "1px solid #d4a400" : "1px solid #3a2a1a",
-              color: activeCat === cat.id ? "#d4a400" : "#9b7d52",
-              cursor: "pointer", fontFamily: f.display, textTransform: "uppercase", letterSpacing: 1,
+              padding: "5px 10px", fontSize: 9, borderRadius: 6, fontWeight: 700,
+              background: activeCat === cat.id ? (cat.profOnly ? "rgba(73,222,149,.15)" : "rgba(212,164,0,.15)") : "rgba(50,40,30,.4)",
+              border: activeCat === cat.id ? (cat.profOnly ? "1px solid #49de95" : "1px solid #d4a400") : "1px solid #3a2a1a",
+              color: activeCat === cat.id ? (cat.profOnly ? "#49de95" : "#d4a400") : "#9b7d52",
+              cursor: "pointer", fontFamily: f.display, textTransform: "uppercase", letterSpacing: 0.8,
             }}>{cat.icon} {cat.label}</button>
         ))}
       </div>
+
+      {showProf && CRAFT_CATEGORIES.find(c => c.id === activeCat)?.profOnly && (
+        <div style={{ marginBottom: 8, fontSize: 10, color: "#49de95", padding: "4px 8px", background: "rgba(73,222,149,.06)", borderRadius: 4, border: "1px solid #49de9530" }}>
+          Profession recipe — ingredients consumed from Storage first, output stored in Storage.
+        </div>
+      )}
+
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
         {filtered.map(recipe => {
-          const canCraft = recipe.ingredients.every(ing => hasItem(ing.itemId, ing.count));
+          const isProfRecipe = CRAFT_CATEGORIES.find(c => c.id === recipe.category)?.profOnly;
+          const canCraft = isProfRecipe ? canCraftCombined(recipe) : recipe.ingredients.every(ing => hasItem(ing.itemId, ing.count));
           return (
             <div key={recipe.id} style={{
               padding: 10, borderRadius: 8, opacity: canCraft ? 1 : 0.45,
               background: "linear-gradient(135deg, #1e1510, #160e08)",
-              border: "1px solid #3a2a1a", borderLeft: "3px solid #c9950a",
+              border: "1px solid #3a2a1a",
+              borderLeft: isProfRecipe ? "3px solid #49de95" : "3px solid #c9950a",
             }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div style={{ flex: 1 }}>
-                  <div style={{ color: "#d4a400", fontWeight: 700, fontSize: 13, fontFamily: f.display }}>
+                  <div style={{ color: isProfRecipe ? "#49de95" : "#d4a400", fontWeight: 700, fontSize: 13, fontFamily: f.display }}>
                     {recipe.result.icon} {recipe.name}
                   </div>
                   {recipe.result.description && (
@@ -871,22 +996,32 @@ function CraftingTabContent() {
                   )}
                   <div style={{ fontSize: 10, color: "#9b7d52", marginTop: 4 }}>
                     {recipe.ingredients.map(ing => {
-                      const has = items.find(i => i.id === ing.itemId);
-                      const count = has ? has.quantity : 0;
-                      const color = count >= ing.count ? "#6ec96e" : "#cc5555";
-                      return <span key={ing.itemId} style={{ color, marginRight: 8 }}>{count}/{ing.count} {ing.itemId.replace(/_/g, " ")}</span>;
+                      const stored  = storageEntries.find(e => e.id === ing.itemId)?.quantity ?? 0;
+                      const carried = items.find(i => i.id === ing.itemId)?.quantity ?? 0;
+                      const have    = stored + carried;
+                      const color   = have >= ing.count ? "#6ec96e" : "#cc5555";
+                      return (
+                        <span key={ing.itemId} style={{ color, marginRight: 8 }}>
+                          {have}/{ing.count} {ing.itemId.replace(/_/g, " ")}
+                          {stored > 0 && <span style={{ color: "#49de9580", fontSize: 8 }}> (📦{stored})</span>}
+                        </span>
+                      );
                     })}
                   </div>
                   {recipe.result.damage && <div style={{ fontSize: 9, color: "#cc8844", marginTop: 2 }}>Damage: {recipe.result.damage}</div>}
                   {recipe.result.healAmount && <div style={{ fontSize: 9, color: "#66cc66", marginTop: 2 }}>Heal: {recipe.result.healAmount}</div>}
-                  {recipe.result.hungerRestore && <div style={{ fontSize: 9, color: "#ccaa44", marginTop: 2 }}>Hunger: +{recipe.result.hungerRestore}</div>}
                 </div>
-                <button disabled={!canCraft} onClick={() => craft(recipe)}
+                <button disabled={!canCraft} onClick={() => handleCraft(recipe)}
                   style={{
-                    padding: "6px 16px", fontSize: 10, borderRadius: 6, fontWeight: 700,
-                    background: canCraft ? "linear-gradient(180deg, rgba(212,164,0,.2), rgba(212,164,0,.05))" : "rgba(100,100,100,.1)",
-                    border: canCraft ? "2px solid #d4a400" : "1px solid #3a2a1a",
-                    color: canCraft ? "#d4a400" : "#6b5535", cursor: canCraft ? "pointer" : "default",
+                    padding: "6px 14px", fontSize: 10, borderRadius: 6, fontWeight: 700,
+                    background: canCraft
+                      ? (isProfRecipe ? "rgba(73,222,149,.2)" : "rgba(212,164,0,.2)")
+                      : "rgba(100,100,100,.1)",
+                    border: canCraft
+                      ? (isProfRecipe ? "2px solid #49de95" : "2px solid #d4a400")
+                      : "1px solid #3a2a1a",
+                    color: canCraft ? (isProfRecipe ? "#49de95" : "#d4a400") : "#6b5535",
+                    cursor: canCraft ? "pointer" : "default",
                     fontFamily: f.display, textTransform: "uppercase", letterSpacing: 1,
                   }}>Craft</button>
               </div>
@@ -896,6 +1031,218 @@ function CraftingTabContent() {
         {filtered.length === 0 && (
           <div style={{ color: "#6b5535", fontSize: 12, textAlign: "center", padding: 20 }}>No recipes in this category</div>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+function ProfessionsTabContent() {
+  const professions = useProfessions(s => s.professions);
+  const unlockNode  = useProfessions(s => s.unlockNode);
+  const isNodeUnlocked = useProfessions(s => s.isNodeUnlocked);
+  const [expanded, setExpanded] = useState<ProfessionId | null>(null);
+
+  return (
+    <div>
+      <SectionTitle>Crafting Professions</SectionTitle>
+      <div style={{ fontSize: 10, color: "#8a7050", marginBottom: 12 }}>
+        Visit a crafting station (Forge, Workbench, Alchemy Table, Loom, or Tannery) and press E to open the full skill tree.
+      </div>
+      {(Object.keys(PROFESSION_DEFS) as ProfessionId[]).map(profId => {
+        const def  = PROFESSION_DEFS[profId];
+        const prof = professions[profId];
+        const xpPct = prof.level >= 100 ? 100 : Math.min(100, (prof.xp / Math.max(1, prof.xpToNext)) * 100);
+        const nodesUnlocked = prof.unlockedNodes.length;
+        const isEx  = expanded === profId;
+        return (
+          <div key={profId}
+            onClick={() => setExpanded(isEx ? null : profId)}
+            style={{
+              marginBottom: 8, padding: 10, borderRadius: 10, cursor: "pointer",
+              background: isEx ? "linear-gradient(135deg, #1e2418, #141a0e)" : "linear-gradient(135deg, #1e1510, #160e08)",
+              border: `1px solid ${isEx ? def.color + "66" : "#3a2a1a"}`,
+              borderLeft: `3px solid ${def.color}`,
+              transition: ".15s",
+            }}>
+            {/* Header row */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 22 }}>{def.icon}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontFamily: f.display, fontSize: 12, color: def.color }}>{def.name}</span>
+                  <span style={{ fontFamily: f.mono, fontSize: 12, color: "#d4a400", fontWeight: 700 }}>Lv.{prof.level}</span>
+                </div>
+                {/* XP bar */}
+                <div style={{ height: 6, background: "#1a0f08", border: "1px solid #3a2a1a", borderRadius: 3, overflow: "hidden", marginTop: 4 }}>
+                  <div style={{ height: "100%", width: `${xpPct}%`, background: `linear-gradient(90deg, ${def.color}88, ${def.color})`, transition: "width .4s" }} />
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: "#9b7d52", marginTop: 2 }}>
+                  <span>{prof.xp.toLocaleString()} / {prof.xpToNext === Infinity ? "MAX" : prof.xpToNext.toLocaleString()} XP</span>
+                  <span style={{ color: prof.skillPoints > 0 ? "#6ec96e" : "#555" }}>
+                    {prof.skillPoints > 0 ? `★ ${prof.skillPoints} pts` : `${nodesUnlocked}/50 nodes`}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Expanded detail */}
+            {isEx && (
+              <div style={{ marginTop: 10 }}>
+                <div style={{ fontSize: 9, color: "#9b7d52", marginBottom: 6 }}>{def.description}</div>
+                <div style={{ fontSize: 9, color: def.color, marginBottom: 6 }}>
+                  Gathers: {def.gatherTypes.join(" · ")}
+                </div>
+                <div style={{ fontSize: 9, color: "#8a7050", marginBottom: 6 }}>
+                  Crafts: {def.crafts}
+                </div>
+                {/* Mini node grid preview (first 10 nodes) */}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 3, marginTop: 6 }}>
+                  {Array.from({ length: 50 }).map((_, i) => {
+                    const nodeId = `${profId}_t${Math.floor(i / 10) + 1}_${(i % 10) + 1}`;
+                    const unlocked = isNodeUnlocked(profId, nodeId);
+                    return (
+                      <div key={nodeId} style={{
+                        width: 10, height: 10, borderRadius: 2,
+                        background: unlocked ? def.color : "#2a1e14",
+                        border: `1px solid ${unlocked ? def.color + "88" : "#3a2a1a"}`,
+                      }} />
+                    );
+                  })}
+                </div>
+                <div style={{ fontSize: 9, color: "#9b7d52", marginTop: 4 }}>
+                  {nodesUnlocked}/50 skill nodes unlocked
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+function StorageTabContent() {
+  const entries    = useStorage(s => s.entries);
+  const usedSlots  = useStorage(s => s.usedSlots);
+  const maxSlots   = useStorage(s => s.maxSlots);
+  const totalQty   = useStorage(s => s.totalQuantity);
+  const removeFromStorage = useStorage(s => s.removeFromStorage);
+  const addItem    = useInventory(s => s.addItem);
+  const [search, setSearch]   = useState("");
+  const [srcFilter, setSrcFilter] = useState<string>("all");
+
+  const SOURCE_COLORS: Record<string, { color: string; label: string }> = {
+    auto_harvest: { color: "#49de95", label: "🌾 Auto-Harvest" },
+    crafted:      { color: "#d4a400", label: "⚒ Crafted" },
+    manual:       { color: "#84b2ff", label: "🔒 Manual" },
+    looted:       { color: "#ff8b95", label: "💰 Looted" },
+    transfer:     { color: "#bb95ff", label: "⇄ Transfer" },
+    quest:        { color: "#ffd56a", label: "📖 Quest" },
+  };
+
+  const filtered = useMemo(() => {
+    let list = entries;
+    if (srcFilter !== "all") list = list.filter(e => (e.source ?? "manual") === srcFilter);
+    if (search.trim()) list = list.filter(e => e.name.toLowerCase().includes(search.toLowerCase()));
+    return list;
+  }, [entries, srcFilter, search]);
+
+  function transferToInventory(id: string, qty: number = 1) {
+    const entry = entries.find(e => e.id === id);
+    if (!entry) return;
+    addItem({ id: entry.id, name: entry.name, type: entry.type, icon: entry.icon, quantity: qty });
+    removeFromStorage(id, qty);
+  }
+
+  return (
+    <div>
+      <SectionTitle>Account Storage</SectionTitle>
+      <div style={{ fontSize: 10, color: "#8a7050", marginBottom: 8 }}>
+        Non-droppable account goods. Never lost on death. Auto-harvest output lands here automatically.
+      </div>
+
+      {/* Stats bar */}
+      <div style={{
+        display: "flex", gap: 12, marginBottom: 10, padding: "6px 10px",
+        background: "linear-gradient(135deg, #1e1510, #160e08)", border: "1px solid #3a2a1a", borderRadius: 6,
+        fontSize: 11, fontFamily: f.mono,
+      }}>
+        <span style={{ color: "#9b7d52" }}>Slots: <span style={{ color: "#d4a400" }}>{usedSlots()}/{maxSlots}</span></span>
+        <span style={{ color: "#9b7d52" }}>Items: <span style={{ color: "#6ec96e" }}>{totalQty().toLocaleString()}</span></span>
+      </div>
+
+      {/* Search + filter */}
+      <div style={{ display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
+        <input
+          placeholder="Search storage…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{
+            flex: 1, minWidth: 100, background: "#1e1510", border: "1px solid #3a2a1a",
+            borderRadius: 5, padding: "4px 8px", color: "#f5e2c1", fontSize: 11, outline: "none",
+          }}
+        />
+        {["all", ...Object.keys(SOURCE_COLORS)].map(src => (
+          <button key={src} onClick={() => setSrcFilter(src)}
+            style={{
+              padding: "3px 8px", fontSize: 9, borderRadius: 4, cursor: "pointer",
+              background: srcFilter === src ? "rgba(212,164,0,.15)" : "rgba(50,40,30,.4)",
+              border: srcFilter === src ? "1px solid #d4a400" : "1px solid #3a2a1a",
+              color: srcFilter === src ? "#d4a400" : "#9b7d52",
+              fontFamily: f.display, textTransform: "uppercase",
+            }}>
+            {src === "all" ? "All" : SOURCE_COLORS[src]?.label ?? src}
+          </button>
+        ))}
+      </div>
+
+      {entries.length === 0 && (
+        <div style={{ color: "#6b5535", fontSize: 12, textAlign: "center", padding: 30 }}>
+          Storage is empty. Build a Camp or send allies to auto-harvest.
+        </div>
+      )}
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 6 }}>
+        {filtered.map(entry => {
+          const srcInfo = SOURCE_COLORS[entry.source ?? "manual"];
+          return (
+            <div key={entry.id} style={{
+              padding: "8px 10px", borderRadius: 8,
+              background: "linear-gradient(135deg, #1e1510, #160e08)",
+              border: "1px solid #3a2a1a",
+              borderLeft: `3px solid ${srcInfo?.color ?? "#c9950a"}`,
+            }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ fontSize: 20 }}>{entry.icon}</span>
+                  <div>
+                    <div style={{ fontSize: 12, fontFamily: f.display, color: "#f5e2c1" }}>{entry.name}</div>
+                    <div style={{ fontSize: 9, color: srcInfo?.color ?? "#9b7d52" }}>{srcInfo?.label ?? entry.source}</div>
+                  </div>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: 14, fontFamily: f.mono, color: "#d4a400", fontWeight: 700 }}>{entry.quantity.toLocaleString()}</div>
+                  {entry.tier && (
+                    <div style={{ fontSize: 9, color: TIER_INFO[Math.min(entry.tier, 8) as ItemTier]?.color }}>
+                      T{entry.tier}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={() => transferToInventory(entry.id, 1)}
+                style={{
+                  marginTop: 6, width: "100%", padding: "3px 0", fontSize: 9,
+                  background: "rgba(132,178,255,.1)", border: "1px solid rgba(132,178,255,.3)",
+                  borderRadius: 4, color: "#84b2ff", cursor: "pointer",
+                  fontFamily: f.display, textTransform: "uppercase", letterSpacing: 0.5,
+                }}
+              >⇄ Move 1 to Inventory</button>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -1087,9 +1434,22 @@ function BestiaryTabContent() {
   );
 }
 
+// Faction color map matching FACTIONS_BY_ID colors
+const ALLY_FACTION_COLORS: Record<string, { color: string; border: string; bg: string }> = {
+  crusade: { color: "#3aa0ff", border: "#3aa0ff44", bg: "#3aa0ff10" },
+  fabled:  { color: "#3ddc7b", border: "#3ddc7b44", bg: "#3ddc7b10" },
+  legion:  { color: "#ff3a3a", border: "#ff3a3a44", bg: "#ff3a3a10" },
+  pirate:  { color: "#d4a437", border: "#d4a43744", bg: "#d4a43710" },
+  wild:    { color: "#a07050", border: "#a0705044", bg: "#a0705010" },
+};
+
 function AlliesTabContent() {
-  const allies = useAllies(s => s.allies);
+  const allies      = useAllies(s => s.allies);
+  const storageEntries = useStorage(s => s.entries);
   const [selectedType, setSelectedType] = useState<AllyType | null>(null);
+
+  // Auto-harvest items accumulated in storage this session
+  const autoHarvestCount = storageEntries.filter(e => e.source === "auto_harvest").reduce((s, e) => s + e.quantity, 0);
 
   const activeAllyCounts = useMemo(() => {
     const counts: Partial<Record<AllyType, number>> = {};
@@ -1103,48 +1463,85 @@ function AlliesTabContent() {
 
   return (
     <div>
-      <SectionTitle>Ally Forces ({allies.length} Active)</SectionTitle>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+        <SectionTitle>Ally Forces ({allies.length} Active)</SectionTitle>
+        {autoHarvestCount > 0 && (
+          <span style={{ fontSize: 10, color: "#49de95", fontFamily: f.mono }}>
+            📦 {autoHarvestCount.toLocaleString()} gathered → Storage
+          </span>
+        )}
+      </div>
       <div style={{ fontSize: 10, color: "#8a7050", marginBottom: 12 }}>
         Build military structures to recruit allies. Command them with F1 (Follow), F2 (Patrol), F3 (Stay), F4 (Attack).
+        Harvesting allies send resources directly to your Storage.
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(210px, 1fr))", gap: 8 }}>
-        {ALLY_INFO.map(ally => {
-          const count = activeAllyCounts[ally.type] || 0;
-          const isSelected = selectedType === ally.type;
+        {ALLY_INFO.map(allyInfo => {
+          // Find the actual faction from a live ally of this type
+          const liveAlly = allies.find(a => a.type === allyInfo.type);
+          const factionId = liveAlly?.faction ?? "crusade";
+          const fColors = ALLY_FACTION_COLORS[factionId] ?? ALLY_FACTION_COLORS.crusade;
+          const count = activeAllyCounts[allyInfo.type] || 0;
+          const isSelected = selectedType === allyInfo.type;
           const hasActive = count > 0;
+          const isHarvester = allyInfo.type === "farmer" || allyInfo.type === "ranger";
           return (
-            <div key={ally.type} onClick={() => setSelectedType(isSelected ? null : ally.type)}
+            <div key={allyInfo.type} onClick={() => setSelectedType(isSelected ? null : allyInfo.type)}
               style={{
                 padding: 10, cursor: "pointer", transition: ".15s",
-                background: hasActive ? "linear-gradient(135deg, #1a2810, #142008)" : "linear-gradient(135deg, #1e1510, #160e08)",
-                border: `1px solid ${isSelected ? "#49de95" : hasActive ? "#4a7a30" : "#3a2a1a"}`, borderRadius: 10,
+                background: hasActive ? fColors.bg : "linear-gradient(135deg, #1e1510, #160e08)",
+                border: `1px solid ${isSelected ? fColors.color : hasActive ? fColors.border : "#3a2a1a"}`,
+                borderLeft: `3px solid ${fColors.color}`,
+                borderRadius: 10,
               }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 20 }}>{ally.icon}</span>
+                {/* Race portrait */}
+                <div style={{ width: 36, height: 36, borderRadius: 6, overflow: "hidden", flexShrink: 0, background: "#1a0f08", border: `1px solid ${fColors.border}` }}>
+                  <img
+                    src={getProfessionIcon(allyInfo.name, factionId === "fabled" ? "elf" : factionId === "legion" ? "orc" : "human")}
+                    alt={allyInfo.name}
+                    style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }}
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                  />
+                </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontFamily: f.display, fontSize: 12, color: "#f5e2c1" }}>{ally.name}</div>
-                  <span style={{
-                    fontSize: 8, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5,
-                    border: "1px solid #49de9540", borderRadius: 99, padding: "1px 6px",
-                    color: "#49de95", background: "#49de9512",
-                  }}>{ally.role}</span>
+                  <div style={{ fontFamily: f.display, fontSize: 12, color: "#f5e2c1" }}>{allyInfo.name}</div>
+                  <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 2 }}>
+                    <span style={{
+                      fontSize: 7, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5,
+                      border: `1px solid ${fColors.border}`, borderRadius: 99, padding: "1px 5px",
+                      color: fColors.color, background: fColors.bg,
+                    }}>{factionId}</span>
+                    <span style={{
+                      fontSize: 7, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5,
+                      border: "1px solid #49de9540", borderRadius: 99, padding: "1px 5px",
+                      color: "#49de95", background: "#49de9512",
+                    }}>{allyInfo.role}</span>
+                    {isHarvester && (
+                      <span style={{
+                        fontSize: 7, fontWeight: 800, letterSpacing: 0.3,
+                        border: "1px solid #d4a40044", borderRadius: 99, padding: "1px 5px",
+                        color: "#d4a400", background: "#d4a40012",
+                      }}>→ Storage</span>
+                    )}
+                  </div>
                 </div>
                 {hasActive && (
                   <div style={{
                     width: 24, height: 24, borderRadius: "50%", flexShrink: 0,
-                    background: "rgba(73,222,149,.15)", border: "1px solid #49de95",
+                    background: fColors.bg, border: `1px solid ${fColors.color}`,
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 11, fontFamily: f.mono, color: "#49de95", fontWeight: 700,
+                    fontSize: 11, fontFamily: f.mono, color: fColors.color, fontWeight: 700,
                   }}>{count}</div>
                 )}
               </div>
-              <div style={{ fontSize: 10, color: "#8a7050", marginTop: 6 }}>{ally.special}</div>
+              <div style={{ fontSize: 10, color: "#8a7050", marginTop: 6 }}>{allyInfo.special}</div>
               <div style={{ display: "flex", gap: 8, marginTop: 6, fontSize: 10, fontFamily: f.mono }}>
-                <span style={{ color: "#d44040" }}>❤ {ally.hp}</span>
-                <span style={{ color: "#ff8b95" }}>⚔ {ally.damage}</span>
-                <span style={{ color: "#84b2ff" }}>↗ {ally.range}</span>
-                <span style={{ color: "#ffd56a" }}>💨 {ally.speed}</span>
+                <span style={{ color: "#d44040" }}>❤ {allyInfo.hp}</span>
+                <span style={{ color: "#ff8b95" }}>⚔ {allyInfo.damage}</span>
+                <span style={{ color: "#84b2ff" }}>↗ {allyInfo.range}</span>
+                <span style={{ color: "#ffd56a" }}>💨 {allyInfo.speed}</span>
               </div>
             </div>
           );
@@ -1192,40 +1589,50 @@ function AlliesTabContent() {
         <>
           <SectionTitle>Active Allies ({allies.length}) — click to inspect</SectionTitle>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 6, maxHeight: 200, overflowY: "auto" }}>
-            {allies.map(ally => {
+          {allies.map(ally => {
               const info = ALLY_INFO.find(a => a.type === ally.type);
               const hpPct = ally.maxHealth > 0 ? Math.min(100, (ally.health / ally.maxHealth) * 100) : 0;
+              const fColors = ALLY_FACTION_COLORS[ally.faction ?? "crusade"] ?? ALLY_FACTION_COLORS.crusade;
               return (
                 <div
                   key={ally.id}
                   onClick={() => useAllies.getState().selectAlly(ally.id)}
                   style={{
                     padding: 8, background: "linear-gradient(135deg, #1e1510, #160e08)",
-                    border: "1px solid #3a2a1a", borderRadius: 8, cursor: "pointer",
-                    transition: "border-color .15s, transform .1s",
+                    border: `1px solid #3a2a1a`, borderLeft: `3px solid ${fColors.color}`,
+                    borderRadius: 8, cursor: "pointer",
+                    transition: "border-color .15s",
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = "#c9950a"; }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = fColors.color; }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = "#3a2a1a"; }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ fontSize: 14 }}>{info?.icon || "⚔️"}</span>
+                    <div style={{ width: 28, height: 28, borderRadius: 4, overflow: "hidden", flexShrink: 0, background: "#1a0f08" }}>
+                      <img
+                        src={getProfessionIcon(ally.profession, ally.faction === "fabled" ? "elf" : ally.faction === "legion" ? "orc" : "human")}
+                        alt={ally.name}
+                        style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }}
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                      />
+                    </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 11, color: "#f5e2c1", fontFamily: f.display, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                         {ally.name}
                       </div>
-                      <div style={{ fontSize: 9, color: "#9b7d52" }}>
+                      <div style={{ fontSize: 9, color: fColors.color }}>
                         {ally.profession} · Lv.{ally.level}
                       </div>
                     </div>
+                    {ally.canHarvest && <span title="Sends to Storage" style={{ fontSize: 9, color: "#d4a400" }}>📦</span>}
                     {ally.isSleeping && <span title="Sleeping" style={{ fontSize: 10 }}>😴</span>}
-                    {ally.personalCommand && <span title={`Personal order: ${ally.personalCommand}`} style={{ fontSize: 10, color: "#49de95" }}>●</span>}
+                    {ally.personalCommand && <span title={`Personal: ${ally.personalCommand}`} style={{ fontSize: 10, color: "#49de95" }}>●</span>}
                   </div>
                   <div style={{ height: 4, background: "#1a0f08", borderRadius: 2, overflow: "hidden", marginTop: 4, border: "1px solid #3a2a1a" }}>
                     <div style={{ height: "100%", background: hpPct > 50 ? "linear-gradient(90deg, #4a7a30, #6ec96e)" : "linear-gradient(90deg, #8b2020, #d44040)", width: `${hpPct}%`, borderRadius: 2 }} />
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: "#9b7d52", fontFamily: f.mono, marginTop: 2 }}>
                     <span>{Math.round(ally.health)}/{ally.maxHealth}</span>
-                    <span style={{ textTransform: "capitalize" }}>{ally.behavior.replace("_", " ")}</span>
+                    <span style={{ textTransform: "capitalize", color: fColors.color }}>{ally.behavior.replace(/_/g, " ")}</span>
                   </div>
                 </div>
               );
@@ -1348,21 +1755,64 @@ export default function MainPanel({ isOpen, onClose }: { isOpen: boolean; onClos
           borderRight: "2px solid #3a2a1a",
           display: "flex", flexDirection: "column", overflowY: "auto",
         }}>
-          <div style={{
-            height: 200,
-            background: "radial-gradient(circle at 50% 60%, rgba(212,164,0,.08), transparent 70%), linear-gradient(180deg, #0f0a06, #1a120c)",
-            borderBottom: "1px solid #3a2a1a",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <div style={{
-              width: 120, height: 170,
-              background: "radial-gradient(ellipse at 50% 40%, rgba(200,160,80,.12), transparent 60%)",
-              border: "2px dashed #3a2a1a", borderRadius: 8,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              color: "#6b5535", fontSize: 11, fontFamily: f.display, textTransform: "uppercase", letterSpacing: 1,
-              textAlign: "center",
-            }}>Character<br/>Preview</div>
-          </div>
+          {(() => {
+            const heroDef2  = charId ? HERO_DEFINITIONS.find(h => h.characterId === charId) : null;
+            const portraitUrl = resolvePortrait(heroDef2?.race, heroClass);
+            const fColor      = factionColor(selectedCharacter.faction);
+            const classBadge  = CLASS_BADGE_COLORS[heroClass ?? "warrior"];
+            return (
+              <div style={{
+                height: 220, position: "relative", overflow: "hidden",
+                borderBottom: "1px solid #3a2a1a",
+                background: `radial-gradient(circle at 50% 60%, ${fColor}12, transparent 70%), linear-gradient(180deg, #0f0a06, #1a120c)`,
+              }}>
+                {/* Portrait image */}
+                <img
+                  src={portraitUrl}
+                  alt={displayName}
+                  style={{
+                    width: "100%", height: "100%",
+                    objectFit: "cover", objectPosition: "top center",
+                    display: "block",
+                  }}
+                  onError={(e) => {
+                    const img = e.currentTarget as HTMLImageElement;
+                    img.style.opacity = "0";
+                  }}
+                />
+                {/* Faction color border accent */}
+                <div style={{
+                  position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
+                  boxShadow: `inset 0 0 0 2px ${fColor}55`,
+                  borderRadius: 0, pointerEvents: "none",
+                }} />
+                {/* Bottom gradient + name overlay */}
+                <div style={{
+                  position: "absolute", bottom: 0, left: 0, right: 0,
+                  padding: "16px 10px 6px",
+                  background: "linear-gradient(transparent, rgba(0,0,0,0.85))",
+                }}>
+                  <div style={{ fontSize: 13, fontFamily: f.display, color: "#f5e2c1", fontWeight: 700, lineHeight: 1.2 }}>
+                    {displayName}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 3 }}>
+                    {heroClass && (
+                      <span style={{
+                        fontSize: 8, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5,
+                        padding: "1px 6px", borderRadius: 99,
+                        border: `1px solid ${classBadge.border}`,
+                        color: classBadge.color, background: classBadge.bg,
+                      }}>{CLASS_LABELS[heroClass]?.label ?? heroClass}</span>
+                    )}
+                    <span style={{ fontSize: 10, color: "#d4a400", fontFamily: f.mono }}>Lv.{displayLevel}</span>
+                    <span style={{ fontSize: 8, color: fColor, marginLeft: "auto" }}>
+                      {selectedCharacter.faction?.toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           <div style={{ padding: "10px 12px" }}>
             <h3 style={{
@@ -1425,6 +1875,27 @@ export default function MainPanel({ isOpen, onClose }: { isOpen: boolean; onClos
             )}
           </div>
 
+          {/* Professions mini-bar row */}
+          <div style={{ padding: "8px 12px", borderBottom: "1px solid #3a2a1a" }}>
+            <div style={{ fontSize: 9, color: "#9b7d52", textTransform: "uppercase", letterSpacing: 1, marginBottom: 5 }}>Professions</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+              {(Object.keys(PROFESSION_DEFS) as ProfessionId[]).map(profId => {
+                const def  = PROFESSION_DEFS[profId];
+                const prof = useProfessions.getState().professions[profId];
+                const xpPct = prof.level >= 100 ? 100 : Math.min(100, (prof.xp / Math.max(1, prof.xpToNext)) * 100);
+                return (
+                  <div key={profId} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontSize: 11, width: 18, textAlign: "center" }}>{def.icon}</span>
+                    <div style={{ flex: 1, height: 5, background: "#1a0f08", borderRadius: 3, overflow: "hidden", border: "1px solid #3a2a1a" }}>
+                      <div style={{ height: "100%", width: `${xpPct}%`, background: def.color, borderRadius: 2 }} />
+                    </div>
+                    <span style={{ fontSize: 9, fontFamily: f.mono, color: def.color, width: 22, textAlign: "right" }}>{prof.level}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           <div style={{ padding: "10px 12px" }}>
             <h3 style={{
               fontFamily: f.display, fontSize: 11, color: "#d4a400",
@@ -1460,15 +1931,17 @@ export default function MainPanel({ isOpen, onClose }: { isOpen: boolean; onClos
 
         <main style={{ flex: 1, display: "flex", flexDirection: "row", minWidth: 0 }}>
           <div style={{ flex: 1, overflowY: "auto", padding: 16, minWidth: 0 }}>
-            {activeTab === "equipment" && <EquipmentTabContent />}
-            {activeTab === "attributes" && <AttributesTabContent charId={charId} />}
-            {activeTab === "classSkill" && <ClassSkillsTabContent charId={charId} />}
-            {activeTab === "skillTree" && <WeaponSkillsTabContent charId={charId} />}
-            {activeTab === "upgrade" && <UpgradesTabContent />}
-            {activeTab === "craft" && <CraftingTabContent />}
-            {activeTab === "building" && <BuildingTabContent />}
-            {activeTab === "bestiary" && <BestiaryTabContent />}
-            {activeTab === "allies" && <AlliesTabContent />}
+            {activeTab === "equipment"   && <EquipmentTabContent />}
+            {activeTab === "attributes"  && <AttributesTabContent charId={charId} />}
+            {activeTab === "classSkill"  && <ClassSkillsTabContent charId={charId} />}
+            {activeTab === "skillTree"   && <WeaponSkillsTabContent charId={charId} />}
+            {activeTab === "upgrade"     && <UpgradesTabContent />}
+            {activeTab === "craft"       && <CraftingTabContent />}
+            {activeTab === "building"    && <BuildingTabContent />}
+            {activeTab === "bestiary"    && <BestiaryTabContent />}
+            {activeTab === "allies"      && <AlliesTabContent />}
+            {activeTab === "professions" && <ProfessionsTabContent />}
+            {activeTab === "storage"     && <StorageTabContent />}
           </div>
           <nav style={{
             display: "flex", flexDirection: "column", gap: 0,

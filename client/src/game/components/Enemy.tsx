@@ -23,6 +23,7 @@ import {
 } from "../effects/SpellProjectiles";
 import { HadoukenProjectile } from "../effects/SkillEffects";
 import { ImpactFlinchController, damageToFlinchIntensity } from "../systems/ImpactFlinch";
+import { UNIT_CDN_BASE } from "../systems/UnitRegistry";
 
 // Ranged thrower archetypes from §3.5 of the audit (Paladin/Robot family).
 // Each one fires a different one of the four standard blockable projectile
@@ -34,6 +35,15 @@ const RANGED_THROWER_TYPES: ReadonlySet<EnemyType> = new Set<EnemyType>([
   "thrower_assassin",
   "thrower_soldier",
   "thrower_berserker",
+  // Sci-fi / AW ranged units fire projectiles instead of melee
+  "scifi_soldier",
+  "cyborg_unit",
+  "cyborg_soldier",
+  "shadow_soldier",
+  "scifi_trooper",
+  "scifi_officer",
+  "aw_tank",
+  "mech_tripod",
 ]);
 
 /**
@@ -52,6 +62,15 @@ const THROWER_PROJECTILE: Record<string, ThrowerProjectileKind> = {
   thrower_assassin: "bullet",
   thrower_soldier: "magic_missile",
   thrower_berserker: "hadouken",
+  // AW / sci-fi ranged units
+  scifi_soldier: "bullet",
+  cyborg_unit: "hadouken",
+  cyborg_soldier: "magic_missile",
+  shadow_soldier: "bullet",
+  scifi_trooper: "bullet",
+  scifi_officer: "magic_missile",
+  aw_tank: "fireball",
+  mech_tripod: "hadouken",
 };
 
 interface EnemyProps {
@@ -92,6 +111,22 @@ const ENEMY_MODEL_PATHS: Record<EnemyType, string> = {
   thrower_assassin: "/models/characters/assassin-male.glb",
   thrower_soldier: "/models/characters/undead_grave_knight-male.glb",
   thrower_berserker: "/models/characters/night_stalker-male.glb",
+  // Dark elf camp enemies — local elf-male.glb (CDN upgrade: ELF_ranger.glb when ready)
+  dark_elf: "/models/characters/elf-male.glb",
+  // Flying boss enemies
+  armabee: "/models/monsters/flying/Armabee.glb",
+  alpaking: "/models/monsters/flying/Alpaking.glb",
+  // Advance Wars / sci-fi units — loaded from object storage CDN
+  aw_infantry: `${UNIT_CDN_BASE}/units/advance_wars_infantry__mech_units/scene.gltf`,
+  aw_mech: `${UNIT_CDN_BASE}/units/advance_wars_infantry__mech_units/scene.gltf`,
+  aw_tank: `${UNIT_CDN_BASE}/units/advance_wars_land_units/scene.gltf`,
+  mech_tripod: `${UNIT_CDN_BASE}/units/mechs_tanks_vehicles_and_tripods/scene.gltf`,
+  scifi_soldier: `${UNIT_CDN_BASE}/units/futuristic_soldier_lowpoly/scene.gltf`,
+  cyborg_unit: `${UNIT_CDN_BASE}/units/cyborg/scene.gltf`,
+  cyborg_soldier: `${UNIT_CDN_BASE}/units/cyborg_soldier_scifi_character/scene.gltf`,
+  shadow_soldier: `${UNIT_CDN_BASE}/units/call_of_duty_mw2r_-_shadow_company_soilders/scene.gltf`,
+  scifi_trooper: `${UNIT_CDN_BASE}/units/stylized_sci-_fi_soldier_animated/scene.gltf`,
+  scifi_officer: `${UNIT_CDN_BASE}/units/stylized_sci-fi_officer_with_gun_animated/scene.gltf`,
 };
 
 const ENEMY_TARGET_HEIGHTS: Record<EnemyType, number> = {
@@ -122,6 +157,19 @@ const ENEMY_TARGET_HEIGHTS: Record<EnemyType, number> = {
   thrower_assassin: 1.8,
   thrower_soldier: 1.9,
   thrower_berserker: 2.0,
+  aw_infantry: 1.8,
+  aw_mech: 2.4,
+  aw_tank: 2.8,
+  mech_tripod: 4.5,
+  scifi_soldier: 1.85,
+  cyborg_unit: 2.2,
+  cyborg_soldier: 2.0,
+  shadow_soldier: 1.85,
+  scifi_trooper: 1.8,
+  scifi_officer: 1.9,
+  dark_elf: 1.8,
+  armabee: 1.4,
+  alpaking: 2.5,
 };
 
 const ENEMY_TINTS: Record<EnemyType, string | null> = {
@@ -152,6 +200,19 @@ const ENEMY_TINTS: Record<EnemyType, string | null> = {
   thrower_assassin: "#aa3366",
   thrower_soldier: "#4466aa",
   thrower_berserker: "#cc6600",
+  aw_infantry: "#5577aa",
+  aw_mech: "#886633",
+  aw_tank: "#556644",
+  mech_tripod: "#444455",
+  scifi_soldier: "#336699",
+  cyborg_unit: "#44cccc",
+  cyborg_soldier: "#6688aa",
+  shadow_soldier: "#333344",
+  scifi_trooper: "#558866",
+  scifi_officer: "#aa6633",
+  dark_elf: "#3a2255",
+  armabee: "#ffcc00",
+  alpaking: "#ff88aa",
 };
 
 const USES_MONSTER_MODEL: Record<EnemyType, boolean> = {
@@ -161,6 +222,12 @@ const USES_MONSTER_MODEL: Record<EnemyType, boolean> = {
   raptor: true, trex: true, triceratops: true,
   bunny: true, alien: true,
   thrower_brute: false, thrower_assassin: false, thrower_soldier: false, thrower_berserker: false,
+  // AW / sci-fi units — GLTF from CDN, no humanoid rig → monster path
+  aw_infantry: true, aw_mech: true, aw_tank: true, mech_tripod: true,
+  scifi_soldier: true, cyborg_unit: true, cyborg_soldier: true,
+  shadow_soldier: true, scifi_trooper: true, scifi_officer: true,
+  // New enemies
+  dark_elf: false, armabee: true, alpaking: true,
 };
 
 const EMOTE_ICONS: Record<EmoteType, string> = {

@@ -5,12 +5,33 @@ import {
   equipmentConfig, armorData, consumableData,
 } from "@shared/schema";
 
-const OBJECT_STORE_BASE = "https://grudge-objectstore.pages.dev/api/v1";
+// Use the Cloudflare objectstore worker or the explicit override from env.
+// OBJECTSTORE_WORKER_URL is the root domain — always append /api/v1 so
+// fetches land on the correct endpoint path.
+function buildStoreBase(): string {
+  if (process.env.OBJECT_STORE_BASE) return process.env.OBJECT_STORE_BASE;
+  const workerRoot =
+    process.env.OBJECTSTORE_WORKER_URL ||
+    process.env.ASSET_API_BASE ||
+    "https://objectstore.grudge-studio.com";
+  // Strip any trailing slash, then append /api/v1
+  return `${workerRoot.replace(/\/+$/, "")}/api/v1`;
+}
+const OBJECT_STORE_BASE = buildStoreBase();
 
 // ── Object Store Sync ────────────────────────────────────────────────────────
 
 export async function syncObjectStore() {
   const results = { weapons: 0, skills: 0, materials: 0, equipment: false, armor: 0, consumables: 0 };
+
+  // In local dev, skip the sync unless the caller has explicitly set
+  // OBJECT_STORE_BASE. The Cloudflare Worker API is only reachable from
+  // production (Railway) or when tunnelled. Silently returning here avoids
+  // a wall of "Unexpected token '<'" noise on every npm run dev.
+  if (process.env.NODE_ENV !== "production" && !process.env.OBJECT_STORE_BASE) {
+    console.log("[grudge] Object store sync skipped in local dev (set OBJECT_STORE_BASE to enable)");
+    return results;
+  }
 
   try {
     const res = await fetch(`${OBJECT_STORE_BASE}/weapons.json`);
@@ -172,19 +193,27 @@ export async function registerAsset(asset: {
   metadata?: Record<string, any>; boneMap?: Record<string, string>;
   animationPack?: string;
 }) {
-  await db.insert(assetRegistry).values({
-    id: asset.id, category: asset.category, name: asset.name, type: asset.type,
-    localPath: asset.localPath || null, cdnUrl: asset.cdnUrl || null,
-    format: asset.format || "glb", metadata: asset.metadata || {},
-    boneMap: asset.boneMap || {}, animationPack: asset.animationPack || null,
-  }).onDuplicateKeyUpdate({
-    set: {
-      name: asset.name, localPath: asset.localPath || null,
-      cdnUrl: asset.cdnUrl || null, format: asset.format || "glb",
-      metadata: asset.metadata || {}, boneMap: asset.boneMap || {},
-      animationPack: asset.animationPack || null,
-    },
-  });
+  try {
+    await db.insert(assetRegistry).values({
+      id: asset.id, category: asset.category, name: asset.name, type: asset.type,
+      localPath: asset.localPath || null, cdnUrl: asset.cdnUrl || null,
+      format: asset.format || "glb", metadata: asset.metadata || {},
+      boneMap: asset.boneMap || {}, animationPack: asset.animationPack || null,
+    }).onDuplicateKeyUpdate({
+      set: {
+        name: asset.name, localPath: asset.localPath || null,
+        cdnUrl: asset.cdnUrl || null, format: asset.format || "glb",
+        metadata: asset.metadata || {}, boneMap: asset.boneMap || {},
+        animationPack: asset.animationPack || null,
+      },
+    });
+  } catch (e: any) {
+    // Extract just the MySQL error code / message — not the full SQL blob
+    // which Drizzle appends to the error message and which is very noisy.
+    const raw: string = e?.message ?? String(e);
+    const firstLine = raw.split("\n")[0].split("Failed query:")[0].trim();
+    console.warn(`[grudge] asset_registry insert failed [${asset.id}]:`, firstLine || raw.slice(0, 120));
+  }
 }
 
 // ── Query helpers ────────────────────────────────────────────────────────────

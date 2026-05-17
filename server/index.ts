@@ -139,14 +139,10 @@ app.use((req, res, next) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || "5000", 10);
-  httpServer.listen(
-    {
-      port,
-      host: "0.0.0.0",
-      reusePort: true,
-    },
-    () => {
-      log(`serving on port ${port}`);
-    },
-  );
+  // reusePort is Linux-only (SO_REUSEPORT); omitting it on all platforms
+  // avoids ENOTSUP on Windows in local dev. Production Railway containers
+  // run Linux so this is safe to remove unconditionally.
+  httpServer.listen(port, "0.0.0.0", () => {
+    log(`serving on port ${port}`);
+  });
 })();

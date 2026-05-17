@@ -2,8 +2,13 @@ import * as THREE from "three";
 import { retargetClip as skuRetargetClip } from "three/examples/jsm/utils/SkeletonUtils.js";
 
 export const RIGHT_HAND_ALIASES = [
+  // ── Grudge6 Bip001 weapon container (preferred — most specific) ──
+  "R_hand_container",
+  // ── Standard aliases ──
   "Fist.R", "FistR", "RightHand", "mixamorigRightHand", "mixamorig:RightHand",
   "Hand_R", "hand_r", "hand.R", "Right_Hand", "rightHand",
+  // 3ds Max Biped — space-separated (FBX export) AND underscore (GLTF export)
+  "Bip001 R Hand", "Bip01 R Hand",
   "Bip01_R_Hand", "Bip001_R_Hand", "r_hand", "R_Hand", "RightHandIndex1",
   "J_Bip_R_Hand", "CC_Base_R_Hand", "right_hand", "HandR",
   "Wrist_R", "WristR", "Wrist.R", "wrist.R", "DEF-hand.R", "ORG-hand.R",
@@ -13,8 +18,13 @@ export const RIGHT_HAND_ALIASES = [
 ];
 
 export const LEFT_HAND_ALIASES = [
+  // ── Grudge6 Bip001 left-hand container (off-hand items / staffs / bows) ──
+  "L_hand_container",
+  // ── Standard aliases ──
   "Fist.L", "FistL", "LeftHand", "mixamorigLeftHand", "mixamorig:LeftHand",
   "Hand_L", "hand_l", "hand.L", "Left_Hand", "leftHand",
+  // 3ds Max Biped — space-separated (FBX) AND underscore (GLTF)
+  "Bip001 L Hand", "Bip01 L Hand",
   "Bip01_L_Hand", "Bip001_L_Hand", "l_hand", "L_Hand", "LeftHandIndex1",
   "J_Bip_L_Hand", "CC_Base_L_Hand", "left_hand", "HandL",
   "Wrist_L", "WristL", "Wrist.L", "wrist.L", "DEF-hand.L", "ORG-hand.L",
@@ -23,60 +33,75 @@ export const LEFT_HAND_ALIASES = [
   "handl", "lefthand", "wristl",
 ];
 
+/** Grudge6 Bip001 shield bone — weapon attachment for off-hand shields. */
+export const SHIELD_BONE_ALIASES = [
+  "L_shield_container",
+  // Fallback to left hand when no dedicated shield bone exists
+  ...LEFT_HAND_ALIASES,
+];
+
 export const UPPER_ARM_R_ALIASES = [
   "upperarm_r", "upper_arm.r", "upperarm.r", "arm_r", "arm.r",
   "mixamorigRightArm", "mixamorig:RightArm", "RightArm", "Arm_R", "Right_Arm",
+  // 3ds Max Biped space-separated
+  "Bip001 R UpperArm", "Bip01 R UpperArm",
   "Bip01_R_UpperArm", "Bip001_R_UpperArm", "J_Bip_R_UpperArm", "CC_Base_R_Upperarm",
   "UpperArmR", "UpperArm.R", "DEF-upper_arm.R", "ORG-upper_arm.R", "upper_arm_r",
-  // Lowercase concatenated variants
   "upperarmr", "rightarm", "armr",
 ];
 
 export const UPPER_ARM_L_ALIASES = [
   "upperarm_l", "upper_arm.l", "upperarm.l", "arm_l", "arm.l",
   "mixamorigLeftArm", "mixamorig:LeftArm", "LeftArm", "Arm_L", "Left_Arm",
+  // 3ds Max Biped space-separated
+  "Bip001 L UpperArm", "Bip01 L UpperArm",
   "Bip01_L_UpperArm", "Bip001_L_UpperArm", "J_Bip_L_UpperArm", "CC_Base_L_Upperarm",
   "UpperArmL", "UpperArm.L", "DEF-upper_arm.L", "ORG-upper_arm.L", "upper_arm_l",
-  // Lowercase concatenated variants
   "upperarml", "leftarm", "arml",
 ];
 
 export const FOREARM_R_ALIASES = [
   "forearm_r", "lowerarm_r", "forearm.r", "lowerarm.r",
   "mixamorigRightForeArm", "mixamorig:RightForeArm", "RightForeArm", "ForeArm_R",
+  // 3ds Max Biped space-separated
+  "Bip001 R Forearm", "Bip01 R Forearm",
   "Bip01_R_Forearm", "Bip001_R_Forearm", "J_Bip_R_LowerArm", "CC_Base_R_Forearm",
   "LowerArmR", "LowerArm.R", "Forearm.R", "DEF-forearm.R", "ORG-forearm.R",
-  // Lowercase concatenated variants
   "forearmr", "lowerarmr", "rightforearm",
 ];
 
 export const FOREARM_L_ALIASES = [
   "forearm_l", "lowerarm_l", "forearm.l", "lowerarm.l",
   "mixamorigLeftForeArm", "mixamorig:LeftForeArm", "LeftForeArm", "ForeArm_L",
+  // 3ds Max Biped space-separated
+  "Bip001 L Forearm", "Bip01 L Forearm",
   "Bip01_L_Forearm", "Bip001_L_Forearm", "J_Bip_L_LowerArm", "CC_Base_L_Forearm",
   "LowerArmL", "LowerArm.L", "Forearm.L", "DEF-forearm.L", "ORG-forearm.L",
-  // Lowercase concatenated variants
   "forearml", "lowerarml", "leftforearm",
 ];
 
 export const SHOULDER_R_ALIASES = [
   "shoulder_r", "shoulder.r", "clavicle_r", "clavicle.r",
   "mixamorigRightShoulder", "mixamorig:RightShoulder", "RightShoulder", "Clavicle_R",
+  // 3ds Max Biped space-separated
+  "Bip001 R Clavicle", "Bip01 R Clavicle",
   "Bip01_R_Clavicle", "Bip001_R_Clavicle", "J_Bip_R_Shoulder", "CC_Base_R_Clavicle",
-  // Lowercase concatenated variants
   "shoulderr", "rightshoulder", "clavicler",
 ];
 
 export const SHOULDER_L_ALIASES = [
   "shoulder_l", "shoulder.l", "clavicle_l", "clavicle.l",
   "mixamorigLeftShoulder", "mixamorig:LeftShoulder", "LeftShoulder", "Clavicle_L",
+  // 3ds Max Biped space-separated
+  "Bip001 L Clavicle", "Bip01 L Clavicle",
   "Bip01_L_Clavicle", "Bip001_L_Clavicle", "J_Bip_L_Shoulder", "CC_Base_L_Clavicle",
-  // Lowercase concatenated variants
   "shoulderl", "leftshoulder", "claviclel",
 ];
 
 export const HEAD_ALIASES = [
   "Head", "mixamorigHead", "mixamorig:Head", "head",
+  // 3ds Max Biped space-separated variants
+  "Bip001 Head", "Bip01 Head",
   "Bip01_Head", "Bip001_Head", "J_Bip_C_Head", "CC_Base_Head",
 ];
 
@@ -90,17 +115,23 @@ export const HIPS_ALIASES = [
   "Hips", "mixamorigHips", "mixamorig:Hips",
   "Root", "root",
   "pelvis", "hip",
+  // 3ds Max Biped — space-separated AND underscore
+  "Bip001 Pelvis", "Bip01 Pelvis",
   "CC_Base_Hip", "Bip01_Pelvis", "Bip001_Pelvis", "J_Bip_C_Hips",
 ];
 
 export const SPINE_ALIASES = [
   "Spine", "mixamorigSpine", "mixamorig:Spine", "spine",
+  // 3ds Max Biped space-separated
+  "Bip001 Spine", "Bip01 Spine",
   "Bip01_Spine", "Bip001_Spine", "J_Bip_C_Spine", "CC_Base_Waist",
 ];
 
 export const SPINE2_ALIASES = [
   "Spine2", "mixamorigSpine2", "mixamorig:Spine2", "spine2", "upperchest",
   "Spine1", "mixamorigSpine1", "mixamorig:Spine1", "chest",
+  // 3ds Max Biped space-separated
+  "Bip001 Spine2", "Bip001 Spine1", "Bip01 Spine2", "Bip01 Spine1",
   "Bip01_Spine2", "Bip001_Spine2", "CC_Base_Spine02",
 ];
 
@@ -112,17 +143,19 @@ export const CHEST_ALIASES = [
 
 export const RIGHT_FOOT_ALIASES = [
   "RightFoot", "mixamorigRightFoot", "mixamorig:RightFoot", "foot.R",
+  // 3ds Max Biped space-separated
+  "Bip001 R Foot", "Bip01 R Foot",
   "Bip01_R_Foot", "Bip001_R_Foot", "J_Bip_R_Foot", "CC_Base_R_Foot", "Foot.R",
   "FootR", "Foot_R", "foot_r",
-  // Lowercase concatenated variants
   "footr", "rightfoot",
 ];
 
 export const LEFT_FOOT_ALIASES = [
   "LeftFoot", "mixamorigLeftFoot", "mixamorig:LeftFoot", "foot.L",
+  // 3ds Max Biped space-separated
+  "Bip001 L Foot", "Bip01 L Foot",
   "Bip01_L_Foot", "Bip001_L_Foot", "J_Bip_L_Foot", "CC_Base_L_Foot", "Foot.L",
   "FootL", "Foot_L", "foot_l",
-  // Lowercase concatenated variants
   "footl", "leftfoot",
 ];
 
@@ -132,49 +165,61 @@ export const LEFT_FOOT_ALIASES = [
 // the LEFT_/RIGHT_ pattern used for hands/arms/feet.
 export const RIGHT_UP_LEG_ALIASES = [
   "RightUpLeg", "mixamorigRightUpLeg", "mixamorig:RightUpLeg",
-  "UpperLeg.R", "UpperLegR", "Bip01_R_Thigh", "Bip001_R_Thigh",
+  "UpperLeg.R", "UpperLegR",
+  // 3ds Max Biped space-separated
+  "Bip001 R Thigh", "Bip01 R Thigh",
+  "Bip01_R_Thigh", "Bip001_R_Thigh",
   "J_Bip_R_UpperLeg", "CC_Base_R_Thigh", "thigh.R", "upper_leg.R", "upperleg_r",
-  // Lowercase concatenated variants
   "upperlegr", "rightupleg", "rightthigh", "thighr",
 ];
 
 export const LEFT_UP_LEG_ALIASES = [
   "LeftUpLeg", "mixamorigLeftUpLeg", "mixamorig:LeftUpLeg",
-  "UpperLeg.L", "UpperLegL", "Bip01_L_Thigh", "Bip001_L_Thigh",
+  "UpperLeg.L", "UpperLegL",
+  // 3ds Max Biped space-separated
+  "Bip001 L Thigh", "Bip01 L Thigh",
+  "Bip01_L_Thigh", "Bip001_L_Thigh",
   "J_Bip_L_UpperLeg", "CC_Base_L_Thigh", "thigh.L", "upper_leg.L", "upperleg_l",
-  // Lowercase concatenated variants
   "upperlegl", "leftupleg", "leftthigh", "thighl",
 ];
 
 export const RIGHT_LOWER_LEG_ALIASES = [
   "RightLeg", "mixamorigRightLeg", "mixamorig:RightLeg",
-  "LowerLeg.R", "LowerLegR", "Bip01_R_Calf", "Bip001_R_Calf",
+  "LowerLeg.R", "LowerLegR",
+  // 3ds Max Biped space-separated
+  "Bip001 R Calf", "Bip01 R Calf",
+  "Bip01_R_Calf", "Bip001_R_Calf",
   "J_Bip_R_LowerLeg", "CC_Base_R_Calf", "shin.R", "lower_leg.R", "lowerleg_r",
-  // Lowercase concatenated variants
   "lowerlegr", "rightleg", "rightshin", "shinr", "rightcalf", "calfr",
 ];
 
 export const LEFT_LOWER_LEG_ALIASES = [
   "LeftLeg", "mixamorigLeftLeg", "mixamorig:LeftLeg",
-  "LowerLeg.L", "LowerLegL", "Bip01_L_Calf", "Bip001_L_Calf",
+  "LowerLeg.L", "LowerLegL",
+  // 3ds Max Biped space-separated
+  "Bip001 L Calf", "Bip01 L Calf",
+  "Bip01_L_Calf", "Bip001_L_Calf",
   "J_Bip_L_LowerLeg", "CC_Base_L_Calf", "shin.L", "lower_leg.L", "lowerleg_l",
-  // Lowercase concatenated variants
   "lowerlegl", "leftleg", "leftshin", "shinl", "leftcalf", "calfl",
 ];
 
 export const RIGHT_TOE_ALIASES = [
   "RightToeBase", "mixamorigRightToeBase", "mixamorig:RightToeBase",
-  "Toe.R", "ToesR", "Bip01_R_Toe0", "Bip001_R_Toe0",
+  "Toe.R", "ToesR",
+  // 3ds Max Biped space-separated
+  "Bip001 R Toe0", "Bip01 R Toe0",
+  "Bip01_R_Toe0", "Bip001_R_Toe0",
   "J_Bip_R_ToeBase", "CC_Base_R_ToeBase", "toe.R", "toes.R", "toes_r",
-  // Lowercase concatenated variants
   "toesr", "righttoebase", "righttoe", "toer",
 ];
 
 export const LEFT_TOE_ALIASES = [
   "LeftToeBase", "mixamorigLeftToeBase", "mixamorig:LeftToeBase",
-  "Toe.L", "ToesL", "Bip01_L_Toe0", "Bip001_L_Toe0",
+  "Toe.L", "ToesL",
+  // 3ds Max Biped space-separated
+  "Bip001 L Toe0", "Bip01 L Toe0",
+  "Bip01_L_Toe0", "Bip001_L_Toe0",
   "J_Bip_L_ToeBase", "CC_Base_L_ToeBase", "toe.L", "toes.L", "toes_l",
-  // Lowercase concatenated variants
   "toesl", "lefttoebase", "lefttoe", "toel",
 ];
 
@@ -265,7 +310,7 @@ export const RIGHT_THUMB_1_ALIASES  = fingerAliases("Right", "Thumb",  1);
 export const RIGHT_THUMB_2_ALIASES  = fingerAliases("Right", "Thumb",  2);
 export const RIGHT_THUMB_3_ALIASES  = fingerAliases("Right", "Thumb",  3);
 
-export type SkeletonType = "kaykit" | "mixamo" | "cc4" | "generic";
+export type SkeletonType = "kaykit" | "mixamo" | "cc4" | "bip001" | "generic";
 
 export function detectSkeletonType(boneNames: string[]): SkeletonType {
   if (boneNames.some(b => b === "Fist.R" || b === "FistR" || b === "Fist.L" || b === "FistL")) {
@@ -277,6 +322,11 @@ export function detectSkeletonType(boneNames: string[]): SkeletonType {
   }
   if (joined.includes("cc_base_")) {
     return "cc4";
+  }
+  // Grudge6 uMMORPG 3ds-Max Biped rig — detected via the Pelvis root node or
+  // the R_hand_container weapon attachment bone that all 6 race models share.
+  if (joined.includes("bip001") || joined.includes("bip01 ") || joined.includes("r_hand_container")) {
+    return "bip001";
   }
   return "generic";
 }
@@ -1170,6 +1220,31 @@ export function getWeaponReach(weaponType: WeaponType): WeaponReach {
 const PI = Math.PI;
 
 const GRIP_TRANSFORMS: Record<SkeletonType, Record<GripStyle, { right: GripTransform; left: GripTransform }>> = {
+  // Grudge6 uMMORPG Bip001 3ds-Max rig. The hand containers already absorb
+  // the local-axis orientation from the FBX rig, so offsets are much smaller
+  // than Mixamo (no -PI/2 rotation needed).
+  bip001: {
+    main_1h: {
+      right: { position: [0, 0.02, 0], rotation: [0, 0, 0.12], scale: 1.0 },
+      left:  { position: [0, 0.02, 0], rotation: [0, 0, -0.12], scale: 1.0 },
+    },
+    off_1h: {
+      right: { position: [0, 0, 0], rotation: [0, 0, 0], scale: 1.0 },
+      left:  { position: [0, 0.02, 0.03], rotation: [PI / 2, 0.1, -0.15], scale: 1.0 },
+    },
+    two_hand: {
+      right: { position: [0, 0.03, 0], rotation: [0, 0, 0.12], scale: 1.0 },
+      left:  { position: [0, 0, 0], rotation: [0, 0, 0], scale: 1.0 },
+    },
+    ranged_2h: {
+      right: { position: [0, 0.02, 0.02], rotation: [0, 0, 0], scale: 1.0 },
+      left:  { position: [0, 0.02, 0.03], rotation: [0, PI / 2, -0.1], scale: 1.0 },
+    },
+    unarmed: {
+      right: { position: [0, 0, 0], rotation: [0, 0, 0], scale: 1.0 },
+      left:  { position: [0, 0, 0], rotation: [0, 0, 0], scale: 1.0 },
+    },
+  },
   kaykit: {
     main_1h: {
       right: { position: [0, 0.04, 0.03], rotation: [0.3, 0.1, 0], scale: 1.0 },
@@ -1263,6 +1338,16 @@ const GRIP_TRANSFORMS: Record<SkeletonType, Record<GripStyle, { right: GripTrans
 type WeaponOffsetEntry = { posAdj: [number, number, number]; rotAdj: [number, number, number] };
 
 const WEAPON_SPECIFIC_OFFSETS: Record<SkeletonType, Partial<Record<WeaponType, WeaponOffsetEntry>>> = {
+  bip001: {
+    // Bip001 containers already align the weapon axis; only minor tweaks needed.
+    greatsword: { posAdj: [0, 0.04, 0], rotAdj: [0, 0, 0] },
+    poleaxe:    { posAdj: [0, 0.06, 0], rotAdj: [0, 0, 0] },
+    staff:      { posAdj: [0, 0.08, 0], rotAdj: [0, 0, 0] },
+    bow:        { posAdj: [0, 0.01, 0.02], rotAdj: [0, PI / 2, 0] },
+    crossbow:   { posAdj: [0, 0.02, 0.03], rotAdj: [-PI / 2, 0, 0] },
+    gun:        { posAdj: [0, 0.02, 0.04], rotAdj: [0, 0, 0] },
+    shield:     { posAdj: [0, 0.02, 0.03], rotAdj: [PI / 2, 0, 0.05] },
+  },
   kaykit: {
     sword: { posAdj: [0, 0.02, 0.01], rotAdj: [0.1, 0, 0] },
     greatsword: { posAdj: [0, 0.06, 0.01], rotAdj: [0.15, -0.05, 0] },

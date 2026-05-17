@@ -1,0 +1,15 @@
+name = "grudge-asset-cdn"
+main = "index.ts"
+compatibility_date = "2024-09-23"
+workers_dev = false
+
+routes = [
+    { pattern = "assets.grudge-studio.com/*", zone_name = "grudge-studio.com" },
+]
+
+[[r2_buckets]]
+binding = "ASSETS"
+bucket_name = "grudge-assets"
+
+[vars]
+ENVIRONMENT = "production"

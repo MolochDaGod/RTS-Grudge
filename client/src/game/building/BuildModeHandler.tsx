@@ -1,8 +1,8 @@
 import { useEffect, useCallback, useRef } from "react";
-import { useBuildSystem, getBuildingDef, registerBuildingRemoveCallback } from "@/lib/stores/useBuildSystem";
+import { useBuildSystem, getBuildingDef, registerBuildingRemoveCallback, FACTION_WORKER_ALLY } from "@/lib/stores/useBuildSystem";
 import { useModularBuild } from "@/lib/stores/useModularBuild";
 import { useGame } from "@/lib/stores/useGame";
-import { useAllies } from "@/lib/stores/useAllies";
+import { useAllies, type AllyType } from "@/lib/stores/useAllies";
 import { addBuildingResources, removeBuildingResources } from "../components/ResourceNode";
 import * as THREE from "three";
 
@@ -59,9 +59,18 @@ export default function BuildModeHandler() {
     if (!lastBuilding) return;
 
     if (def.spawnAlly && def.allyCount) {
+      // For neutral worker buildings (camp, farm_workers, etc.) spawn the
+      // faction-appropriate unit type so the NPC model matches the player's race.
+      // Faction-specific military buildings already spawn the correct type.
+      const playerFaction = useGame.getState().selectedCharacter.faction ?? "crusade";
+      const isNeutralWorkerBuilding = (def.faction === "neutral" || !def.faction) && !!def.spawnAlly;
+      const allyType: AllyType = isNeutralWorkerBuilding
+        ? (FACTION_WORKER_ALLY[playerFaction] ?? def.spawnAlly)
+        : def.spawnAlly;
+
       const center = new THREE.Vector3(ghostPosition[0], ghostPosition[1], ghostPosition[2]);
       useAllies.getState().spawnAllies(
-        def.spawnAlly as any,
+        allyType,
         def.allyCount,
         center,
         10,

@@ -5,6 +5,12 @@ import { getTerrainHeight, globalHeightData } from "./Terrain";
 import { useEnemyManager, type EnemyType } from "../systems/EnemyManager";
 import { useGame } from "@/lib/stores/useGame";
 import { useAudio } from "@/lib/stores/useAudio";
+import {
+  rollBiomeEnemy,
+  getDifficultyAtPosition,
+} from "../systems/BiomeSpawnRegistry";
+import { isEnemySpawnAllowed } from "@/game/world/DistrictRegistry";
+import { useWorldEvents } from "@/lib/stores/useWorldEvents";
 
 interface WaveSpawnerProps {
   playerPosition: THREE.Vector3;
@@ -12,28 +18,28 @@ interface WaveSpawnerProps {
 
 const WAVE_ENEMY_POOLS: Record<number, { day: EnemyType[]; night: EnemyType[] }> = {
   1: {
-    day: ["skeleton", "spider", "bunny", "blob", "thrower_brute", "thrower_assassin", "thrower_soldier", "thrower_berserker"],
-    night: ["skeleton", "spider", "ghost", "thrower_brute", "thrower_assassin"],
+    day: ["skeleton", "spider", "bunny", "blob", "aw_infantry", "scifi_trooper", "thrower_brute"],
+    night: ["skeleton", "spider", "ghost", "aw_infantry", "thrower_assassin"],
   },
   2: {
-    day: ["skeleton", "spider", "frog", "bunny", "blob", "thrower_soldier", "thrower_berserker"],
-    night: ["skeleton", "spider", "ghost", "golem", "thrower_brute", "thrower_assassin"],
+    day: ["skeleton", "spider", "frog", "aw_infantry", "scifi_trooper", "scifi_soldier", "thrower_berserker"],
+    night: ["skeleton", "spider", "ghost", "shadow_soldier", "thrower_brute", "thrower_assassin"],
   },
   3: {
-    day: ["skeleton", "spider", "pirate", "frog", "orc", "thrower_brute", "thrower_berserker"],
-    night: ["skeleton", "golem", "ghost", "witch", "tribal", "thrower_soldier"],
+    day: ["pirate", "frog", "orc", "aw_infantry", "scifi_soldier", "shadow_soldier", "thrower_brute"],
+    night: ["golem", "ghost", "witch", "shadow_soldier", "scifi_trooper", "thrower_soldier"],
   },
   4: {
-    day: ["pirate", "orc", "cactoro", "frog", "ninja", "thrower_assassin", "thrower_berserker"],
-    night: ["golem", "witch", "ghost", "tribal", "blue_demon", "thrower_brute"],
+    day: ["pirate", "orc", "cactoro", "ninja", "aw_mech", "scifi_officer", "cyborg_soldier"],
+    night: ["golem", "witch", "tribal", "blue_demon", "shadow_soldier", "cyborg_soldier"],
   },
   5: {
-    day: ["orc", "ninja", "cactoro", "tribal", "blue_demon", "raptor", "thrower_berserker"],
-    night: ["golem", "witch", "blue_demon", "yeti", "demon", "thrower_soldier"],
+    day: ["orc", "ninja", "tribal", "blue_demon", "raptor", "aw_mech", "cyborg_unit", "scifi_officer"],
+    night: ["golem", "witch", "blue_demon", "yeti", "demon", "cyborg_unit", "aw_tank"],
   },
   6: {
-    day: ["orc", "ninja", "alien", "blue_demon", "mushroom_king", "raptor", "triceratops", "thrower_berserker"],
-    night: ["demon", "yeti", "alien", "mushroom_king", "dragon", "trex"],
+    day: ["alien", "blue_demon", "mushroom_king", "raptor", "triceratops", "aw_tank", "cyborg_unit", "mech_tripod"],
+    night: ["demon", "yeti", "alien", "mushroom_king", "dragon", "trex", "mech_tripod", "aw_tank"],
   },
 };
 
@@ -95,14 +101,37 @@ export default function WaveSpawner({ playerPosition }: WaveSpawnerProps) {
       spawnPos.current.x = Math.max(-bounds, Math.min(bounds, spawnPos.current.x));
       spawnPos.current.z = Math.max(-bounds, Math.min(bounds, spawnPos.current.z));
 
+      // Skip town/safe districts — enemies don't spawn inside settlements.
+      if (!isEnemySpawnAllowed(spawnPos.current.x, spawnPos.current.z)) {
+        spawnTimer.current = 0.5; // retry quickly at a different angle
+        return;
+      }
+
+      // Primary: biome-appropriate enemy for this spawn position.
+      // Fallback: wave-tier pool (plains / initial game area).
+      const biomeType = rollBiomeEnemy(
+        spawnPos.current.x,
+        spawnPos.current.z,
+        isDaytime,
+      );
       const pool = getWavePool(wave, isDaytime);
-      const type = pool[Math.floor(Math.random() * pool.length)];
+      const type: EnemyType = biomeType ?? pool[Math.floor(Math.random() * pool.length)];
 
       spawnEnemy(type, spawnPos.current.clone());
       waveEnemiesSpawned.current++;
 
+      // Spawn interval: shorter in high-difficulty zones (more pressure).
+      const diffMult = getDifficultyAtPosition(
+        spawnPos.current.x,
+        spawnPos.current.z,
+      );
       const baseInterval = isDaytime ? 4 : 2;
-      spawnTimer.current = baseInterval - Math.min(wave * 0.2, 2) + Math.random() * 2;
+      // diffMult 1.0 → normal interval; 3.5 → ~60 % faster
+      const diffScale = Math.max(0.4, 1 / Math.sqrt(diffMult));
+      // World events (e.g. FactionInvasion) further compress the interval.
+      const eventMult = useWorldEvents.getState().enemySpawnMult();
+      spawnTimer.current =
+        (baseInterval - Math.min(wave * 0.2, 2) + Math.random() * 2) * diffScale * eventMult;
     }
 
     const activeEnemies = enemies.filter(e => !e.isDying);

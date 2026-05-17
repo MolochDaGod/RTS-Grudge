@@ -1,5 +1,6 @@
 import { useEffect, lazy, Suspense } from "react";
-import { useGame } from "./lib/stores/useGame";
+import { useLocation } from "wouter";
+import { useGame, type GamePhase } from "./lib/stores/useGame";
 import { useAudio } from "./lib/stores/useAudio";
 import GameScene from "./game/GameScene";
 import BakedDungeonScene from "./game/dungeon/BakedDungeonScene";
@@ -22,24 +23,53 @@ import "@fontsource/inter";
 const GGEEditor = lazy(() => import("./game/editor/GGEEditor"));
 const ControllerPage = lazy(() => import("./game/controller/ControllerPage"));
 
-function App() {
-  const { phase, togglePanel, closePanel, pause, resume, inDungeon, inHousing, inTutorialIsland, restart, goToController } = useGame();
+// ── URL ↔ Phase map ──────────────────────────────────────────────────────────
+// Phases that have a canonical URL. Transient phases (loading, intro, dead,
+// paused) are intentionally absent — they should never appear in the address
+// bar or browser history.
+const PHASE_TO_PATH: Partial<Record<GamePhase, string>> = {
+  menu:            "/",
+  characterSelect: "/character",
+  playing:         "/play",
+  admin:           "/admin",
+  gge:             "/gge",
+  controller:      "/controller",
+};
 
-  // Direct-URL entry for the Controller Lab. Visiting `/controller` (e.g.
-  // bookmarked or shared) jumps straight in instead of going through the
-  // main menu. We don't add a real router; just sniff the pathname once
-  // on mount and rewrite to "/" so refresh-with-changes-applied behaves.
+function App() {
+  const [location, navigate] = useLocation();
+  const {
+    phase, togglePanel, closePanel, pause, resume,
+    inDungeon, inHousing, inTutorialIsland, restart,
+    goToController, goToCharacterSelect, goToAdmin, goToGGE,
+  } = useGame();
+
+  // ── URL → Phase (on first mount) ─────────────────────────────────────────
+  // Handles direct visits, bookmarks, and auth-redirects (e.g. id.grudge-studio.com
+  // returning the player to /character after sign-in).
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (window.location.pathname === "/controller" && phase !== "controller") {
-      goToController();
-      window.history.replaceState({}, "", "/");
-    }
-    // We only ever want to do this on the very first mount; further phase
-    // changes re-trigger the effect but the pathname is already "/" by then
-    // so the early-return at the top covers it.
+    const p = location.replace(/\/+$/, "") || "/";
+    const dispatchMap: Record<string, () => void> = {
+      "/character":  goToCharacterSelect,
+      "/admin":      goToAdmin,
+      "/gge":        goToGGE,
+      "/controller": goToController,
+    };
+    dispatchMap[p]?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ── Phase → URL (kept in sync) ────────────────────────────────────────────
+  // When Zustand flips phase (e.g. clicking "Hero Forge" on the menu) we push
+  // the matching URL so back/forward work and the address bar stays meaningful.
+  // Transient phases that have no entry in PHASE_TO_PATH are left alone.
+  useEffect(() => {
+    const canonical = PHASE_TO_PATH[phase];
+    if (canonical && canonical !== location) {
+      navigate(canonical, { replace: false });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase]);
   const { setBackgroundMusic, setHitSound, setSuccessSound, setHeavyImpactSound, setClimbScrapeSound } = useAudio();
 
   useEffect(() => {

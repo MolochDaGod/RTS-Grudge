@@ -18,10 +18,26 @@ export interface DiscoveredLocation {
   worldZ: number;
 }
 
+/** A mission objective marker placed on the map when the player accepts a quest. */
+export interface MissionMarker {
+  /** Unique id — usually `${heroId}_m` */
+  id: string;
+  heroId: string;
+  title: string;
+  /** Visual icon set: ⚔️ kill \| 📦 gather \| 🗺 explore */
+  type: "kill" | "gather" | "explore";
+  /** Faction colour for the ring. */
+  faction: string;
+  worldX: number;
+  worldZ: number;
+}
+
 interface WorldMapState {
   mapOpen: boolean;
   waypoints: Waypoint[];
   discoveredLocations: DiscoveredLocation[];
+  /** Active mission objective markers — added on accept, removed on claim/rotate. */
+  missionMarkers: MissionMarker[];
   selectedWaypointId: string | null;
   trackingWaypointId: string | null;
 
@@ -36,6 +52,10 @@ interface WorldMapState {
 
   discoverLocation: (loc: Omit<DiscoveredLocation, "id">) => void;
   isLocationDiscovered: (name: string, islandId: string) => boolean;
+
+  addMissionMarker: (marker: MissionMarker) => void;
+  removeMissionMarker: (id: string) => void;
+  clearMissionMarkersForHero: (heroId: string) => void;
 
   setSelectedWaypoint: (id: string | null) => void;
   setTrackingWaypoint: (id: string | null) => void;
@@ -84,6 +104,7 @@ export const useWorldMap = create<WorldMapState>((set, get) => ({
   mapOpen: false,
   waypoints: loadWaypoints(),
   discoveredLocations: loadDiscovered(),
+  missionMarkers: [],
   selectedWaypointId: null,
   trackingWaypointId: null,
 
@@ -138,6 +159,21 @@ export const useWorldMap = create<WorldMapState>((set, get) => ({
   isLocationDiscovered: (name, islandId) => {
     return get().discoveredLocations.some(l => l.name === name && l.islandId === islandId);
   },
+
+  addMissionMarker: (marker) => set((s) => ({
+    missionMarkers: [
+      ...s.missionMarkers.filter((m) => m.id !== marker.id),
+      marker,
+    ],
+  })),
+
+  removeMissionMarker: (id) => set((s) => ({
+    missionMarkers: s.missionMarkers.filter((m) => m.id !== id),
+  })),
+
+  clearMissionMarkersForHero: (heroId) => set((s) => ({
+    missionMarkers: s.missionMarkers.filter((m) => m.heroId !== heroId),
+  })),
 
   setSelectedWaypoint: (id) => set({ selectedWaypointId: id }),
   setTrackingWaypoint: (id) => set({ trackingWaypointId: id }),

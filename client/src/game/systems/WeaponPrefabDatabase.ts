@@ -278,12 +278,13 @@ const WEAPON_MODELS: Record<ExtendedWeaponType, ModelSource[]> = {
     { variant: "F", path: "/models/weapons/crossbows/crossbow_5.glb", format: "glb", pack: "craftpix" },
   ],
   gun: [
-    { variant: "A", path: "/models/threejs-games/weapons/revolver.glb", format: "glb", pack: "firearm" },
-    { variant: "B", path: "/models/threejs-games/weapons/luger.glb", format: "glb", pack: "firearm" },
-    { variant: "C", path: "/models/threejs-games/weapons/rifle.glb", format: "glb", pack: "firearm", offHandGrip: [0, 0, 0.25] },
-    { variant: "D", path: "/models/threejs-games/weapons/machine-gun.glb", format: "glb", pack: "firearm", offHandGrip: [0, 0, 0.25] },
-    { variant: "E", path: "/models/threejs-games/weapons/flame-gun.glb", format: "glb", pack: "firearm", offHandGrip: [0, 0, 0.22] },
-    { variant: "F", path: "/models/threejs-games/weapons/rifle-berthier.glb", format: "glb", pack: "firearm", offHandGrip: [0, 0, 0.28] },
+    // All paths resolve to actual public GLBs under client/public/models/weapons/
+    { variant: "A", path: "/models/weapons/gun_a.glb",        format: "glb", pack: "grudge_guns" },
+    { variant: "B", path: "/models/weapons/gun_b.glb",        format: "glb", pack: "grudge_guns" },
+    { variant: "C", path: "/models/weapons/rifle.glb",        format: "glb", pack: "grudge_guns", offHandGrip: [0, 0, 0.25] },
+    { variant: "D", path: "/models/weapons/shotgun.glb",      format: "glb", pack: "grudge_guns", offHandGrip: [0, 0, 0.22] },
+    { variant: "E", path: "/models/weapons/uzi.glb",          format: "glb", pack: "grudge_guns" },
+    { variant: "F", path: "/models/weapons/assault_rifle.glb",format: "glb", pack: "grudge_guns", offHandGrip: [0, 0, 0.28] },
   ],
   staff: [
     { variant: "A", path: "/models/kaykit_weapons/staff_A.glb", format: "glb", pack: "kaykit", offHandGrip: [0, -0.55, 0] },

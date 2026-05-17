@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import * as THREE from "three";
+import type { WeaponType } from "@/lib/stores/useGame";
 
 export type AllyType = "soldier" | "archer" | "knight" | "elite_archer" | "farmer" | "warrior" | "ranger" | "mage" | "wizard" | "captain";
 
@@ -74,9 +75,15 @@ export interface AllyData {
   speed: number;
   modelPath: string;
   targetHeight: number;
+  /** Weapon type drives which BRB animation pack loads on the NPC controller. */
+  weaponType?: WeaponType;
+  /** Extra animation packs (e.g. 'farming' for farmer NPCs). */
+  extraPacks?: string[];
+  /** Faction origin — determines color coding and assignment. */
+  faction?: "crusade" | "fabled" | "legion" | "wild";
   spawnedBy: string;
   behavior: AllyBehavior;
-  assignedBuildingUid: string | null;  // building this ally is assigned to (workbench, watchtower, farm)
+  assignedBuildingUid: string | null;  // building this ally is assigned to
   personalCommand: AllyCommand | null; // null = obey global; otherwise overrides
   personalTargetId: string | null;     // per-ally target for "attack_target"
   canHarvest: boolean;
@@ -97,7 +104,17 @@ type AllyConfig = Omit<
   | "isSleeping" | "kills" | "resourcesGathered"
 >;
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Faction-correct character model paths
+// Crusade  = Human (assassin-*) + Barbarian (human_battle_mage-*)
+// Fabled   = Elf (elf-*) + Dwarf (dwarf-*)
+// Legion   = Orc (orc_scout-*) + Undead (vampire_aristocrat-*)
+// Wild     = Worge / Barbarian forms
+// When grudge6 CDN models are uploaded these paths are overridden per faction.
+// ─────────────────────────────────────────────────────────────────────────────
+
 const ALLY_CONFIGS: Record<AllyType, AllyConfig> = {
+  // ── soldier: Crusade human frontline (sword+shield) ──────────────────────
   soldier: {
     type: "soldier",
     health: 80,
@@ -105,8 +122,11 @@ const ALLY_CONFIGS: Record<AllyType, AllyConfig> = {
     damage: 12,
     attackRange: 2.5,
     speed: 3,
-    modelPath: "/models/characters/undead_grave_knight-male.glb",
-    targetHeight: 1.8,
+    // Human Crusade soldier — hooded duelist stand-in until WK_ GLB is on CDN
+    modelPath: "/models/characters/assassin-male.glb",
+    targetHeight: 1.85,
+    faction: "crusade",
+    weaponType: "sword",
     behavior: "patrol",
     canHarvest: false,
     harvestSpeed: 0,
@@ -114,6 +134,7 @@ const ALLY_CONFIGS: Record<AllyType, AllyConfig> = {
     buffDamage: 0,
     projectileType: "none",
   },
+  // ── archer: Fabled elf ranged (bow) ──────────────────────────────────────
   archer: {
     type: "archer",
     health: 50,
@@ -121,8 +142,11 @@ const ALLY_CONFIGS: Record<AllyType, AllyConfig> = {
     damage: 15,
     attackRange: 12,
     speed: 2.5,
+    // Elf archer — correct race for the Fabled faction
     modelPath: "/models/characters/elf-male.glb",
-    targetHeight: 1.7,
+    targetHeight: 1.85,
+    faction: "fabled",
+    weaponType: "bow",
     behavior: "patrol",
     canHarvest: false,
     harvestSpeed: 0,
@@ -130,6 +154,7 @@ const ALLY_CONFIGS: Record<AllyType, AllyConfig> = {
     buffDamage: 0,
     projectileType: "arrow",
   },
+  // ── knight: Crusade heavy armored melee (sword) ──────────────────────────
   knight: {
     type: "knight",
     health: 150,
@@ -137,8 +162,11 @@ const ALLY_CONFIGS: Record<AllyType, AllyConfig> = {
     damage: 20,
     attackRange: 2.5,
     speed: 2.5,
-    modelPath: "/models/characters/night_stalker-male.glb",
-    targetHeight: 2.0,
+    // Grave knight — armored plate, correct for the tank knight archetype
+    modelPath: "/models/characters/undead_grave_knight-male.glb",
+    targetHeight: 1.9,
+    faction: "crusade",
+    weaponType: "sword",
     behavior: "patrol",
     canHarvest: false,
     harvestSpeed: 0,
@@ -146,6 +174,7 @@ const ALLY_CONFIGS: Record<AllyType, AllyConfig> = {
     buffDamage: 0,
     projectileType: "none",
   },
+  // ── elite_archer: Fabled elf precision ranger (bow) ──────────────────────
   elite_archer: {
     type: "elite_archer",
     health: 70,
@@ -153,8 +182,11 @@ const ALLY_CONFIGS: Record<AllyType, AllyConfig> = {
     damage: 25,
     attackRange: 18,
     speed: 3,
-    modelPath: "/models/characters/assassin-male.glb",
+    // Elf female — faster, lighter, elite ranger role
+    modelPath: "/models/characters/elf-female.glb",
     targetHeight: 1.8,
+    faction: "fabled",
+    weaponType: "bow",
     behavior: "patrol",
     canHarvest: false,
     harvestSpeed: 0,
@@ -162,6 +194,7 @@ const ALLY_CONFIGS: Record<AllyType, AllyConfig> = {
     buffDamage: 0,
     projectileType: "arrow",
   },
+  // ── farmer: Crusade civilian gatherer (no weapon — uses farming animations) ─
   farmer: {
     type: "farmer",
     health: 40,
@@ -169,8 +202,12 @@ const ALLY_CONFIGS: Record<AllyType, AllyConfig> = {
     damage: 4,
     attackRange: 1.5,
     speed: 2,
+    // Human commoner, non-combat role
     modelPath: "/models/characters/human_battle_mage-male.glb",
-    targetHeight: 1.7,
+    targetHeight: 1.85,
+    faction: "crusade",
+    // No weaponType — farming animations via extraPacks
+    extraPacks: ["farming"],
     behavior: "harvest",
     canHarvest: true,
     harvestSpeed: 1.5,
@@ -178,6 +215,7 @@ const ALLY_CONFIGS: Record<AllyType, AllyConfig> = {
     buffDamage: 0,
     projectileType: "none",
   },
+  // ── warrior: Legion orc berserker (greatsword) ──────────────────────────
   warrior: {
     type: "warrior",
     health: 120,
@@ -185,8 +223,11 @@ const ALLY_CONFIGS: Record<AllyType, AllyConfig> = {
     damage: 18,
     attackRange: 2.8,
     speed: 3.5,
-    modelPath: "/models/characters/night_stalker-male.glb",
+    // Orc scout — correct Legion race for a brutal frontline warrior
+    modelPath: "/models/characters/orc_scout-male.glb",
     targetHeight: 1.9,
+    faction: "legion",
+    weaponType: "greatsword",
     behavior: "patrol",
     canHarvest: false,
     harvestSpeed: 0,
@@ -194,6 +235,7 @@ const ALLY_CONFIGS: Record<AllyType, AllyConfig> = {
     buffDamage: 0,
     projectileType: "none",
   },
+  // ── ranger: Wild/Fabled hybrid scout (bow) ───────────────────────────────
   ranger: {
     type: "ranger",
     health: 65,
@@ -201,8 +243,11 @@ const ALLY_CONFIGS: Record<AllyType, AllyConfig> = {
     damage: 20,
     attackRange: 15,
     speed: 4,
-    modelPath: "/models/characters/human_battle_mage-male.glb",
-    targetHeight: 1.7,
+    // Elf female — agile scout archetype, correct for ranged + harvest hybrid
+    modelPath: "/models/characters/elf-female.glb",
+    targetHeight: 1.8,
+    faction: "fabled",
+    weaponType: "bow",
     behavior: "patrol",
     canHarvest: true,
     harvestSpeed: 1.0,
@@ -210,6 +255,7 @@ const ALLY_CONFIGS: Record<AllyType, AllyConfig> = {
     buffDamage: 0,
     projectileType: "arrow",
   },
+  // ── mage: Crusade battle mage caster (staff) ─────────────────────────────
   mage: {
     type: "mage",
     health: 55,
@@ -217,8 +263,11 @@ const ALLY_CONFIGS: Record<AllyType, AllyConfig> = {
     damage: 22,
     attackRange: 14,
     speed: 2.5,
-    modelPath: "/models/characters/human_battle_mage-male.glb",
+    // Human battle mage female — correct caster identity
+    modelPath: "/models/characters/human_battle_mage-female.glb",
     targetHeight: 1.8,
+    faction: "crusade",
+    weaponType: "staff",
     behavior: "patrol",
     canHarvest: false,
     harvestSpeed: 0,
@@ -226,6 +275,7 @@ const ALLY_CONFIGS: Record<AllyType, AllyConfig> = {
     buffDamage: 0,
     projectileType: "fireball",
   },
+  // ── wizard: Legion undead sorcerer (staff + area buff) ───────────────────
   wizard: {
     type: "wizard",
     health: 60,
@@ -233,8 +283,11 @@ const ALLY_CONFIGS: Record<AllyType, AllyConfig> = {
     damage: 30,
     attackRange: 16,
     speed: 2,
-    modelPath: "/models/characters/human_battle_mage-male.glb",
-    targetHeight: 1.8,
+    // Vampire aristocrat — undead dark mage, correct Legion caster identity
+    modelPath: "/models/characters/vampire_aristocrat-male.glb",
+    targetHeight: 1.85,
+    faction: "legion",
+    weaponType: "staff",
     behavior: "patrol",
     canHarvest: false,
     harvestSpeed: 0,
@@ -242,6 +295,7 @@ const ALLY_CONFIGS: Record<AllyType, AllyConfig> = {
     buffDamage: 5,
     projectileType: "lightning",
   },
+  // ── captain: Crusade commander (greatsword + party buff) ─────────────────
   captain: {
     type: "captain",
     health: 180,
@@ -249,8 +303,11 @@ const ALLY_CONFIGS: Record<AllyType, AllyConfig> = {
     damage: 16,
     attackRange: 3.0,
     speed: 3,
-    modelPath: "/models/characters/night_stalker-male.glb",
-    targetHeight: 2.0,
+    // Battle mage male — commanding human captain, not a worge beast form
+    modelPath: "/models/characters/human_battle_mage-male.glb",
+    targetHeight: 1.85,
+    faction: "crusade",
+    weaponType: "greatsword",
     behavior: "patrol",
     canHarvest: false,
     harvestSpeed: 0,

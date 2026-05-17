@@ -1,4 +1,7 @@
 node_modules
+# FBX conversion tool binary (download locally — not committed)
+FBX2glTF.exe
+FBX2glTF
 dist
 .DS_Store
 server/public
@@ -12,6 +15,11 @@ vite.config.ts.*
 Models/
 attached_assets/
 client/public/
+# Allow BRB Bip001 animation GLBs (converted from FBX, committed for dev)
+!client/public/models/
+!client/public/models/animations/
+!client/public/models/animations/grudge6_brb/
+!client/public/models/animations/grudge6_brb/**
 
 # Replit artifacts
 .canvas/

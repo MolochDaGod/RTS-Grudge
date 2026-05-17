@@ -1,7 +1,16 @@
-import { useBuildSystem, BUILDING_REGISTRY, type BuildingCategory } from "@/lib/stores/useBuildSystem";
+import { useBuildSystem, BUILDING_REGISTRY, FACTION_BUILDING_ALIAS, type BuildingCategory } from "@/lib/stores/useBuildSystem";
 import { useGame } from "@/lib/stores/useGame";
 import { useState } from "react";
 import { getBuildingIcon } from "@/lib/data/icons";
+import { FACTIONS_BY_ID, type FactionId } from "@/lib/data/factions";
+
+/** Color + label shown on faction-specific military buildings. */
+const FACTION_BADGE: Record<string, { color: string; label: string }> = {
+  crusade: { color: "#3aa0ff", label: "⚔ Crusade" },
+  fabled:  { color: "#3ddc7b", label: "🌿 Fabled" },
+  legion:  { color: "#ff3a3a", label: "💀 Legion" },
+  pirate:  { color: "#d4a437", label: "☠ Pirate" },
+};
 
 const CATEGORIES: { key: BuildingCategory; label: string; color: string }[] = [
   { key: "defense", label: "Defense", color: "#e74c3c" },
@@ -19,14 +28,26 @@ export default function BuildMenu() {
   const unlockedBuildings = useBuildSystem(s => s.unlockedBuildings);
   const toggleBuildMode = useBuildSystem(s => s.toggleBuildMode);
   const selectBuilding = useBuildSystem(s => s.selectBuilding);
+  const selectedCharacter = useGame(s => s.selectedCharacter);
   const [activeCategory, setActiveCategory] = useState<BuildingCategory>("defense");
 
   if (interactionMode !== "build") return null;
   if (!buildMode) return null;
 
-  const available = BUILDING_REGISTRY.filter(b =>
-    b.category === activeCategory && unlockedBuildings.has(b.id)
-  );
+  // Resolve the player's effective faction for building access.
+  // Pirates share human-Crusade military buildings via the alias map.
+  const rawFaction = (selectedCharacter.faction ?? "crusade") as string;
+  const effectiveFaction = (FACTION_BUILDING_ALIAS[rawFaction] ?? rawFaction) as string;
+  const factionDef = FACTIONS_BY_ID[rawFaction as FactionId];
+
+  const available = BUILDING_REGISTRY.filter(b => {
+    if (!unlockedBuildings.has(b.id)) return false;
+    if (b.category !== activeCategory) return false;
+    // Show neutral buildings to everyone; show faction buildings only to the
+    // matching faction (or its alias).
+    const bf = b.faction ?? "neutral";
+    return bf === "neutral" || bf === rawFaction || bf === effectiveFaction;
+  });
 
   return (
     <div style={{
@@ -34,6 +55,30 @@ export default function BuildMenu() {
       background: "rgba(10,10,20,0.95)", borderTop: "2px solid #ffd700",
       padding: "12px 16px", display: "flex", flexDirection: "column", gap: 8,
     }}>
+      {/* Faction identity strip */}
+      {factionDef && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: 8,
+          borderBottom: `1px solid ${factionDef.color}33`, paddingBottom: 6, marginBottom: 2,
+        }}>
+          <img
+            src={factionDef.emblem}
+            alt={factionDef.name}
+            style={{ width: 20, height: 20, objectFit: "contain" }}
+            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+          />
+          <span style={{ color: factionDef.color, fontWeight: "bold", fontSize: 12 }}>
+            {factionDef.name}
+          </span>
+          <span style={{ color: "#777", fontSize: 11 }}>
+            — {factionDef.tagline}
+          </span>
+          <span style={{ marginLeft: "auto", color: "#666", fontSize: 10 }}>
+            You can build neutral + {factionDef.name} structures
+          </span>
+        </div>
+      )}
+
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", gap: 8 }}>
           {CATEGORIES.map(cat => (
@@ -91,6 +136,17 @@ export default function BuildMenu() {
                 />
                 <span style={{ color: "#fff", fontWeight: "bold", fontSize: 13 }}>{def.name}</span>
               </div>
+              {/* Faction badge on military buildings */}
+              {def.faction && def.faction !== "neutral" && FACTION_BADGE[def.faction] && (
+                <span style={{
+                  display: "inline-block", fontSize: 10, fontWeight: "bold",
+                  color: FACTION_BADGE[def.faction]!.color,
+                  borderLeft: `2px solid ${FACTION_BADGE[def.faction]!.color}`,
+                  paddingLeft: 4, lineHeight: 1.4,
+                }}>
+                  {FACTION_BADGE[def.faction]!.label}
+                </span>
+              )}
               <span style={{ color: "#aaa", fontSize: 11 }}>{def.description}</span>
               <div style={{ display: "flex", gap: 8, fontSize: 11 }}>
                 {def.cost.wood > 0 && <span style={{ color: "#8B4513" }}>W:{def.cost.wood}</span>}

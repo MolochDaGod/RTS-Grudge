@@ -4,6 +4,7 @@ import * as THREE from "three";
 import { getTerrainHeight, globalHeightData } from "../components/Terrain";
 import { useAsset } from "../hooks/useAsset";
 import { attachWindToMaterial } from "../effects/WindSway";
+import { getBiomeAtPosition } from "../systems/BiomeSpawnRegistry";
 
 function seededRandom(seed: number) {
   let s = seed;
@@ -244,18 +245,57 @@ function InstancedScatterGroup({ paths, instances, windEnabled = false }: {
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Biome-to-asset filter rules.
+// Each entry: which biome ids are ALLOWED for this scatter type.
+// Empty set = allowed in all biomes.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const BIOME_ALLOW: Record<string, Set<string>> = {
+  pines:      new Set(["mountains", "snow", "forest"]),
+  deadTrees:  new Set(["lava", "desert", "mountains"]),
+  twisted:    new Set(["swamp", "lava", "desert"]),
+  mushrooms:  new Set(["forest", "swamp", "plains", "jungle"]),
+  flowers:    new Set(["plains", "forest", "jungle", "coast"]),
+  ferns:      new Set(["forest", "jungle", "swamp"]),
+  plants:     new Set(["jungle", "swamp", "forest", "plains"]),
+  // Trees, rocks, bushes, grass are allowed everywhere (empty = no filter).
+};
+
+function filterByBiome(instances: ScatteredInstance[], category: string): ScatteredInstance[] {
+  const allowed = BIOME_ALLOW[category];
+  if (!allowed || allowed.size === 0) return instances; // no restriction
+  return instances.filter((inst) => {
+    const biomeId = getBiomeAtPosition(inst.position[0], inst.position[2]).id;
+    return allowed.has(biomeId);
+  });
+}
+
 export default function NatureScatter() {
-  const treeInstances = useMemo(() => generateScatterInstances(12, 100, 20, 90, 1.5, 3.0), []);
-  const pineInstances = useMemo(() => generateScatterInstances(10, 200, 25, 90, 1.2, 2.5), []);
-  const deadTreeInstances = useMemo(() => generateScatterInstances(4, 300, 30, 85, 1.0, 2.0), []);
-  const twistedInstances = useMemo(() => generateScatterInstances(3, 350, 35, 80, 1.5, 2.5), []);
-  const rockInstances = useMemo(() => generateScatterInstances(8, 400, 15, 85, 0.8, 2.0), []);
-  const bushInstances = useMemo(() => generateScatterInstances(10, 500, 12, 80, 0.8, 1.5), []);
-  const grassInstances = useMemo(() => generateScatterInstances(12, 600, 8, 70, 0.6, 1.2, 8), []);
-  const mushroomInstances = useMemo(() => generateScatterInstances(5, 700, 15, 60, 0.5, 1.0), []);
-  const flowerInstances = useMemo(() => generateScatterInstances(6, 800, 10, 70, 0.6, 1.0, 8), []);
-  const fernInstances = useMemo(() => generateScatterInstances(5, 900, 12, 65, 0.7, 1.3), []);
-  const plantInstances = useMemo(() => generateScatterInstances(6, 1000, 10, 75, 0.5, 1.2), []);
+  const rawTrees    = useMemo(() => generateScatterInstances(12, 100, 20, 90, 1.5, 3.0), []);
+  const rawPines    = useMemo(() => generateScatterInstances(16, 200, 25, 90, 1.2, 2.5), []);
+  const rawDead     = useMemo(() => generateScatterInstances(8,  300, 30, 85, 1.0, 2.0), []);
+  const rawTwisted  = useMemo(() => generateScatterInstances(7,  350, 35, 80, 1.5, 2.5), []);
+  const rawRocks    = useMemo(() => generateScatterInstances(8,  400, 15, 85, 0.8, 2.0), []);
+  const rawBushes   = useMemo(() => generateScatterInstances(10, 500, 12, 80, 0.8, 1.5), []);
+  const rawGrass    = useMemo(() => generateScatterInstances(12, 600,  8, 70, 0.6, 1.2, 8), []);
+  const rawMushrooms= useMemo(() => generateScatterInstances(8,  700, 15, 60, 0.5, 1.0), []);
+  const rawFlowers  = useMemo(() => generateScatterInstances(10, 800, 10, 70, 0.6, 1.0, 8), []);
+  const rawFerns    = useMemo(() => generateScatterInstances(8,  900, 12, 65, 0.7, 1.3), []);
+  const rawPlants   = useMemo(() => generateScatterInstances(8, 1000, 10, 75, 0.5, 1.2), []);
+
+  // Apply biome filter — only place ecologically appropriate plants per zone
+  const treeInstances     = useMemo(() => filterByBiome(rawTrees,    "trees"),    [rawTrees]);
+  const pineInstances     = useMemo(() => filterByBiome(rawPines,    "pines"),    [rawPines]);
+  const deadTreeInstances = useMemo(() => filterByBiome(rawDead,     "deadTrees"),[rawDead]);
+  const twistedInstances  = useMemo(() => filterByBiome(rawTwisted,  "twisted"),  [rawTwisted]);
+  const rockInstances     = useMemo(() => filterByBiome(rawRocks,    "rocks"),    [rawRocks]);
+  const bushInstances     = useMemo(() => filterByBiome(rawBushes,   "bushes"),   [rawBushes]);
+  const grassInstances    = useMemo(() => filterByBiome(rawGrass,    "grass"),    [rawGrass]);
+  const mushroomInstances = useMemo(() => filterByBiome(rawMushrooms,"mushrooms"),[rawMushrooms]);
+  const flowerInstances   = useMemo(() => filterByBiome(rawFlowers,  "flowers"),  [rawFlowers]);
+  const fernInstances     = useMemo(() => filterByBiome(rawFerns,    "ferns"),    [rawFerns]);
+  const plantInstances    = useMemo(() => filterByBiome(rawPlants,   "plants"),   [rawPlants]);
 
   return (
     <group>

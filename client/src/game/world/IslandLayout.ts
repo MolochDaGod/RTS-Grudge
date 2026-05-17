@@ -25,14 +25,23 @@
  *   primary inputs; world coords are derived). Everything that reads
  *   the layout — the minimap, the world map, the 3D placeholders, and
  *   eventually NPC/vendor placement — picks up the change automatically.
+ *
+ * World zones (5):
+ *   CENTRAL   hub_main              — the large Unity-export hub island
+ *   TROPICAL  tropical_a–d          — upper-left, pirate biome
+ *   ICE       ice_a–d               — upper-right, glacier biome
+ *   LAVA      lava_a–d              — lower-right, volcanic biome
+ *   BOSS      boss_a–d              — lower-left, sinking / dungeon biome
  */
+
+import type { ZoneId } from "./WorldZoneRegistry";
 
 /** Reference image dimensions in pixels — `client/public/maps/world_overhead.png`. */
 export const WORLD_MAP_IMAGE_PATH = "/maps/world_overhead.png";
 export const WORLD_MAP_IMAGE_W = 784;
 export const WORLD_MAP_IMAGE_H = 826;
 
-/** Image pixel that represents world (0, 0, 0). Tutorial island centre. */
+/** Image pixel that represents world (0, 0, 0). Tutorial / central hub centre. */
 const TUTORIAL_IMAGE_X = 220;
 const TUTORIAL_IMAGE_Y = 580;
 
@@ -43,9 +52,9 @@ export interface IslandLayoutEntry {
   id: string;
   /** Display name; used in tooltips and the M-key map. */
   name: string;
-  /** Optional faction tag — unset for the tutorial island and decorative islets. */
-  faction?: "north" | "south" | "east" | "west";
-  /** True for the tutorial island. There is exactly one. */
+  /** Zone this island belongs to. */
+  zoneId: ZoneId;
+  /** True for the large central hub / tutorial island. There is exactly one. */
   isTutorial?: boolean;
   /** True for the small unnamed rocks that serve as visual decoration. */
   isIslet?: boolean;
@@ -59,94 +68,136 @@ export interface IslandLayoutEntry {
    * image.
    */
   imageRadius: number;
-  /** Tint used for the pin on map UIs. */
+  /** Tint used for the pin on map UIs. Prefer zone pinColor for rendering. */
   color: string;
 }
 
 /**
- * Baked island placements. Image pixel coords come from eyeballing the
- * reference map; world coords are derived in `withWorldCoords` below.
+ * 17 baked island placements across the 5 world zones.
+ * Image pixel coords → world coords via imageToWorldCoords below.
  *
- * The bottom-left island carries the shipwreck mark, so it's the
- * tutorial island. The four "compass" majors become faction islands
- * (NW + N + W + SE were the cleanest assignment given the image's
- * organic spread — note the world is NOT a strict cross around the
- * tutorial; the user wants the layout to follow the image, not
- * doctrine). The two tiny islets are decoration / future fast-travel
- * waypoints.
+ *  Hub (1):           Central, large island near image centre
+ *  Tropical (4):      Upper-left quadrant — pirate / jungle biome
+ *  Ice (4):           Upper-right quadrant — glacier / blizzard biome
+ *  Lava (4):          Lower-right quadrant — volcanic / fire biome
+ *  Boss / Sinking (4): Lower-left quadrant — dungeon / void biome
  */
 const RAW_LAYOUT: IslandLayoutEntry[] = [
+
+  // ── CENTRAL HUB ──────────────────────────────────────────────────────────
   {
-    id: "tutorial",
-    name: "Driftwood Cove",
+    id: "hub_main",
+    name: "The Rift",
+    zoneId: "central",
     isTutorial: true,
-    imagePx: TUTORIAL_IMAGE_X,
+    imagePx: TUTORIAL_IMAGE_X, // world (0, 0) — player spawn
     imagePy: TUTORIAL_IMAGE_Y,
-    imageRadius: 70,
+    imageRadius: 80,
     color: "#c9a25a",
   },
+
+  // ── TROPICAL — upper-left ─────────────────────────────────────────────────
   {
-    id: "island_nw",
-    name: "Pinecrest Reach",
-    faction: "west",
-    imagePx: 190,
-    imagePy: 170,
-    imageRadius: 75,
-    color: "#7da06b",
+    id: "tropical_d",
+    name: "Shanty Shoal",
+    zoneId: "tropical",
+    imagePx: 210, imagePy: 320, imageRadius: 42, color: "#3d9960",
   },
   {
-    id: "island_n",
-    name: "Bastion Vale",
-    faction: "north",
-    imagePx: 460,
-    imagePy: 200,
-    imageRadius: 110,
-    color: "#a98556",
+    id: "tropical_c",
+    name: "Mangrove Lagoon",
+    zoneId: "tropical",
+    imagePx: 85, imagePy: 275, imageRadius: 48, color: "#3d9960",
   },
   {
-    id: "island_w",
-    name: "Hollowtide Town",
-    faction: "west",
-    imagePx: 270,
-    imagePy: 410,
-    imageRadius: 75,
-    color: "#9c6b50",
+    id: "tropical_b",
+    name: "Coconut Harbor",
+    zoneId: "tropical",
+    imagePx: 192, imagePy: 170, imageRadius: 65, color: "#3d9960",
   },
   {
-    id: "island_e",
-    name: "Verdant Knoll",
-    faction: "east",
-    imagePx: 615,
-    imagePy: 400,
-    imageRadius: 50,
-    color: "#5fa069",
+    id: "tropical_a",
+    name: "Rum Runner's Cay",
+    zoneId: "tropical",
+    imagePx: 115, imagePy: 95, imageRadius: 50, color: "#3d9960",
+  },
+
+  // ── ICE — upper-right ─────────────────────────────────────────────────────
+  {
+    id: "ice_d",
+    name: "Icebound Shallows",
+    zoneId: "ice",
+    imagePx: 490, imagePy: 280, imageRadius: 42, color: "#5599cc",
   },
   {
-    id: "island_se",
-    name: "Iron Watch Hold",
-    faction: "south",
-    imagePx: 490,
-    imagePy: 555,
-    imageRadius: 100,
-    color: "#8d8276",
+    id: "ice_c",
+    name: "Blizzard Maw",
+    zoneId: "ice",
+    imagePx: 700, imagePy: 250, imageRadius: 48, color: "#5599cc",
   },
   {
-    id: "islet_w",
-    name: "West Shoal",
-    isIslet: true,
-    imagePx: 80,
-    imagePy: 315,
-    imageRadius: 14,
-    color: "#cdb079",
+    id: "ice_b",
+    name: "Frostfall Peak",
+    zoneId: "ice",
+    imagePx: 565, imagePy: 165, imageRadius: 65, color: "#5599cc",
   },
   {
-    id: "islet_e",
-    name: "East Shoal",
-    isIslet: true,
-    imagePx: 700,
-    imagePy: 290,
-    imageRadius: 14,
-    color: "#cdb079",
+    id: "ice_a",
+    name: "Glacier Keep",
+    zoneId: "ice",
+    imagePx: 668, imagePy: 90, imageRadius: 55, color: "#5599cc",
+  },
+
+  // ── LAVA — lower-right ────────────────────────────────────────────────────
+  {
+    id: "lava_d",
+    name: "Cinder Gate",
+    zoneId: "lava",
+    imagePx: 558, imagePy: 580, imageRadius: 42, color: "#cc3311",
+  },
+  {
+    id: "lava_c",
+    name: "Scorched Reach",
+    zoneId: "lava",
+    imagePx: 700, imagePy: 760, imageRadius: 48, color: "#cc3311",
+  },
+  {
+    id: "lava_b",
+    name: "Ember Caldera",
+    zoneId: "lava",
+    imagePx: 635, imagePy: 658, imageRadius: 65, color: "#cc3311",
+  },
+  {
+    id: "lava_a",
+    name: "Volcanic Vent",
+    zoneId: "lava",
+    imagePx: 692, imagePy: 580, imageRadius: 50, color: "#cc3311",
+  },
+
+  // ── BOSS / SINKING — lower-left ───────────────────────────────────────────
+  {
+    id: "boss_a",
+    name: "The Threshold",
+    zoneId: "boss",
+    imagePx: 115, imagePy: 648, imageRadius: 48, color: "#7744aa",
+  },
+  {
+    id: "boss_b",
+    name: "Cursed Crag",
+    zoneId: "boss",
+    imagePx: 65, imagePy: 728, imageRadius: 58, color: "#7744aa",
+  },
+  {
+    id: "boss_c",
+    name: "Sunken Throne",
+    zoneId: "boss",
+    imagePx: 155, imagePy: 778, imageRadius: 45, color: "#7744aa",
+  },
+  {
+    id: "boss_d",
+    name: "The Abyss",
+    zoneId: "boss",
+    imagePx: 58, imagePy: 798, imageRadius: 40, color: "#7744aa",
   },
 ];
 
