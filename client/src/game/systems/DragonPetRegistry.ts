@@ -263,7 +263,7 @@ export const DRAGON_STAGES: Record<DragonStage, DragonStageDef> = {
     ],
     nft: {
       collection: "grudge-dragons",
-      attributes: { stage: "adult", element: "fire", rarity: "heroic", mountable: true },
+      attributes: { stage: "adult", element: "fire", rarity: "heroic", mountable: 1 },
       royaltyBps: 500,
     },
     stageColor: "#ff3300",
@@ -393,7 +393,7 @@ export const DRAGON_STAGES: Record<DragonStage, DragonStageDef> = {
       collection: "grudge-legendary-dragons",
       attributes: {
         stage: "legendary", element: "void", rarity: "legendary",
-        mountCapacity: 3, unique: true,
+        mountCapacity: 3, unique: 1,
       },
       royaltyBps: 700,
     },
