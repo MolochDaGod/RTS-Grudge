@@ -1656,8 +1656,8 @@ export default function CharacterSelectScreen() {
     startLoading(config);
 
     // Push the confirmed Hero Forge loadout to the cross-game sync service so
-    // the crafting app and survival game can see which character / model was
-    // selected and read the race/class/weapon context.
+    // grudge-crafting.puter.site can read the race/class/weapon context for
+    // the active Warlords character and show relevant crafting data.
     if (activeCharId) {
       const forgeConfig: HeroForgeConfig = {
         modelPath: currentModelPath,
