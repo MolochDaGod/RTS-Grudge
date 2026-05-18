@@ -9,6 +9,8 @@ import { isRestPoseClipName } from "./hooks/useCharacterModel";
 import { AssetLoaderInit } from "./systems/AssetLoaderInit";
 import { useGame, CharacterConfig, MaterialColors, WeaponType, CombatClass } from "@/lib/stores/useGame";
 import { FACTIONS, DEFAULT_FACTION, getFaction, type FactionId } from "@/lib/data/factions";
+import { useGrudgeSync, useGrudgeSyncInit } from "@/lib/stores/useGrudgeSync";
+import type { HeroForgeConfig } from "@/lib/services/GrudgeCharacterService";
 import { ALL_CHARACTER_MODELS } from "./systems/ModelRegistry";
 import { kickoffHeroForgePreload } from "./heroForge/preload";
 import { kickoffIntroAnimPreload } from "./intro/preload";
@@ -1248,6 +1250,12 @@ export default function CharacterSelectScreen() {
   const { reset: resetEnemies } = useEnemyManager();
   const { initHero } = useCharacterStats();
 
+  // Bootstrap cross-game character sync. Loads Grudge API character list and
+  // pulls cross-game data for the active character (Hero Forge config, profession
+  // levels set via the crafting app, survival progress, etc.).
+  const { activeCharId, pushHeroForge: syncPushHeroForge } = useGrudgeSync();
+  useGrudgeSyncInit(true);
+
   // Belt-and-suspenders: also kick off Hero Forge model preload here in case
   // the user reaches this screen without going through the main menu first.
   // Same for the intro cutscene's animation pack — character select is the
@@ -1646,6 +1654,28 @@ export default function CharacterSelectScreen() {
       });
     }
     startLoading(config);
+
+    // Push the confirmed Hero Forge loadout to the cross-game sync service so
+    // the crafting app and survival game can see which character / model was
+    // selected and read the race/class/weapon context.
+    if (activeCharId) {
+      const forgeConfig: HeroForgeConfig = {
+        modelPath: currentModelPath,
+        name: heroName || "Hero",
+        combatClass,
+        weaponRight,
+        weaponLeft: weaponLeft ?? null,
+        faction: getFactionForModel(currentModelPath),
+        materialColors: matColors,
+        bodyMorph: isDefaultMorph ? undefined : bodyMorph,
+        weaponModelRight: weaponModelRight || undefined,
+        weaponModelLeft: weaponModelLeft || undefined,
+        arrowModelId: arrowModelId || undefined,
+        backAccessoryId: backAccessoryId || undefined,
+        scale,
+      };
+      syncPushHeroForge(forgeConfig);
+    }
   };
 
   const uniqueParts = useMemo(() => {
