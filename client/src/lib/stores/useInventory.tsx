@@ -237,10 +237,9 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
     result: { id: "cloth", name: "Cloth", type: "material", icon: "🧵", quantity: 2 },
   },
 
-  {
-    id: "leather_vest", name: "Leather Vest", category: "armor",
+  { id: "leather_vest", name: "Leather Vest", category: "armor",
     ingredients: [{ itemId: "leather", count: 4 }, { itemId: "fiber", count: 2 }],
-    result: { id: "leather_vest", name: "Leather Vest", type: "armor", icon: "🦴", quantity: 1, description: "+5 Defense" },
+    result: { id: "leather_vest", name: "Leather Vest", type: "armor", icon: "🦺", quantity: 1, description: "+5 Defense" },
   },
   {
     id: "iron_helmet", name: "Iron Helmet", category: "armor",
