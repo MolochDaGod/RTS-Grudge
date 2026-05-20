@@ -59,6 +59,9 @@ export type CharacterEvent =
   | { type: "DISMOUNT_CLIMB" }
   | { type: "TOPOUT" }
   | { type: "CLIMB_VEL"; vertical: number; lateral: number }
+  // Conan-style controlled drop — dodge key while climbing pushes the
+  // player off the wall and halves fall damage. Transitions to falling.
+  | { type: "CONTROLLED_DROP" }
   // Combat
   | { type: "ATTACK_LIGHT" }
   | { type: "ATTACK_HEAVY" }
@@ -292,6 +295,14 @@ export const characterMachine = setup({
             },
             TOPOUT: {
               target: ".topout",
+            },
+            // Conan-style controlled drop — dodge key while climbing.
+            // Pushes the player off the wall and transitions to falling.
+            // Player.tsx reads this transition and sets the controlled-drop
+            // flag on FallDamage.ts to halve landing damage.
+            CONTROLLED_DROP: {
+              target: "airborne.falling",
+              actions: "clearClimbKind",
             },
           },
           exit: "clearClimbKind",

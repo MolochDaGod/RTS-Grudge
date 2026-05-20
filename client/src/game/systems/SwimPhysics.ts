@@ -1,11 +1,17 @@
+import { create } from "zustand";
 import { useFatigue, DRAIN_RATES } from "./FatigueSystem";
 import { useSurvival } from "@/lib/stores/useSurvival";
 
 // ---------------------------------------------------------------------------
-// Swim physics — buoyancy, drag, surface tension, drowning.
+// Swim physics — buoyancy, drag, surface tension, drowning, breath meter.
 //
 // Called per-frame from Player.tsx when `isInWater(py)` is true.
 // Returns force/velocity adjustments for the Rapier rigid body.
+//
+// Conan Exiles-inspired additions:
+//   - Breath meter (30s, separate from stamina)
+//   - Encumbrance drag (heavier gear = slower swim)
+//   - Water current vector support
 // ---------------------------------------------------------------------------
 
 /** Water surface y (read from WaterVolume.ts or passed in). */
@@ -31,6 +37,16 @@ const SURFACE_BAND     = 0.3;   // meters ± from surface
 // --- Drowning ---
 const DROWNING_DAMAGE_PER_SEC = 8;  // health per second when drowning
 
+// --- Breath meter (Conan-style) ---
+const MAX_BREATH          = 30.0;  // seconds of breath at full
+const BREATH_DEPLETE_RATE = 1.0;   // 1 second of breath per real second submerged
+const BREATH_RECOVER_RATE = 3.0;   // recovers 3× faster when at surface
+const BREATH_DROWN_THRESHOLD = 0;  // start drowning when breath hits 0
+
+// --- Encumbrance ---
+// Swim speed penalty based on carried weight. 0 weight = no penalty, maxWeight = 40% slower.
+const ENCUMBRANCE_MAX_PENALTY = 0.4; // 40% speed reduction at max weight
+
 export interface SwimInput {
   /** Player capsule foot-y in world space. */
   playerY: number;
@@ -48,6 +64,10 @@ export interface SwimInput {
   wantsAscend: boolean;
   /** Frame delta. */
   delta: number;
+  /** Current encumbrance ratio 0–1 (0 = empty, 1 = max carry weight). */
+  encumbranceRatio?: number;
+  /** External water current force [x, y, z] applied to the player. */
+  waterCurrent?: [number, number, number];
 }
 
 export interface SwimOutput {
@@ -61,10 +81,12 @@ export interface SwimOutput {
   atSurface: boolean;
   /** True when the character is actively diving below surface. */
   isDiving: boolean;
-  /** True when drowning is active (exhausted stamina in water). */
+  /** True when drowning is active (out of breath underwater). */
   isDrowning: boolean;
   /** Submersion ratio 0–1 (0 = out of water, 1 = fully submerged). */
   submersion: number;
+  /** Current force vector applied by water current [x, y, z]. */
+  currentForce: [number, number, number];
 }
 
 /**
@@ -104,22 +126,32 @@ export function computeSwimPhysics(input: SwimInput): SwimOutput {
     buoyancyForce *= 0.3; // reduce buoyancy while actively diving
   }
 
-  // --- Drag ---
+  // --- Drag (with encumbrance penalty) ---
   const depthRatio = Math.min(1, Math.max(0, depth) / DEEP_THRESHOLD);
   const dragFactor = 1.0 - (DRAG_SURFACE + (DRAG_DEEP - DRAG_SURFACE) * depthRatio);
-  const horizontalDrag = Math.max(0.3, dragFactor);
+  const encPenalty = (input.encumbranceRatio ?? 0) * ENCUMBRANCE_MAX_PENALTY;
+  const horizontalDrag = Math.max(0.2, dragFactor * (1 - encPenalty));
 
-  // --- Fatigue / drowning ---
-  const fatigue = useFatigue.getState();
-  const isExhausted = fatigue.level === "exhausted";
-  const isDrowning = isExhausted && submersion > 0.3;
+  // --- Breath meter ---
+  const breathState = useBreathMeter.getState();
+  if (submersion > 0.5) {
+    // Underwater — deplete breath
+    breathState.deplete(BREATH_DEPLETE_RATE * delta);
+  } else {
+    // At surface or shallow — recover breath
+    breathState.recover(BREATH_RECOVER_RATE * delta);
+  }
+
+  // --- Drowning (breath-based, not fatigue-based) ---
+  const isDrowning = breathState.breath <= BREATH_DROWN_THRESHOLD && submersion > 0.3;
 
   if (isDrowning) {
-    // Apply drowning damage
     useSurvival.getState().takeDamage(DROWNING_DAMAGE_PER_SEC * delta, "poison");
-    // Reduce buoyancy when drowning — character sinks
     buoyancyForce *= 0.4;
   }
+
+  // --- Water current ---
+  const currentForce: [number, number, number] = input.waterCurrent ?? [0, 0, 0];
 
   return {
     buoyancyForce,
@@ -129,6 +161,7 @@ export function computeSwimPhysics(input: SwimInput): SwimOutput {
     isDiving,
     isDrowning,
     submersion,
+    currentForce,
   };
 }
 
@@ -157,3 +190,34 @@ export function resolveSwimState(
   if (output.submersion > 0.3) return "treading";
   return "surface_idle";
 }
+
+// ---------------------------------------------------------------------------
+// Breath Meter Store — Conan Exiles-style underwater breath.
+//
+// Separate from stamina: you can be at full stamina but still drown if
+// you stay under too long. HUD subscribes for the breath bar display.
+// ---------------------------------------------------------------------------
+
+export interface BreathMeterState {
+  breath: number;
+  maxBreath: number;
+  isSubmerged: boolean;
+  deplete: (amount: number) => void;
+  recover: (amount: number) => void;
+  reset: () => void;
+}
+
+export const useBreathMeter = create<BreathMeterState>((set) => ({
+  breath: MAX_BREATH,
+  maxBreath: MAX_BREATH,
+  isSubmerged: false,
+  deplete: (amount) => set((s) => ({
+    breath: Math.max(0, s.breath - amount),
+    isSubmerged: true,
+  })),
+  recover: (amount) => set((s) => ({
+    breath: Math.min(s.maxBreath, s.breath + amount),
+    isSubmerged: false,
+  })),
+  reset: () => set({ breath: MAX_BREATH, isSubmerged: false }),
+}));

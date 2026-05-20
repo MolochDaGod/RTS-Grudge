@@ -14,6 +14,8 @@ import { useAudio } from "@/lib/stores/useAudio";
 import { useHarvest } from "@/lib/stores/useHarvest";
 import { useBuildSystem } from "@/lib/stores/useBuildSystem";
 import { useCampaign } from "@/lib/stores/useCampaign";
+import { useCrosshairHarvest } from "@/game/systems/CrosshairHarvest";
+import { useBreathMeter } from "@/game/systems/SwimPhysics";
 import React, { useState, useRef, useEffect } from "react";
 import type { InteractionMode } from "@/lib/stores/useGame";
 import MainPanel from "./MainPanel";
@@ -78,6 +80,100 @@ const FONTS = {
 // of cue. The visibility flags are written by the climb sensor
 // proximity tracker (`nearClimbable.ts`) and the climb controller
 // in Player.tsx — see `useClimbPrompt`.
+// ---------------------------------------------------------------------------
+// Harvest Crosshair — Conan-style centre-screen reticle for aimed mining.
+// Only visible in harvest mode. Changes colour when aiming at a valid
+// resource node, and pulses gold on weak-spot hits.
+// ---------------------------------------------------------------------------
+function HarvestCrosshair({ interactionMode }: { interactionMode: InteractionMode }) {
+  const target = useCrosshairHarvest((s) => s.target);
+  const weakFlash = useCrosshairHarvest((s) => s.weakSpotFlash);
+  if (interactionMode !== "harvest") return null;
+
+  const hasTarget = !!target;
+  const isWeak = target?.isWeakSpot ?? false;
+  const flashActive = weakFlash > 0;
+
+  const color = flashActive
+    ? "#ffd700"          // gold flash on weak-spot hit
+    : isWeak
+      ? "#ff6600"        // orange when aiming at weak spot
+      : hasTarget
+        ? "#44ff44"      // green on valid target
+        : "#ffffff88";   // dim white on empty space
+
+  const size = flashActive ? 14 : isWeak ? 10 : hasTarget ? 8 : 6;
+  const glow = hasTarget ? `0 0 ${flashActive ? 16 : 8}px ${color}` : "none";
+
+  return (
+    <div
+      aria-hidden
+      style={{
+        position: "fixed",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        width: size,
+        height: size,
+        borderRadius: "50%",
+        background: color,
+        boxShadow: glow,
+        pointerEvents: "none",
+        zIndex: 9100,
+        transition: "all 0.1s ease-out",
+      }}
+    />
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Breath Bar — Conan-style underwater breath meter.
+// Only visible when submerged. Sits below the stamina bar in the unit frame.
+// ---------------------------------------------------------------------------
+function BreathBar() {
+  const breath = useBreathMeter((s) => s.breath);
+  const maxBreath = useBreathMeter((s) => s.maxBreath);
+  const isSubmerged = useBreathMeter((s) => s.isSubmerged);
+
+  // Hide when not submerged and breath is full
+  if (!isSubmerged && breath >= maxBreath) return null;
+
+  const pct = (breath / maxBreath) * 100;
+  const critical = pct < 25;
+  const barColor = critical
+    ? "linear-gradient(90deg, #cc2222, #ff4444)"
+    : "linear-gradient(90deg, #1a6b8a, #2ecbe9)";
+
+  return (
+    <div style={{
+      position: "absolute", top: 90, left: 16,
+      width: 200, pointerEvents: "none",
+    }}>
+      <div style={{
+        position: "relative", width: "100%", height: 10,
+        background: "rgba(0,0,0,0.8)", borderRadius: 3,
+        border: "1px solid rgba(255,255,255,0.08)", overflow: "hidden",
+      }}>
+        <div style={{
+          position: "absolute", top: 0, left: 0, height: "100%",
+          width: `${pct}%`, background: barColor,
+          transition: "width 0.3s",
+          animation: critical ? "breathPulse 0.8s ease-in-out infinite" : "none",
+        }} />
+        <div style={{
+          position: "absolute", inset: 0, display: "flex",
+          alignItems: "center", padding: "0 4px",
+          fontSize: 8, fontWeight: "bold", color: "#fff",
+          textShadow: "0 1px 2px #000", fontFamily: FONTS.mono,
+        }}>
+          🫧 {Math.ceil(breath)}s
+        </div>
+      </div>
+      <style>{`@keyframes breathPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }`}</style>
+    </div>
+  );
+}
+
 function ClimbPrompt() {
   const near = useClimbPrompt((s) => s.near);
   const climbing = useClimbPrompt((s) => s.climbing);
@@ -1078,6 +1174,8 @@ export default function HUD() {
       <HungerStatusIndicator />
       <AllyCommandIndicator />
       <ChargeMeter />
+      <HarvestCrosshair interactionMode={interactionMode} />
+      <BreathBar />
 
       {/* === TOP LEFT: Unit Frame === */}
       <div style={{
