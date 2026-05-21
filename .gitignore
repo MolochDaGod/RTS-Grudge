@@ -1,7 +1,4 @@
 node_modules
-# FBX conversion tool binary (download locally — not committed)
-FBX2glTF.exe
-FBX2glTF
 dist
 .DS_Store
 server/public
@@ -11,29 +8,33 @@ vite.config.ts.*
 .env.local
 .env.production
 
-# R2/D1 assets (served from CDN)
-Models/
-attached_assets/
-client/public/
-# Allow BRB Bip001 animation GLBs (converted from FBX, committed for dev)
-!client/public/models/
-!client/public/models/animations/
-!client/public/models/animations/grudge6_brb/
-!client/public/models/animations/grudge6_brb/**
-
 # Replit artifacts
-.canvas/
-.local/
 .replit
-_extract/
-artifacts/
-skills-lock.json
+replit.md
+.config/
 
-# Python tooling
-main.py
+# Python (not used — Replit leftover)
+*.pyc
+__pycache__/
 pyproject.toml
 uv.lock
+main.py
 
-# Misc
-$null
-'
+# Build tools / binaries
+FBX2glTF.exe
+package-lock.json
+
+# Dev logs
+_dev_*.txt
+
+# Local dev directories
+.wrangler/
+.local/
+_extract/
+attached_assets/
+artifacts/
+
+# IDE
+.vscode/
+*.swp
+*.swo

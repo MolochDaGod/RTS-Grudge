@@ -258,14 +258,9 @@ export async function registerRoutes(
   // All tables are managed by Drizzle schema — run `drizzle-kit push` to sync.
   // Routes register unconditionally; queries fail gracefully if DB is unreachable.
   // ── Auth: Grudge ID token refresh + validate proxy ─────────────────────────
-  // All auth flows use id.grudge-studio.com (Cloudflare + Railway).
-  // auth-gateway-flax.vercel.app is RETIRED — never reference or route to it.
   const { handleTokenRefresh, grudgeAuth } = await import("./authMiddleware");
 
-  // Refresh a near-expiring Grudge token. Called by GrudgeSession keep-alive.
   app.post("/auth/refresh", grudgeAuth, handleTokenRefresh);
-
-  // Lightweight session check — returns the current user context.
   app.get("/auth/me", grudgeAuth, (req: Request, res: Response) => {
     const u = req.grudgeUser;
     if (!u?.authenticated) {
@@ -353,6 +348,11 @@ export async function registerRoutes(
   app.get("/api/ai-models", (_req: Request, res: Response) => {
     res.json({ models: getAllModels() });
   });
+
+  // ── Dev-only endpoints: file system access ──────────────────────────────
+  // These endpoints allow reading/writing arbitrary project files.
+  // NEVER expose in production — gated behind NODE_ENV check.
+  if (process.env.NODE_ENV !== "production") {
 
   app.post("/api/ai-edit", async (req: Request, res: Response) => {
     try {
@@ -467,6 +467,8 @@ export async function registerRoutes(
       return res.status(500).json({ error: error.message });
     }
   });
+
+  } // end dev-only file-system endpoints
 
   app.get("/api/game-config", (_req: Request, res: Response) => {
     res.json({ status: "ok", message: "Game config endpoint ready" });

@@ -15,6 +15,8 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { pushProfessions } from "@/lib/services/GrudgeCharacterService";
+import { getActiveCharId } from "@/lib/services/GrudgeCharacterService";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Profession taxonomy
@@ -330,18 +332,34 @@ export const useProfessions = create<ProfessionsState>()(
 
       // ── addProfXP ─────────────────────────────────────────────────────────
       addProfXP: (profId, amount) => {
+        let didLevelUp = false;
         set(s => {
-          const prof = { ...s.professions[profId] };
+          const prev = s.professions[profId];
+          const prof = { ...prev };
           prof.xp += amount;
           while (prof.level < MAX_PROF_LEVEL && prof.xp >= prof.xpToNext) {
             prof.xp -= prof.xpToNext;
             prof.level += 1;
             prof.skillPoints += 1; // 1 point per level
             prof.xpToNext = profXpForNextLevel(prof.level);
+            didLevelUp = true;
           }
           if (prof.level >= MAX_PROF_LEVEL) prof.xp = 0;
           return { professions: { ...s.professions, [profId]: prof } };
         });
+        // Push updated profession levels to cross-game sync after a level-up.
+        // Fire-and-forget; debounced internally by GrudgeCharacterService.
+        if (didLevelUp) {
+          const charId = getActiveCharId();
+          if (charId) {
+            const allProfs = useProfessions.getState().professions;
+            const payload: Record<string, { level: number; xp: number; xpNext: number; unlockedNodes: string[] }> = {};
+            for (const [id, p] of Object.entries(allProfs)) {
+              payload[id] = { level: p.level, xp: p.xp, xpNext: p.xpToNext, unlockedNodes: p.unlockedNodes };
+            }
+            pushProfessions(charId, payload, "rts");
+          }
+        }
       },
 
       // ── unlockNode ────────────────────────────────────────────────────────

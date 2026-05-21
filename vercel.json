@@ -1,0 +1,34 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist/public",
+  "framework": null,
+  "rewrites": [
+    { "source": "/api/game/:path*",     "destination": "https://api.grudge-studio.com/:path*" },
+    { "source": "/api/auth/:path*",      "destination": "https://id.grudge-studio.com/auth/:path*" },
+    { "source": "/api/account/:path*",   "destination": "https://account.grudge-studio.com/:path*" },
+    { "source": "/api/assets/:path*",    "destination": "https://assets.grudge-studio.com/:path*" },
+    { "source": "/Models/:path*",        "destination": "https://assets.grudge-studio.com/models/:path*" }
+  ],
+  "routes": [
+    {
+      "src": "/assets/(.*)",
+      "headers": { "Cache-Control": "public, max-age=31536000, immutable" }
+    },
+    {
+      "src": "/(.*)\\.(?:glb|gltf|png|jpg|webp|mp3|wav|ogg|wasm)$",
+      "headers": { "Cache-Control": "public, max-age=86400" }
+    },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" }
+      ]
+    }
+  ]
+}
