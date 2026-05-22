@@ -3,21 +3,28 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist/public",
   "framework": null,
-  "rewrites": [
-    { "source": "/api/game/:path*",     "destination": "https://api.grudge-studio.com/:path*" },
-    { "source": "/api/auth/:path*",      "destination": "https://id.grudge-studio.com/auth/:path*" },
-    { "source": "/api/account/:path*",   "destination": "https://account.grudge-studio.com/:path*" },
-    { "source": "/api/assets/:path*",    "destination": "https://assets.grudge-studio.com/:path*" },
-    { "source": "/Models/:path*",        "destination": "https://assets.grudge-studio.com/models/:path*" }
-  ],
   "routes": [
     {
+      "src": "/api/(.*)",
+      "dest": "https://grudge-warlords-rpg-production-757f.up.railway.app/api/$1"
+    },
+    {
+      "src": "/auth/(.*)",
+      "dest": "https://id.grudge-studio.com/auth/$1"
+    },
+    {
+      "src": "/Models/(.*)",
+      "dest": "https://assets.grudge-studio.com/models/$1"
+    },
+    {
       "src": "/assets/(.*)",
-      "headers": { "Cache-Control": "public, max-age=31536000, immutable" }
+      "headers": { "Cache-Control": "public, max-age=31536000, immutable" },
+      "continue": true
     },
     {
       "src": "/(.*)\\.(?:glb|gltf|png|jpg|webp|mp3|wav|ogg|wasm)$",
-      "headers": { "Cache-Control": "public, max-age=86400" }
+      "headers": { "Cache-Control": "public, max-age=86400" },
+      "continue": true
     },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
