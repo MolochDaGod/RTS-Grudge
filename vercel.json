@@ -6,7 +6,7 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://api.grudge-studio.com/api/$1"
+      "dest": "https://grudge-warlords-rpg-production-757f.up.railway.app/api/$1"
     },
     {
       "src": "/auth/(.*)",
@@ -34,7 +34,7 @@
       "source": "/(.*)",
       "headers": [
         { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" }
+        { "key": "Content-Security-Policy", "value": "frame-ancestors 'self' https://id.grudge-studio.com https://*.grudge-studio.com" }
       ]
     }
   ]
