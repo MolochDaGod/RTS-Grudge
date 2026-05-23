@@ -1,7 +1,9 @@
 # RTS-Grudge — Grudge Warlords
 
 > **Created by Racalvin The Pirate King** · Grudge Studio  
-> A multiplayer open-world action MMO built in BabylonJS / React-Three-Fiber with faction heroes, sailing, crafting, and dynamic world events.
+> The 3D island gameplay engine for Grudge Warlords — open-world combat, faction heroes, sailing, crafting, and dynamic world events. Built with React-Three-Fiber + Rapier physics.
+>
+> **Live:** [rts-grudge.vercel.app](https://rts-grudge.vercel.app) · **Hub:** [grudgewarlords.com/rts-grudge](https://grudgewarlords.com/rts-grudge)
 
 ---
 
@@ -652,6 +654,24 @@ all API calls to the Grudge backend via `vercel.json` rewrites.
 - [docs/GLOSSARY.md](docs/GLOSSARY.md) — Terms and definitions
 - [docs/WEAPONS.md](docs/WEAPONS.md) — Weapon prefab catalogue and object storage mapping
 - [docs/UI.md](docs/UI.md) — Combat, harvest, and build UI specifications
+
+---
+
+## Grudge Fleet
+
+RTS-Grudge is one game in the **Grudge Warlords** fleet. All games share the same Grudge ID, characters, and backend.
+
+| Game | Repo | Domain | Engine |
+|---|---|---|---|
+| **Grudge Warlords** (hub) | Grudge-Builder | grudgewarlords.com | React + Three.js + Phaser |
+| **RTS Grudge** (this repo) | RTS-Grudge | rts-grudge.vercel.app | React-Three-Fiber + Rapier |
+| **Dungeon Crawler Quest** | Dungeon-Crawler-Quest | dcq.grudge-studio.com | BabylonJS + Havok |
+
+All games connect to the same backend services:
+- `api.grudge-studio.com` — Game API (characters, saves, inventory)
+- `id.grudge-studio.com` — Auth (SSO, OAuth, JWT)
+- `assets.grudge-studio.com` — Asset CDN (R2)
+- `grudge-objectstore.pages.dev` — Game data (weapons, armor, classes)
 
 ---
 
