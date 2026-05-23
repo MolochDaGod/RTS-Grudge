@@ -55,20 +55,31 @@ Grudge Warlords is a browser-based open-world MMO where players:
 ## Quick Start
 
 ```bash
-# Install
+# Install dependencies
 npm install
 
-# Development (Vite dev server)
+# Copy environment config
+cp .env.example .env
+# Edit .env with your MySQL credentials and API keys
+
+# Development (Express + Vite HMR on port 5000)
 npm run dev
 
-# Build
+# Production build (Vite client → dist/public, esbuild server → dist/index.cjs)
 npm run build
 
+# Production start (serves both API and client)
+npm start
+
 # Typecheck
-npx tsc --noEmit --skipLibCheck
+npm run check
+
+# Push database schema
+npm run db:push
 ```
 
-Runs on `http://localhost:5173` by default.
+Dev server runs on `http://localhost:5000`. The Express server serves both the
+Vite-compiled client and the REST API on the same port.
 
 ---
 
@@ -539,58 +550,100 @@ Connect to `wss://client.grudge-studio.com/ws`:
 
 ## Deployment
 
-### Vercel (Frontend)
+RTS-Grudge is a **web app** — the 3D island gameplay portion of Grudge Warlords.
+It deploys as a static Vite build on Vercel with API calls proxied to the Grudge
+backend services.
 
-```json
-// vercel.json
-{
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
-}
+### Vercel (Frontend — `rts-grudge.vercel.app`)
+
+Push to `main` triggers automatic Vercel deployment. The `vercel.json` handles:
+
+- **Build**: `npm run build` → outputs to `dist/public`
+- **SPA fallback**: all non-file routes serve `index.html`
+- **API proxy**: `/api/*` → `api.grudge-studio.com` (Cloudflare Worker)
+- **Auth proxy**: `/auth/*` → `id.grudge-studio.com`
+- **Model CDN**: `/Models/*` → `assets.grudge-studio.com/models/*` (R2)
+- **Cache headers**: immutable for `/assets/*`, 24h for models/audio/images
+
+Vercel routes config (`vercel.json`):
+
+```
+/api/*       → https://api.grudge-studio.com/api/*
+/auth/*      → https://id.grudge-studio.com/auth/*
+/Models/*    → https://assets.grudge-studio.com/models/*
+/*           → /index.html (SPA catch-all)
 ```
 
-### Railway (Backend)
+### Backend Services (Cloudflare Workers)
 
-Set the following in Railway environment:
+RTS-Grudge does **not** run its own backend in production. All API calls proxy
+to the shared Grudge Studio infrastructure:
 
-```
-DATABASE_URL=mysql://user:pass@host:3306/grudge
-GRUDGE_AUTH_SECRET=<jwt-secret>
-GRUDGE_ID_BASE=https://id.grudge-studio.com
-PORT=3001
-NODE_ENV=production
-```
+| Service | Domain | Purpose |
+|---|---|---|
+| Game API | `api.grudge-studio.com` | Characters, saves, inventory, game-config |
+| Auth (Grudge ID) | `id.grudge-studio.com` | JWT auth, SSO, token validation |
+| Asset CDN | `assets.grudge-studio.com` | 3D models, sprites, audio (R2) |
+| ObjectStore | `grudge-objectstore.pages.dev` | Weapons, armor, classes JSON |
+| Puter SDK | `js.puter.com/v2` | Cloud save, AI, guest accounts |
 
 ### Cloudflare (CDN / Object Storage)
 
-Assets served via `grudge-studio.com` with CNAME records to Cloudflare R2:
+Binary assets (GLB models, sprites, audio) are stored in Cloudflare R2 and
+served via `assets.grudge-studio.com`. JSON game data is served from GitHub
+Pages at `grudge-objectstore.pages.dev/api/v1/`.
 
-```
-assets.grudge-studio.com → CNAME → r2.grudge-studio.com
-```
+R2 uploads are handled by `server/r2Service.ts` when running the Express
+server locally with R2 credentials configured.
 
-Icon CDN proxy: `molochdagod.github.io/ObjectStore` (GitHub Pages mirror).
+### Local Backend (Development Only)
+
+The Express server (`npm run dev`) runs locally for development with:
+- Vite HMR proxy for the React client
+- MySQL database for saves, loadouts, inventory, wallets
+- AI chat endpoints (dev-only file editing gated behind `NODE_ENV`)
+- Grudge ObjectStore sync
+- Local `/Models` static file serving
+
+In production, none of this runs — the Vercel static build handles everything
+via API rewrites to the shared Grudge backend.
 
 ---
 
 ## Environment Variables
 
-```bash
-# .env (client)
-VITE_API_BASE=http://localhost:3001
-VITE_GRUDGE_AUTH_URL=https://id.grudge-studio.com
-VITE_OBJECTSTORE_BASE=https://molochdagod.github.io/ObjectStore
+See `.env.example` for the full list. Key variables for local development:
 
-# .env.server (Railway)
-DATABASE_URL=mysql://...
-GRUDGE_AUTH_SECRET=...
-GRUDGE_ID_BASE=https://id.grudge-studio.com
-OBJECTSTORE_WORKER_URL=https://assets.grudge-studio.com
-AUTH_ORIGIN=https://id.grudge-studio.com
-PORT=3001
-NODE_ENV=production
+```bash
+# Server
+PORT=5000
+NODE_ENV=development
+
+# Database (MySQL — local dev only, not used in Vercel production)
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
+MYSQL_USER=grudge_admin
+MYSQL_PASSWORD=<your-password>
+MYSQL_DATABASE=grudge_game
+
+# Auth service
+GRUDGE_ID_URL=https://id.grudge-studio.com
+
+# CORS (production)
+# CORS_ORIGINS=https://grudgewarlords.com,https://client.grudge-studio.com
+
+# R2 / Cloudflare (optional — enables CDN uploads)
+# CLOUDFLARE_ACCOUNT_ID=
+# R2_ACCESS_KEY_ID=
+# R2_SECRET_ACCESS_KEY=
+# R2_CDN_BASE=https://assets.grudge-studio.com
+
+# AI providers (optional — at least one needed for /api/ai-chat)
+# OPENROUTER_API_KEY=sk-or-v1-...
 ```
+
+In **production on Vercel**, no env vars are needed — the static build proxies
+all API calls to the Grudge backend via `vercel.json` rewrites.
 
 ---
 
