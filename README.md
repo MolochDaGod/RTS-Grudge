@@ -21,8 +21,10 @@
 10. [Weapon Prefabs & Object Storage](#weapon-prefabs--object-storage)
 11. [Skill Icons & Hotbar](#skill-icons--hotbar)
 12. [API Reference](#api-reference)
-13. [Deployment](#deployment)
-14. [Environment Variables](#environment-variables)
+13. [Routes](#routes)
+14. [Deployment](#deployment)
+15. [Environment Variables](#environment-variables)
+16. [Grudge Fleet](#grudge-fleet)
 
 ---
 
@@ -550,11 +552,39 @@ Connect to `wss://client.grudge-studio.com/ws`:
 
 ---
 
+## Routes
+
+All routes are SPA client-side (wouter). The Vercel catch-all serves `index.html`
+for every path; the React app dispatches to the correct phase on mount.
+
+| Route | Phase | Component | Description |
+|---|---|---|---|
+| `/` | menu | MenuScreen | Main menu — play, shipwreck, editor, controller |
+| `/home` | home | HomePage | Game hub — all modes + fleet game links |
+| `/character` | characterSelect | CharacterSelectScreen | Hero Forge — race, class, weapons, body morph |
+| `/play` | playing | GameScene | 3D open world — combat, harvest, build, sail |
+| `/combat` | combat2d | Combat2DPage | Gruda Wars 2D combat entry |
+| `/island-v2` | islandV2 | IslandV2Page | Shipwreck Island survival launcher |
+| `/gge` | gge | GGEEditor | Level & scene editor |
+| `/controller` | controller | ControllerPage | Animation & input lab |
+| `/admin` | admin | AdminPanel | Server management |
+
+### Playable Races
+
+Elf, Human, Dwarf, Orc, Barbarian (battle_mage model), Undead.
+Worge is a **class** (not a race) — selectable via class presets.
+Goblin is an **enemy NPC** — removed from player selection.
+
+---
+
 ## Deployment
 
 RTS-Grudge is a **web app** — the 3D island gameplay portion of Grudge Warlords.
 It deploys as a static Vite build on Vercel with API calls proxied to the Grudge
 backend services.
+
+**Status:** All routes operational. Last verified: 2026-05-24. Build: 2,813 modules,
+48/48 tests passing, 0 TS errors in routing/page files.
 
 ### Vercel (Frontend — `rts-grudge.vercel.app`)
 
