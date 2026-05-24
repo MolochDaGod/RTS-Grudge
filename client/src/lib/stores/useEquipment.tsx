@@ -76,10 +76,6 @@ interface EquipmentState {
   useMana: (amount: number) => boolean;
   regenMana: (delta: number) => void;
   reset: () => void;
-  /** Save equipped state to localStorage */
-  persist: () => void;
-  /** Load equipped state from localStorage */
-  hydrate: () => void;
   /**
    * Cape active ability cooldown. Tracks when the cape ability was last used
    * so no-swap enforcement can detect if the cooldown is still running.
@@ -103,24 +99,9 @@ const SLOT_ORDER: EquipSlot[] = ["helm", "shoulder", "chest", "legs", "boots", "
 
 export { SLOT_ORDER };
 
-const EQUIPMENT_PERSIST_KEY = "grudge_equipment_state";
-
-function loadPersistedEquipment(): Partial<EquipmentState> {
-  try {
-    const raw = localStorage.getItem(EQUIPMENT_PERSIST_KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw);
-    return {
-      equipped:  parsed.equipped  ?? {},
-      gold:      parsed.gold      ?? 0,
-      level:     parsed.level     ?? 1,
-      experience:parsed.experience ?? 0,
-      experienceToNext: parsed.experienceToNext ?? 100,
-    };
-  } catch {
-    return {};
-  }
-}
+// Equipment state is persisted exclusively through the server-side save
+// system (saveSync.ts → /api/saves). localStorage is NOT used — all player
+// data flows through the Grudge backend so players can log in on any device.
 
 export const useEquipment = create<EquipmentState>()(subscribeWithSelector((set, get) => ({
   equipped: {},
@@ -133,7 +114,6 @@ export const useEquipment = create<EquipmentState>()(subscribeWithSelector((set,
   maxMana: 50,
   capeAbilityLastUsed: 0,
   capeAbilityCooldown: 0,
-  ...loadPersistedEquipment(),
 
   equip: (item) => {
     // Cape swap enforcement: block if cape ability is still on cooldown
@@ -151,7 +131,6 @@ export const useEquipment = create<EquipmentState>()(subscribeWithSelector((set,
     set((state) => ({
       equipped: { ...state.equipped, [item.slot]: item },
     }));
-    get().persist();
   },
 
   unequip: (slot) => {
@@ -170,7 +149,6 @@ export const useEquipment = create<EquipmentState>()(subscribeWithSelector((set,
       delete newEquipped[slot];
       return { equipped: newEquipped };
     });
-    get().persist();
   },
 
   getEquipped: (slot) => get().equipped[slot],
@@ -269,25 +247,6 @@ export const useEquipment = create<EquipmentState>()(subscribeWithSelector((set,
       capeAbilityLastUsed: 0,
       capeAbilityCooldown: 0,
     });
-    try { localStorage.removeItem(EQUIPMENT_PERSIST_KEY); } catch {}
-  },
-
-  persist: () => {
-    const { equipped, gold, level, experience, experienceToNext } = get();
-    try {
-      localStorage.setItem(EQUIPMENT_PERSIST_KEY, JSON.stringify({
-        equipped, gold, level, experience, experienceToNext,
-      }));
-    } catch {
-      console.warn("[Equipment] Could not persist to localStorage");
-    }
-  },
-
-  hydrate: () => {
-    const saved = loadPersistedEquipment();
-    if (Object.keys(saved).length > 0) {
-      set(saved as Partial<EquipmentState>);
-    }
   },
 
   useCapeAbility: () => {
