@@ -8,7 +8,7 @@ export type { HeroClass };
 import { onModeSwitch } from "@/game/controllers/ModeController";
 import { useCampaign } from "@/lib/stores/useCampaign";
 
-export type GamePhase = "menu" | "home" | "characterSelect" | "loading" | "intro" | "playing" | "dead" | "paused" | "admin" | "gge" | "controller" | "combat2d" | "islandV2";
+export type GamePhase = "menu" | "home" | "characterSelect" | "loading" | "intro" | "playing" | "dead" | "paused" | "admin" | "gge" | "controller" | "combat2d" | "islandV2" | "wallet";
 export type InteractionMode = "combat" | "build" | "harvest";
 
 export type WeaponType = "sword" | "greatsword" | "staff" | "wand" | "bow" | "axe" | "poleaxe" | "hammer" | "dagger" | "shield" | "fists" | "crossbow" | "gun";
@@ -194,6 +194,7 @@ interface GameState {
   goToController: () => void;
   goToCombat2d: () => void;
   goToIslandV2: () => void;
+  goToWallet: () => void;
   startLoading: (config: CharacterConfig) => void;
   finishLoading: () => void;
   finishIntro: () => void;
@@ -383,6 +384,7 @@ export const useGame = create<GameState>()(
     goToController: () => set({ phase: "controller" }),
     goToCombat2d: () => set({ phase: "combat2d" }),
     goToIslandV2: () => set({ phase: "islandV2" }),
+    goToWallet: () => set({ phase: "wallet" }),
     startLoading: (config) => set({
       selectedCharacter: config,
       phase: "loading",

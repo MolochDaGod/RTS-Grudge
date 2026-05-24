@@ -26,7 +26,7 @@ interface NavTile {
 export default function HomePage() {
   const {
     goToCharacterSelect, goToCombat2d, goToIslandV2,
-    goToGGE, goToAdmin, goToController, restart,
+    goToGGE, goToAdmin, goToController, goToWallet, restart,
   } = useGame();
 
   const tiles: NavTile[] = [
@@ -37,6 +37,7 @@ export default function HomePage() {
     { label: "EDITOR", desc: "GGE — level & scene editor", icon: "🔧", color: "#ce93d8", border: "rgba(206,147,216,.4)", action: goToGGE },
     { label: "CONTROLLER", desc: "Animation & input lab", icon: "🕹️", color: "#4dd0e1", border: "rgba(77,208,225,.4)", action: goToController },
     { label: "ADMIN", desc: "Server management", icon: "🛡️", color: "#ffb74d", border: "rgba(255,183,77,.4)", action: goToAdmin },
+    { label: "WALLET", desc: "Solana wallet & NFTs", icon: "💎", color: "#4dd0e1", border: "rgba(77,208,225,.4)", action: goToWallet },
   ];
 
   return (
