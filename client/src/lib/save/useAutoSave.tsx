@@ -4,6 +4,10 @@ import { useCharacterStats } from "@/lib/stores/useCharacterStats";
 import { useEquipment } from "@/lib/stores/useEquipment";
 import { useInventory } from "@/lib/stores/useInventory";
 import { useSurvival } from "@/lib/stores/useSurvival";
+import { useMissions } from "@/lib/stores/useMissions";
+import { useProfessions } from "@/lib/stores/useProfessions";
+import { usePets } from "@/lib/stores/usePets";
+import { useBuildingStorage } from "@/lib/stores/useBuildingStorage";
 import { getActiveSlot } from "./playerId";
 import { saveSlot, loadSlot, restoreGame } from "./saveSync";
 
@@ -89,6 +93,11 @@ function useAutoSave() {
       useEquipment.subscribe(markDirty),
       useInventory.subscribe(markDirty),
       useSurvival.subscribe(markDirty),
+      // Phase 1 consolidation — gameplay stores now flow through server saves
+      useMissions.subscribe(markDirty),
+      useProfessions.subscribe(markDirty),
+      usePets.subscribe(markDirty),
+      useBuildingStorage.subscribe(markDirty),
     ];
     return () => { unsubs.forEach((u) => u()); };
   }, [flush]);
