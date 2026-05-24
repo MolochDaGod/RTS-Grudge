@@ -25,6 +25,7 @@ const ControllerPage = lazy(() => import("./game/controller/ControllerPage"));
 const HomePage = lazy(() => import("./pages/HomePage"));
 const Combat2DPage = lazy(() => import("./pages/Combat2DPage"));
 const IslandV2Page = lazy(() => import("./pages/IslandV2Page"));
+const WalletPage = lazy(() => import("./pages/WalletPage"));
 
 // ── URL ↔ Phase map ──────────────────────────────────────────────────────────
 // Phases that have a canonical URL. Transient phases (loading, intro, dead,
@@ -40,6 +41,7 @@ const PHASE_TO_PATH: Partial<Record<GamePhase, string>> = {
   controller:      "/controller",
   combat2d:        "/combat",
   islandV2:        "/island-v2",
+  wallet:          "/wallet",
 };
 
 function App() {
@@ -48,7 +50,7 @@ function App() {
     phase, togglePanel, closePanel, pause, resume,
     inDungeon, inHousing, inTutorialIsland, restart,
     goToHome, goToController, goToCharacterSelect, goToAdmin, goToGGE,
-    goToCombat2d, goToIslandV2,
+    goToCombat2d, goToIslandV2, goToWallet,
   } = useGame();
 
   // ── URL → Phase (on first mount) ─────────────────────────────────────────
@@ -64,6 +66,7 @@ function App() {
       "/controller": goToController,
       "/combat":     goToCombat2d,
       "/island-v2":  goToIslandV2,
+      "/wallet":     goToWallet,
     };
     dispatchMap[p]?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -187,6 +190,9 @@ function App() {
         }>
           <GGEEditor />
         </Suspense>
+      )}
+      {phase === "wallet" && (
+        <Suspense fallback={null}><WalletPage /></Suspense>
       )}
       {phase === "controller" && (
         <Suspense fallback={
