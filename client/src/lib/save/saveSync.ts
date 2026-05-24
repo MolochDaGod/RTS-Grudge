@@ -2,6 +2,10 @@ import { useCharacterStats } from "@/lib/stores/useCharacterStats";
 import { useEquipment } from "@/lib/stores/useEquipment";
 import { useInventory } from "@/lib/stores/useInventory";
 import { useSurvival } from "@/lib/stores/useSurvival";
+import { useMissions } from "@/lib/stores/useMissions";
+import { useProfessions } from "@/lib/stores/useProfessions";
+import { usePets } from "@/lib/stores/usePets";
+import { useBuildingStorage } from "@/lib/stores/useBuildingStorage";
 import { getPlayerId } from "./playerId";
 
 /**
@@ -33,6 +37,18 @@ export interface GameSnapshot {
     isAlive: boolean;
     activeCharacterId: string | null;
   };
+  /** Phase 1 consolidation — absent in pre-consolidation saves. */
+  missions?: {
+    active: unknown[];
+    completed: string[];
+    rotations: Record<string, unknown>;
+  };
+  professions?: Record<string, unknown>;
+  pets?: {
+    pets: unknown[];
+    furnacePending: unknown | null;
+  };
+  buildingStorage?: Record<string, unknown[]>;
 }
 
 export function snapshotGame(): GameSnapshot {
@@ -62,6 +78,23 @@ export function snapshotGame(): GameSnapshot {
       isAlive: sv.isAlive,
       activeCharacterId: sv.activeCharacterId,
     },
+    // Phase 1 consolidation — gameplay stores that were previously localStorage-only
+    missions: (() => {
+      const ms = useMissions.getState();
+      const rotObj: Record<string, unknown> = {};
+      for (const [k, v] of ms.rotations) rotObj[k] = v;
+      return {
+        active: Array.from(ms.active.values()),
+        completed: Array.from(ms.completed),
+        rotations: rotObj,
+      };
+    })(),
+    professions: useProfessions.getState().professions,
+    pets: (() => {
+      const ps = usePets.getState();
+      return { pets: ps.pets, furnacePending: ps.furnacePending };
+    })(),
+    buildingStorage: useBuildingStorage.getState().chests,
   };
 }
 
@@ -97,6 +130,33 @@ export function restoreGame(snapshot: GameSnapshot): void {
       isAlive: snapshot.survival.isAlive,
       activeCharacterId: snapshot.survival.activeCharacterId,
     });
+    // Phase 1 consolidation — restore gameplay stores (absent in legacy saves)
+    if (snapshot.missions) {
+      const activeMap = new Map(
+        (snapshot.missions.active as any[]).map((m: any) => [m.missionId, m])
+      );
+      const completedSet = new Set(snapshot.missions.completed);
+      const rotMap = new Map(
+        Object.entries(snapshot.missions.rotations)
+      );
+      useMissions.setState({
+        active: activeMap as any,
+        completed: completedSet as any,
+        rotations: rotMap as any,
+      });
+    }
+    if (snapshot.professions) {
+      useProfessions.setState({ professions: snapshot.professions as any });
+    }
+    if (snapshot.pets) {
+      usePets.setState({
+        pets: snapshot.pets.pets as any,
+        furnacePending: snapshot.pets.furnacePending as any,
+      });
+    }
+    if (snapshot.buildingStorage) {
+      useBuildingStorage.setState({ chests: snapshot.buildingStorage as any });
+    }
     console.log("[save] Restored snapshot from", new Date(snapshot.timestamp).toLocaleString());
   } catch (e) {
     console.error("[save] Restore failed", e);
