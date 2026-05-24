@@ -6,7 +6,7 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://grudge-warlords-rpg-production-757f.up.railway.app/api/$1"
+      "dest": "https://api.grudge-studio.com/api/$1"
     },
     {
       "src": "/auth/(.*)",
