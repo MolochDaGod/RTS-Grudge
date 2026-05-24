@@ -1,5 +1,5 @@
 import {
-  mysqlTable, varchar, text, int, json, timestamp,
+  mysqlTable, varchar, text, int, json, timestamp, boolean,
   primaryKey, index,
 } from "drizzle-orm/mysql-core";
 import { createInsertSchema } from "drizzle-zod";
@@ -193,6 +193,33 @@ export const equipmentConfig = mysqlTable("equipment_config", {
   value: json("value").notNull(),
   updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
 });
+
+// ── Player Characters (cross-game character registry) ────────────────────────
+// Source of truth for every character a player creates. Shared across ALL
+// Grudge Studio games (RTS-Grudge, DCQ, Grudge Crafting, 2D Combat, etc.).
+// Hero Forge writes here on create/save; any game mode can read the active
+// character to render the player's chosen class, race, and appearance.
+export const playerCharacters = mysqlTable("player_characters", {
+  playerId: varchar("player_id", { length: 64 }).notNull(),
+  characterId: varchar("character_id", { length: 64 }).notNull(),
+  name: varchar("name", { length: 128 }).notNull().default("Hero"),
+  heroClass: varchar("hero_class", { length: 32 }).notNull().default("warrior"),
+  race: varchar("race", { length: 32 }).notNull().default("human"),
+  modelPath: text("model_path"),
+  /** Visual customisation: matColors, bodyMorph, weaponOffset, scale, speedMult */
+  appearance: json("appearance").notNull().default({}),
+  /** Weapon loadout: weaponRight, weaponLeft, weaponModelRight/Left, arrowModelId, backAccessoryId */
+  equipment: json("equipment").notNull().default({}),
+  level: int("level").notNull().default(1),
+  isActive: boolean("is_active").notNull().default(false),
+  version: int("version").notNull().default(1),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+}, (t) => [
+  primaryKey({ columns: [t.playerId, t.characterId] }),
+  index("player_characters_active_idx").on(t.playerId, t.isActive),
+]);
+export type PlayerCharacter = typeof playerCharacters.$inferSelect;
 
 // ── KV Store (replaces MemStorage) ───────────────────────────────────────────
 export const kvStore = mysqlTable("kv_store", {

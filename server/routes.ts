@@ -11,6 +11,7 @@ import { registerSavesRoutes } from "./savesRoutes";
 import { registerLoadoutsRoutes } from "./loadoutsRoutes";
 import { registerInventoryRoutes } from "./inventoryRoutes";
 import { registerWalletsRoutes } from "./walletsRoutes";
+import { registerCharacterRoutes } from "./characterRoutes";
 
 interface AIProviderDef {
   name: string;
@@ -302,6 +303,9 @@ export async function registerRoutes(
   registerWalletsRoutes(app);
   const provisioning = (process.env.CROSSMINT_API_KEY || process.env.CROSSMINT_SERVER_API_KEY) ? "enabled" : "disabled (no CROSSMINT_API_KEY)";
   console.log(`[wallets] Wallet routes registered, provisioning ${provisioning}`);
+
+  registerCharacterRoutes(app);
+  console.log("[characters] Cross-game character routes registered");
 
   app.post("/api/ai-chat", async (req: Request, res: Response) => {
     try {
