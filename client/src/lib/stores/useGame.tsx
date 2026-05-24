@@ -8,7 +8,7 @@ export type { HeroClass };
 import { onModeSwitch } from "@/game/controllers/ModeController";
 import { useCampaign } from "@/lib/stores/useCampaign";
 
-export type GamePhase = "menu" | "characterSelect" | "loading" | "intro" | "playing" | "dead" | "paused" | "admin" | "gge" | "controller";
+export type GamePhase = "menu" | "home" | "characterSelect" | "loading" | "intro" | "playing" | "dead" | "paused" | "admin" | "gge" | "controller" | "combat2d" | "islandV2";
 export type InteractionMode = "combat" | "build" | "harvest";
 
 export type WeaponType = "sword" | "greatsword" | "staff" | "wand" | "bow" | "axe" | "poleaxe" | "hammer" | "dagger" | "shield" | "fists" | "crossbow" | "gun";
@@ -187,10 +187,13 @@ interface GameState {
   exitHousing: () => void;
   enterTutorialIsland: (returnPos?: { x: number; z: number } | null) => void;
   exitTutorialIsland: () => void;
+  goToHome: () => void;
   goToCharacterSelect: () => void;
   goToAdmin: () => void;
   goToGGE: () => void;
   goToController: () => void;
+  goToCombat2d: () => void;
+  goToIslandV2: () => void;
   startLoading: (config: CharacterConfig) => void;
   finishLoading: () => void;
   finishIntro: () => void;
@@ -373,10 +376,13 @@ export const useGame = create<GameState>()(
         inTutorialIsland: false,
       });
     },
+    goToHome: () => set({ phase: "home" }),
     goToCharacterSelect: () => set({ phase: "characterSelect" }),
     goToAdmin: () => set({ phase: "admin" }),
     goToGGE: () => set({ phase: "gge" }),
     goToController: () => set({ phase: "controller" }),
+    goToCombat2d: () => set({ phase: "combat2d" }),
+    goToIslandV2: () => set({ phase: "islandV2" }),
     startLoading: (config) => set({
       selectedCharacter: config,
       phase: "loading",

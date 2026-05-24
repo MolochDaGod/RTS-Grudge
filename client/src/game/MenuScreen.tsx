@@ -72,7 +72,7 @@ const noop = () => {};
 const CLASS_CYCLE = ["warrior", "mage", "ranger", "worge"] as const;
 
 export default function MenuScreen() {
-  const { goToGGE, goToController, goToCharacterSelect, enterTutorialIsland } = useGame();
+  const { goToGGE, goToController, goToCharacterSelect, enterTutorialIsland, goToHome } = useGame();
   const startCampaign = useCampaign((s) => s.startCampaign);
   const [activeClass, setActiveClass] = useState<string>("warrior");
   const [particles] = useState(() =>
@@ -237,7 +237,17 @@ export default function MenuScreen() {
           </span>
         </button>
 
-        {/* Secondary debug actions — three side-by-side compact tiles. */}
+        {/* Secondary actions */}
+        <button
+          onClick={goToHome}
+          type="button"
+          className="w-full max-w-xl flex items-center justify-center gap-2 py-2 px-4 mt-2 bg-zinc-900 text-zinc-300 border-2 border-zinc-700 rounded-lg hover:bg-zinc-800 hover:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all"
+          aria-label="Go to Game Hub"
+        >
+          <span className="text-sm font-bold tracking-wider" style={{ fontFamily: FONTS.header }}>GAME HUB</span>
+          <span className="text-xs opacity-60 ml-1">— all modes & fleet games</span>
+        </button>
+
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-xl mt-3 mb-4">
           <button
           onClick={handleShipwreck}

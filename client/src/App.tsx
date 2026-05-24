@@ -22,6 +22,9 @@ import "@fontsource/inter";
 
 const GGEEditor = lazy(() => import("./game/editor/GGEEditor"));
 const ControllerPage = lazy(() => import("./game/controller/ControllerPage"));
+const HomePage = lazy(() => import("./pages/HomePage"));
+const Combat2DPage = lazy(() => import("./pages/Combat2DPage"));
+const IslandV2Page = lazy(() => import("./pages/IslandV2Page"));
 
 // ── URL ↔ Phase map ──────────────────────────────────────────────────────────
 // Phases that have a canonical URL. Transient phases (loading, intro, dead,
@@ -29,11 +32,14 @@ const ControllerPage = lazy(() => import("./game/controller/ControllerPage"));
 // bar or browser history.
 const PHASE_TO_PATH: Partial<Record<GamePhase, string>> = {
   menu:            "/",
+  home:            "/home",
   characterSelect: "/character",
   playing:         "/play",
   admin:           "/admin",
   gge:             "/gge",
   controller:      "/controller",
+  combat2d:        "/combat",
+  islandV2:        "/island-v2",
 };
 
 function App() {
@@ -41,7 +47,8 @@ function App() {
   const {
     phase, togglePanel, closePanel, pause, resume,
     inDungeon, inHousing, inTutorialIsland, restart,
-    goToController, goToCharacterSelect, goToAdmin, goToGGE,
+    goToHome, goToController, goToCharacterSelect, goToAdmin, goToGGE,
+    goToCombat2d, goToIslandV2,
   } = useGame();
 
   // ── URL → Phase (on first mount) ─────────────────────────────────────────
@@ -50,10 +57,13 @@ function App() {
   useEffect(() => {
     const p = location.replace(/\/+$/, "") || "/";
     const dispatchMap: Record<string, () => void> = {
+      "/home":       goToHome,
       "/character":  goToCharacterSelect,
       "/admin":      goToAdmin,
       "/gge":        goToGGE,
       "/controller": goToController,
+      "/combat":     goToCombat2d,
+      "/island-v2":  goToIslandV2,
     };
     dispatchMap[p]?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -155,6 +165,15 @@ function App() {
       {(phase === "playing" || phase === "paused") && <StreamedColliderStatsHUD />}
       {phase === "paused" && <PauseMenu />}
       {phase === "dead" && <DeathScreen />}
+      {phase === "home" && (
+        <Suspense fallback={null}><HomePage /></Suspense>
+      )}
+      {phase === "combat2d" && (
+        <Suspense fallback={null}><Combat2DPage /></Suspense>
+      )}
+      {phase === "islandV2" && (
+        <Suspense fallback={null}><IslandV2Page /></Suspense>
+      )}
       {phase === "admin" && <AdminPanel onClose={restart} />}
       {phase === "gge" && (
         <Suspense fallback={
