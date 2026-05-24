@@ -1,27 +1,34 @@
 /**
- * ZoneHeightmapSystem — Generates heightmap terrain for each world zone.
+ * ZoneHeightmapSystem — Generates heightmap terrain for each 4km×4km zone.
  *
- * Each zone island is 400×400 world units with a 256×256 heightfield grid
- * (1.56m per cell — good balance of detail vs memory). The coastline falls
- * off to sea level, creating a natural island shape surrounded by ocean.
+ * ## Elevation Band System
+ * Heights are in meters. Water surface is at y=0.
  *
- * Biome-specific terrain features:
- *   - Snow:      high peaks, glacier valleys, frozen ridges
- *   - Mountains: jagged peaks, deep valleys, cliff faces
- *   - Lava:      volcanic caldera, lava rivers, obsidian spires
- *   - Forest:    rolling hills, dense canopy ridges, river valleys
- *   - Plains:    gentle rolling terrain, wide flats for the hub town
- *   - Desert:    dune waves, sandstone mesas, canyon cuts
- *   - Swamp:     low wetland, scattered high ground, mangrove roots
- *   - Coast:     uses GLB (tutorial island), not heightmap
- *   - Jungle:    steep ridges, waterfall cliffs, dense canopy
+ *   -20m to  0m  OCEAN       — seabed, deepest at zone edges
+ *     0m to 1.5m BEACH       — sandy shoreline, ~8% of island
+ *   1.5m to  4m  FLAT_LAND   — town areas, meadows, ~18% of island
+ *     4m to 10m  FOREST      — rolling hills with trees, ~30% of island
+ *    10m to 18m  MINES       — cave-entrance elevation, rocky, ~20% of island
+ *    18m to 35m  MOUNTAIN    — steep rocky terrain, ~15% of island
+ *    35m+        PEAK        — mountain-top plateau, ~9% of island
  *
- * Supports PNG heightmap import: load a grayscale PNG where white=max height,
- * black=sea level. The island falloff mask is still applied so edges always
- * blend to ocean.
+ * ## Required Features (every island)
+ *   - Bay:           carved inlet on one side with calm shallow water
+ *   - Flat town:     200m×200m minimum at FLAT_LAND elevation
+ *   - Forest zone:   large FOREST band around the interior
+ *   - Mine entrance: 2-3 spots at MINES elevation
+ *   - Mountain:      main ridge/peak in the interior
+ *   - Mountain top:  steep cone (~100m radius) with flat 30m plateau at summit
+ *   - 3 Event zones: specific cleared areas at FOREST/MINES/MOUNTAIN elevations
+ *   - Beach ring:    60-80% of perimeter is sandy beach
+ *
+ * ## Ocean
+ *   Ocean floor slopes from 0m at shore to -20m at zone boundary.
+ *   The 500m gap between zones is deep ocean (-20m).
+ *
+ * Supports PNG heightmap import for artist-made terrain.
  */
 
-import { generateIslandTerrain, type IslandTerrainData } from "./IslandGenerator";
 import type { ZoneDefinition } from "./WorldGridRegistry";
 
 // ── Zone-specific terrain configs ────────────────────────────────────────────
@@ -336,6 +343,187 @@ function applyMesas(
   }
 }
 
+// ── Elevation band constants (meters) ─────────────────────────────────────
+
+/** Ocean floor at deepest point (-20m below water surface at y=0). */
+export const OCEAN_FLOOR = -20;
+/** Water surface is at y=0. */
+export const WATER_LEVEL = 0;
+
+export const ELEVATION_BANDS = {
+  /** -20m to 0m — seabed, slopes from shore to deep ocean */
+  OCEAN:     { min: -20, max: 0 },
+  /** 0m to 1.5m — sandy shoreline, ~8% of island area */
+  BEACH:     { min: 0,   max: 1.5 },
+  /** 1.5m to 4m — town areas, meadows, ~18% of island area */
+  FLAT_LAND: { min: 1.5, max: 4 },
+  /** 4m to 10m — rolling hills with trees, ~30% of island area */
+  FOREST:    { min: 4,   max: 10 },
+  /** 10m to 18m — cave-entrance elevation, rocky, ~20% of island area */
+  MINES:     { min: 10,  max: 18 },
+  /** 18m to 35m — steep rocky terrain, ~15% of island area */
+  MOUNTAIN:  { min: 18,  max: 35 },
+  /** 35m+ — mountain-top plateau, ~9% of island area */
+  PEAK:      { min: 35,  max: 50 },
+} as const;
+
+/** Get the terrain band name for a given height in meters. */
+export function getElevationBand(height: number): keyof typeof ELEVATION_BANDS {
+  if (height < ELEVATION_BANDS.OCEAN.max) return "OCEAN";
+  if (height < ELEVATION_BANDS.BEACH.max) return "BEACH";
+  if (height < ELEVATION_BANDS.FLAT_LAND.max) return "FLAT_LAND";
+  if (height < ELEVATION_BANDS.FOREST.max) return "FOREST";
+  if (height < ELEVATION_BANDS.MINES.max) return "MINES";
+  if (height < ELEVATION_BANDS.MOUNTAIN.max) return "MOUNTAIN";
+  return "PEAK";
+}
+
+// ── Universal island features ───────────────────────────────────────────
+
+/** Carve ocean floor: heights below 0 slope down to OCEAN_FLOOR at zone boundary. */
+function applyOceanFloor(
+  data: Float32Array, res: number, size: number,
+) {
+  const half = size / 2;
+  const stride = res + 1;
+  for (let iz = 0; iz <= res; iz++) {
+    for (let ix = 0; ix <= res; ix++) {
+      const idx = iz * stride + ix;
+      if (data[idx] <= 0) {
+        // Distance from center as 0-1
+        const wx = (ix / res) * size - half;
+        const wz = (iz / res) * size - half;
+        const distNorm = Math.sqrt((wx / half) ** 2 + (wz / half) ** 2);
+        // Slope from 0 at shore to OCEAN_FLOOR at zone edge
+        const depthFactor = Math.min(1, distNorm / 1.0);
+        data[idx] = OCEAN_FLOOR * depthFactor;
+      }
+    }
+  }
+}
+
+/**
+ * Carve a natural bay/harbor inlet on one side of the island.
+ * Creates a crescent-shaped depression cutting into the coastline.
+ */
+function carveBay(
+  data: Float32Array, res: number, size: number, seed: number,
+) {
+  let s = seed + 5000;
+  const rng = () => { s = (s * 16807) % 2147483647; return s / 2147483647; };
+  const half = size / 2;
+  const stride = res + 1;
+
+  // Bay location: random side of island, ~60-70% out from center
+  const bayAngle = rng() * Math.PI * 2;
+  const bayDist = half * 0.55;
+  const bayCx = Math.cos(bayAngle) * bayDist;
+  const bayCz = Math.sin(bayAngle) * bayDist;
+  const bayRadius = 150 + rng() * 200; // 150-350m wide bay
+  const bayDepth = 6; // meters below current terrain
+
+  for (let iz = 0; iz <= res; iz++) {
+    for (let ix = 0; ix <= res; ix++) {
+      const wx = (ix / res) * size - half;
+      const wz = (iz / res) * size - half;
+      const dist = Math.sqrt((wx - bayCx) ** 2 + (wz - bayCz) ** 2);
+      if (dist < bayRadius) {
+        const idx = iz * stride + ix;
+        const t = dist / bayRadius;
+        // Smooth crescent: deeper at center, shallows at edges
+        const carve = (1 - t * t) * bayDepth;
+        data[idx] = Math.max(OCEAN_FLOOR, data[idx] - carve);
+      }
+    }
+  }
+}
+
+/**
+ * Add a mountain-top feature: steep cone (~100m radius) with a flat
+ * 30m×30m climbable plateau at the summit. Highest point on the island.
+ */
+function addMountainTop(
+  data: Float32Array, res: number, size: number, seed: number,
+  peakHeight: number,
+) {
+  let s = seed + 6000;
+  const rng = () => { s = (s * 16807) % 2147483647; return s / 2147483647; };
+  const half = size / 2;
+  const stride = res + 1;
+
+  // Place the peak in the interior, offset from center (not on the town)
+  const peakAngle = rng() * Math.PI * 2;
+  const peakDist = 400 + rng() * 600; // 400-1000m from center
+  const peakCx = Math.cos(peakAngle) * peakDist;
+  const peakCz = Math.sin(peakAngle) * peakDist;
+  const outerRadius = 120; // steep climb radius
+  const plateauRadius = 15; // flat summit area (30m across)
+
+  for (let iz = 0; iz <= res; iz++) {
+    for (let ix = 0; ix <= res; ix++) {
+      const wx = (ix / res) * size - half;
+      const wz = (iz / res) * size - half;
+      const dist = Math.sqrt((wx - peakCx) ** 2 + (wz - peakCz) ** 2);
+      if (dist < outerRadius) {
+        const idx = iz * stride + ix;
+        const t = dist / outerRadius;
+        let peakH: number;
+        if (dist < plateauRadius) {
+          // Flat plateau at summit
+          peakH = peakHeight;
+        } else {
+          // Steep falloff from plateau to base (power curve for steepness)
+          const falloffT = (dist - plateauRadius) / (outerRadius - plateauRadius);
+          peakH = peakHeight * (1 - Math.pow(falloffT, 0.6));
+        }
+        // Only raise terrain, never lower it
+        data[idx] = Math.max(data[idx], peakH);
+      }
+    }
+  }
+}
+
+/**
+ * Clear 3 event zones: flat circular areas at FOREST, MINES, and MOUNTAIN
+ * elevations for world events, boss spawns, or gatherings.
+ */
+function clearEventZones(
+  data: Float32Array, res: number, size: number, seed: number,
+) {
+  let s = seed + 7000;
+  const rng = () => { s = (s * 16807) % 2147483647; return s / 2147483647; };
+  const half = size / 2;
+  const stride = res + 1;
+
+  const eventTargets = [
+    { targetH: 7, label: "forest_event" },    // FOREST band
+    { targetH: 14, label: "mines_event" },     // MINES band
+    { targetH: 25, label: "mountain_event" },  // MOUNTAIN band
+  ];
+
+  for (const evt of eventTargets) {
+    const angle = rng() * Math.PI * 2;
+    const dist = 300 + rng() * 800; // 300-1100m from center
+    const cx = Math.cos(angle) * dist;
+    const cz = Math.sin(angle) * dist;
+    const radius = 40 + rng() * 30; // 40-70m cleared area
+
+    for (let iz = 0; iz <= res; iz++) {
+      for (let ix = 0; ix <= res; ix++) {
+        const wx = (ix / res) * size - half;
+        const wz = (iz / res) * size - half;
+        const d = Math.sqrt((wx - cx) ** 2 + (wz - cz) ** 2);
+        if (d < radius) {
+          const idx = iz * stride + ix;
+          const t = d / radius;
+          // Smooth blend to target height at center, original at edge
+          data[idx] = data[idx] * t + evt.targetH * (1 - t);
+        }
+      }
+    }
+  }
+}
+
 // ── Main generation function ─────────────────────────────────────────────────
 
 export interface ZoneTerrainData {
@@ -402,6 +590,17 @@ export function generateZoneTerrain(zone: ZoneDefinition): ZoneTerrainData | nul
     config.postProcess(heightData, res, size, seed);
   }
 
+  // ── Universal island features (applied to every zone) ─────────────────
+
+  // 1. Mountain-top plateau: steep cone with flat summit (highest point)
+  addMountainTop(heightData, res, size, seed, config.maxHeight + 10);
+
+  // 2. Bay/harbor: carved inlet on one side of the island
+  carveBay(heightData, res, size, seed);
+
+  // 3. Event zones: 3 cleared flat areas at forest/mines/mountain elevations
+  clearEventZones(heightData, res, size, seed);
+
   // 2-pass box smooth for natural appearance
   for (let pass = 0; pass < 2; pass++) {
     const copy = new Float32Array(heightData);
@@ -416,6 +615,10 @@ export function generateZoneTerrain(zone: ZoneDefinition): ZoneTerrainData | nul
       }
     }
   }
+
+  // 4. Ocean floor: slope from 0m at shore to -20m at zone boundary
+  //    Applied AFTER smoothing so coastline stays sharp.
+  applyOceanFloor(heightData, res, size);
 
   return {
     heightData,

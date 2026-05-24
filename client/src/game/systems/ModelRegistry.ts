@@ -299,6 +299,9 @@ export const ANIMATION_PACKS: AnimationPackEntry[] = [
       { name: "attack", file: "attack.glb" },
       { name: "hit", file: "hit.glb" },
       { name: "death", file: "death.glb" },
+      // Mining animation — previously had an AnimationState but no backing clip.
+      // Source: attached_assets/extra animations/poorminer_*.fbx → converted to GLB
+      { name: "poorminer", file: "poorminer.glb" },
     ],
   },
   {
