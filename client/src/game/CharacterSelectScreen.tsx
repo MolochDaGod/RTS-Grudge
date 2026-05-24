@@ -154,16 +154,7 @@ const STYLE_PRESETS: StylePreset[] = [
     modelPath: "/models/characters/dwarf-female.glb",
     matColors: { clothing: "#8B4513", armor: "#888899", hair: "#aa3322" },
     bodyMorph: { muscle: 1.3, shoulderWidth: 1.2, legLength: 0.85 } },
-  { id: "goblin_m", name: "Goblin Backstabber (M)", icon: "\uD83D\uDDE1\uFE0F", category: "ranged", combatClass: "melee",
-    weaponRight: "dagger", weaponLeft: null, description: "Sneaky cutpurse. Backstab specialist.",
-    modelPath: "/models/characters/goblin_backstabber-male.glb",
-    matColors: { skin: "#5a8a4a", clothing: "#5c3317", pants: "#3b2210" },
-    bodyMorph: { muscle: 0.7, legLength: 0.85 } },
-  { id: "goblin_f", name: "Goblin Backstabber (F)", icon: "\uD83D\uDDE1\uFE0F", category: "ranged", combatClass: "melee",
-    weaponRight: "dagger", weaponLeft: null, description: "Sneaky cutpurse. Backstab specialist.",
-    modelPath: "/models/characters/goblin_backstabber-female.glb",
-    matColors: { skin: "#5a8a4a", clothing: "#5c3317", pants: "#3b2210" },
-    bodyMorph: { muscle: 0.7, legLength: 0.85 } },
+  // Goblin is an enemy NPC — not a playable race. Removed from presets.
   { id: "battle_mage_m", name: "Battle Mage (M)", icon: "\u2728", category: "magic", combatClass: "caster",
     weaponRight: "staff", weaponLeft: null, description: "Armored spellblade. Staff caster.",
     modelPath: "/models/characters/human_battle_mage-male.glb",
@@ -224,8 +215,8 @@ const RACE_PORTRAITS: { id: string; name: string; modelFilter: string; icon: str
   { id: "orc",       name: "Orc",       modelFilter: "orc_scout",            icon: "👹", portrait: "/icons/grudge/entities/orc%20warrior.png" },
   { id: "barbarian", name: "Barbarian",  modelFilter: "battle_mage",         icon: "🪓", portrait: "/icons/grudge/entities/barb%20warrior.png" },
   { id: "undead",    name: "Undead",    modelFilter: "vampire_aristocrat",   icon: "💀", portrait: "/icons/grudge/entities/undead%20warrior.png" },
-  { id: "worge",     name: "Worge",     modelFilter: "night_stalker",        icon: "🐺", portrait: "/icons/grudge/entities/orc%20warrior.png" },
-  { id: "goblin",    name: "Goblin",    modelFilter: "goblin_backstabber",   icon: "🗡️", portrait: "/icons/grudge/entities/orc%20archer.png" },
+  // Worge is a class (not a race) — selectable via class presets, not race portraits.
+  // Goblin is an enemy NPC — not a playable race.
 ];
 
 // CSS for animated stage backgrounds + race portrait hover
