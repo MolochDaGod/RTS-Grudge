@@ -4,6 +4,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* MorkDungeon — medieval fantasy display font for titles & headers.
+   Currently using MedievalSharp-Regular (OFL) as a visual stand-in.
+   Replace with the original MorkDungeon.ttf when available. */
 @font-face {
   font-family: 'MorkDungeon';
   src: url('/fonts/MorkDungeon.ttf') format('truetype');
