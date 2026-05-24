@@ -94,90 +94,17 @@ import {
 } from "../systems/CombatPhysics";
 import { useFatigue } from "../systems/FatigueSystem";
 import { preloadMeshVFX } from "../effects/MeshVFXProjectiles";
-
-const MATERIAL_TO_PART: Record<string, keyof MaterialColors> = {
-  Skin: "skin", Face: "skin", Teeth: "skin", Body: "skin", Head: "skin", Flesh: "skin",
-  Foot: "skin", Feet: "skin", Arm: "skin", Leg_Skin: "skin",
-  Hair: "hair", Hat: "hat", Helmet: "hat", Hood: "hat",
-  Armor: "armor", Armor_Dark: "armor", Main: "armor",
-  Gauntlet: "armor", Bracer: "armor", Pauldron: "armor", Shield: "armor", Plate: "armor",
-  Clothes: "clothing", Shirt: "clothing", Top: "clothing", Tunic: "clothing", Cape: "clothing", Cloak: "clothing",
-  Robe: "clothing", Vest: "clothing", Jacket: "clothing", Tabard: "clothing",
-  Pants: "pants", Legs: "pants", Trousers: "pants", Skirt: "pants", Greaves: "pants",
-  Boots: "pants", Leggings: "pants", Shorts: "pants", Kilt: "pants",
-  Belt: "detail", Buckle: "detail", Strap: "detail",
-  Beige: "clothing", Brown: "clothing", Black: "clothing", Light: "clothing",
-  Gold: "detail", Detail: "detail", Red: "detail", Gem: "detail", Jewel: "detail",
-};
-
-function buildMaterialOverrides(matColors: MaterialColors): Record<string, string> | null {
-  const overrides: Record<string, string> = {};
-  let hasAny = false;
-  for (const [matName, partKey] of Object.entries(MATERIAL_TO_PART)) {
-    const colorVal = matColors[partKey];
-    if (colorVal) {
-      overrides[matName] = colorVal;
-      hasAny = true;
-    }
-  }
-  return hasAny ? overrides : null;
-}
-
-const ATTACK_RANGE = 4;
-const JUMP_FORCE = 9;
-const DOUBLE_JUMP_FORCE = 7;
-const DASH_SPEED = 18;
-const SHORYUKEN_LIFT = 10;
-const EARTHQUAKE_SLAM = -15;
-const LAUNCH_LIFT = 8;
-const UPPERCUT_LIFT = 8;
-const RISING_SLASH_LIFT = 7;
-const BASE_PLAYER_RADIUS = 0.5;
-const PLAYER_MASS = 5;
-// `farming` is included so the wheelbarrow_idle / wheelbarrow_walk clips are
-// loaded for the beached-boat push pose (lean against the hull + slow shuffle
-// while WASD is held). They're cheap to add since the player already takes a
-// pack hit from gestures_basic.
-const PLAYER_EXTRA_PACKS: string[] = ["gestures_basic", "farming"];
-
-// Valid WeaponType values from useGame, used to gate animation-pack
-// loading by what's *actually* equipped in the mainHand slot. Anything
-// not in this set (e.g. shovel, empty) falls back to "fists" so the
-// player only loads sword packs when a sword is genuinely equipped.
-const VALID_WEAPON_TYPES = new Set<WeaponType>([
-  "sword", "greatsword", "staff", "wand", "bow", "axe", "poleaxe",
-  "hammer", "dagger", "shield", "fists", "crossbow", "gun",
-]);
-function resolveEquippedWeaponType(equippedTypeRaw: string | undefined): WeaponType {
-  if (equippedTypeRaw && VALID_WEAPON_TYPES.has(equippedTypeRaw as WeaponType)) {
-    return equippedTypeRaw as WeaponType;
-  }
-  return "fists";
-}
-const AOE_STATES = new Set(["earthquake", "spinSlash", "skill1", "skill3", "skill5", "classAbility", "classAbility2", "classAbility3"]);
-const CLEAVE_STATES = new Set(["attack1", "attack2", "attack3", "heavyAttack", "counterStrike", "dashAttack", "risingSlash", "chargeAttack", "chargeAttackMax", "chargeFist", "chargeStrike"]);
-// Combat states that arm the WeaponTrail ribbon and publish their id to
-// `attackIdRef` so per-attack width/length scaling kicks in. Adding spinSlash
-// here (which CLEAVE_STATES omits because spinSlash uses a wider AOE path).
-const TRAIL_SWING_STATES = new Set([
-  "attack1", "attack2", "attack3",
-  "heavyAttack", "counterStrike", "spinSlash", "risingSlash", "dashAttack",
-  "chargeAttack", "chargeAttackMax", "chargeFist", "chargeStrike",
-]);
-const MAX_CLEAVE = 3;
-
-const BUFFERABLE_EVENTS = new Set(["LMB", "RMB_DOWN", "DASH", "ROLL", "JUMP", "KEY_1", "KEY_2", "KEY_3", "KEY_4", "KEY_5", "CLASS_ABILITY", "CLASS_ABILITY_2", "CLASS_ABILITY_3"]);
-const ACTIVE_COMBAT_STATES = new Set([
-  "attack1", "attack2", "attack3", "heavyAttack", "dashAttack",
-  "spinSlash", "counterStrike", "risingSlash", "uppercut", "jumpBash",
-  "earthquake", "skill1", "skill2", "skill3", "skill4", "skill5",
-  "classAbility", "classAbility2", "classAbility3", "rolling", "pop",
-  "chargeAttack", "chargeAttackMax", "chargeFist", "chargeStrike",
-]);
-// Substates of the LMB hold-to-charge wind-up. Player tracks chargeTime
-// here and dispatches CHARGE_TIER_1/2 when the configured thresholds are
-// crossed; LMB_UP commits the appropriate release.
-const CHARGE_HOLD_STATES = new Set(["charging", "charged1", "charged2"]);
+// ── Extracted modules ──
+import { buildMaterialOverrides, applyChargeGlow } from "./playerMaterials";
+import {
+  ATTACK_RANGE, JUMP_FORCE, DOUBLE_JUMP_FORCE, DASH_SPEED,
+  SHORYUKEN_LIFT, EARTHQUAKE_SLAM, LAUNCH_LIFT, UPPERCUT_LIFT,
+  RISING_SLASH_LIFT, BASE_PLAYER_RADIUS, PLAYER_MASS,
+  PLAYER_EXTRA_PACKS, resolveEquippedWeaponType,
+  AOE_STATES, CLEAVE_STATES, TRAIL_SWING_STATES, MAX_CLEAVE,
+  BUFFERABLE_EVENTS, ACTIVE_COMBAT_STATES, CHARGE_HOLD_STATES,
+  ACTION_STATES,
+} from "./playerConstants";
 
 // Module-scope ground sampler bound to the main game's procedural
 // heightmap. Defined once so the per-frame sampler resolution doesn't
@@ -212,80 +139,6 @@ interface PlayerProps {
   groundSampler?: ((x: number, z: number) => number) | null;
 }
 
-const ACTION_STATES = new Set([
-  "attack1", "attack2", "attack3",
-  "dashAttack",
-  "skill1", "skill2", "skill3", "skill4", "skill5",
-  "classAbility", "classAbility2", "classAbility3", "rolling",
-  "pop", "earthquake", "jumpBash",
-  "blocking",
-  "uppercut", "spinSlash", "counterStrike",
-  "risingSlash", "heavyAttack",
-  "chargeAttack", "chargeAttackMax", "chargeFist", "chargeStrike",
-]);
-
-// --- Charge glow ----------------------------------------------------------
-// Re-tints every material on the right-hand weapon group based on the
-// current charge tier. Materials are cloned the first time we touch them
-// (so we don't permanently mutate cached/shared materials) and the
-// original emissive color + intensity are stashed in userData so tier-0
-// reset is exact.
-interface ChargedUserData {
-  __chargeOwned?: boolean;
-  __origEmissive?: number;
-  __origEmissiveIntensity?: number;
-}
-// Material types that expose `emissive` + `emissiveIntensity`. Both PBR
-// and Phong materials share the same shape for these properties.
-type EmissiveMaterial = THREE.MeshStandardMaterial | THREE.MeshPhongMaterial;
-function isEmissiveMaterial(m: THREE.Material): m is EmissiveMaterial {
-  return m instanceof THREE.MeshStandardMaterial || m instanceof THREE.MeshPhongMaterial;
-}
-
-const CHARGE_GLOW_COLORS = [
-  0x000000, // tier 0 — restore original
-  0x4488ff, // tier 1 — cool blue glow
-  0xffaa44, // tier 2 — hot orange glow
-];
-const CHARGE_GLOW_INTENSITY = [0, 1.4, 2.8];
-
-function applyChargeGlow(boneRoot: THREE.Object3D | null, tier: 0 | 1 | 2) {
-  if (!boneRoot) return;
-  // Walk the weapon_* groups attached to the hand bone.
-  for (const child of boneRoot.children) {
-    if (!child.name.startsWith("weapon_")) continue;
-    child.traverse((obj) => {
-      if (!(obj instanceof THREE.Mesh)) return;
-      const mesh = obj;
-      const swap = (m: THREE.Material): THREE.Material => {
-        if (!isEmissiveMaterial(m)) return m;
-        let owned = m;
-        const ud = owned.userData as ChargedUserData;
-        if (!ud.__chargeOwned) {
-          owned = m.clone() as EmissiveMaterial;
-          const newUd = owned.userData as ChargedUserData;
-          newUd.__chargeOwned = true;
-          newUd.__origEmissive = m.emissive.getHex();
-          newUd.__origEmissiveIntensity = m.emissiveIntensity;
-        }
-        const ownedUd = owned.userData as ChargedUserData;
-        if (tier === 0) {
-          owned.emissive.setHex(ownedUd.__origEmissive ?? 0);
-          owned.emissiveIntensity = ownedUd.__origEmissiveIntensity ?? 0;
-        } else {
-          owned.emissive.setHex(CHARGE_GLOW_COLORS[tier]);
-          owned.emissiveIntensity = CHARGE_GLOW_INTENSITY[tier];
-        }
-        return owned;
-      };
-      if (Array.isArray(mesh.material)) {
-        mesh.material = mesh.material.map(swap);
-      } else {
-        mesh.material = swap(mesh.material);
-      }
-    });
-  }
-}
 
 function PlayerModel({
   onPositionUpdate,
@@ -448,9 +301,6 @@ function PlayerModel({
   const [flashTier, setFlashTier] = useState<1 | 2>(1);
   const [flashSeq, setFlashSeq] = useState(0);
 
-  // Alias for CombatPhysics integration (applyCombatImpulse needs applyImpulse)
-  const rigidBodyRef = rbRef;
-
   useEffect(() => {
     combatActor.current.start();
     // Preload mesh VFX models (rasengan, tornado, cast circle, explosions, etc.)
@@ -608,7 +458,7 @@ function PlayerModel({
         const faceY = modelRef.current?.rotation.y ?? 0;
         const facing: [number, number] = [Math.sin(faceY), Math.cos(faceY)];
         const fatigueMult = useFatigue.getState().modifiers.speedMult;
-        const rb = rigidBodyRef.current;
+        const rb = rbRef.current;
         applyCombatImpulse(cur, rb, facing, [pos.x, pos.y, pos.z], fatigueMult);
         const sc = (window as any).__threeScene;
         if (sc) {
