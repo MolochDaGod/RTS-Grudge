@@ -1,4 +1,5 @@
 import { useState, useRef, Suspense, useEffect, useMemo, useCallback } from "react";
+import { useCharacterAPI, type ServerCharacter } from "@/lib/characters/useCharacterAPI";
 import { SceneErrorBoundary } from "./components/SceneErrorBoundary";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, TransformControls, Text } from "@react-three/drei";
@@ -1425,17 +1426,83 @@ export default function CharacterSelectScreen() {
     // (handled downstream by startLoading / startWithCharacter in the confirm step)
   }, []);
 
+  // ── Server-side character persistence ──────────────────────────────────
+  // Characters are saved to the Grudge backend via /api/characters so they
+  // are accessible from ALL game modes (RTS, DCQ, 2D Combat, Crafting).
+  const charAPI = useCharacterAPI();
+  const activeServerCharId = useRef<string | null>(null);
+
   const saveCharacterEdits = useCallback((data: Record<string, any>) => {
+    // Write-through to localStorage for offline/guest fallback
     try {
       const all = JSON.parse(localStorage.getItem("character_edits") || "{}");
       all["hero"] = { ...data, _ts: Date.now() };
       localStorage.setItem("character_edits", JSON.stringify(all));
     } catch {}
-  }, []);
+
+    // Debounced server save (fire-and-forget)
+    const charId = activeServerCharId.current;
+    const payload = {
+      name: data.heroName ?? "Hero",
+      heroClass: data.combatClass === "melee" ? "warrior" : data.combatClass === "caster" ? "mage" : data.combatClass === "ranger" ? "ranger" : "warrior",
+      modelPath: data.currentModelPath,
+      appearance: {
+        matColors: data.matColors,
+        bodyMorph: data.bodyMorph,
+        weaponOffset: data.weaponOffset,
+        scale: data.scale,
+        speedMult: data.speedMult,
+      },
+      equipment: {
+        combatClass: data.combatClass,
+        weaponRight: data.weaponRight,
+        weaponLeft: data.weaponLeft,
+        weaponModelRight: data.weaponModelRight,
+        weaponModelLeft: data.weaponModelLeft,
+        arrowModelId: data.arrowModelId,
+        backAccessoryId: data.backAccessoryId,
+      },
+    };
+
+    if (charId) {
+      charAPI.update(charId, payload).catch(() => {});
+    } else {
+      charAPI.create(payload).then((c) => {
+        activeServerCharId.current = c.character_id;
+      }).catch(() => {});
+    }
+  }, [charAPI]);
 
   const autoSaveReady = useRef(false);
 
+  // Populate from server character if available, falling back to localStorage
   useEffect(() => {
+    if (charAPI.active) {
+      const sc = charAPI.active;
+      activeServerCharId.current = sc.character_id;
+      const app = (sc.appearance ?? {}) as any;
+      const eq = (sc.equipment ?? {}) as any;
+      setHeroName(sc.name ?? "Hero");
+      setScale(app.scale && app.scale > 0.5 ? app.scale : 1.0);
+      setSpeedMult(app.speedMult ?? 1.0);
+      const resolvedClass = eq.combatClass === "archer" ? "ranger" : (eq.combatClass ?? BASE_CHARACTER.defaultClass);
+      setCombatClass(resolvedClass);
+      setWeaponRight(eq.weaponRight ?? BASE_CHARACTER.defaultWeaponRight);
+      setWeaponLeft(eq.weaponLeft !== undefined ? eq.weaponLeft : BASE_CHARACTER.defaultWeaponLeft);
+      setMatColors(app.matColors ?? { skin: null, clothing: null, pants: null, hair: null, hat: null, armor: null, detail: null });
+      setBodyMorph({ ...DEFAULT_BODY_MORPH, ...Object.fromEntries(Object.entries(app.bodyMorph ?? {}).filter(([k]) => k in DEFAULT_BODY_MORPH)) });
+      setWeaponOffset(app.weaponOffset ?? { ...DEFAULT_WEAPON_OFFSET });
+      setWeaponModelRight(eq.weaponModelRight ?? getDefaultWeaponModelId(eq.weaponRight ?? BASE_CHARACTER.defaultWeaponRight));
+      setWeaponModelLeft(eq.weaponModelLeft ?? getDefaultWeaponModelId(eq.weaponLeft));
+      setArrowModelId(eq.arrowModelId ?? null);
+      setBackAccessoryId(eq.backAccessoryId ?? null);
+      if (sc.model_path && !REMOVED_HERO_FORGE_MODELS.has(sc.model_path)) {
+        setCurrentModelPath(sc.model_path);
+      }
+      setTimeout(() => { autoSaveReady.current = true; }, 200);
+      return;
+    }
+    // Fallback: load from localStorage for guest/offline
     try {
       const all = JSON.parse(localStorage.getItem("character_edits") || "{}");
       const saved = all["hero"];
@@ -1497,7 +1564,7 @@ export default function CharacterSelectScreen() {
       }
     } catch {}
     setTimeout(() => { autoSaveReady.current = true; }, 100);
-  }, []);
+  }, [charAPI.active]);
 
   useEffect(() => {
     if (!autoSaveReady.current) return;
