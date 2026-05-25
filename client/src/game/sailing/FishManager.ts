@@ -208,8 +208,8 @@ export class FishManager {
       schoolId,
       speciesName: species.name,
       skittishness: behavior?.skittishness ?? 'cautious',
-      fleeDistance: fleeParams.distance,
-      fleeSpeed: fleeParams.speed,
+      fleeDistance: fleeParams.fleeDistance,
+      fleeSpeed: fleeParams.fleeSpeed,
       animationSpeedMultiplier: behavior?.animationSpeedMultiplier ?? 1.0,
       schoolingTightness: behavior?.schoolingTightness ?? 0.8,
       isFleeing: false,
@@ -355,7 +355,7 @@ export class FishManager {
           fish.velocity.add(fleeForce);
           
           const config = SKITTISHNESS_CONFIG[fish.skittishness];
-          fish.velocity.multiplyScalar(1 + config.fleeMultiplier * 0.3);
+          fish.velocity.multiplyScalar(1 + (config.fleeSpeed / config.fleeDistance) * 0.3);
         } else if (fish.isFleeing && distToPlayer > fish.fleeDistance * 1.5) {
           fish.isFleeing = false;
           fish.fleeTarget = null;

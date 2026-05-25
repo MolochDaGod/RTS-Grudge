@@ -203,7 +203,7 @@ export const WORLD_ZONES: ZoneDefinition[] = [
       hasTradePost: true,
     },
     docks: [
-      { x: -180, z: 0, rotation: -Math.PI / 2, destination: "snow", label: "West to Frozen Reach" },
+      { x: -180, z: 0, rotation: -Math.PI / 2, destination: "ethereal", label: "West to Eternity Falls" },
       { x: 180, z: 0, rotation: Math.PI / 2, destination: "lava", label: "East to Ember Reaches" },
       { x: 0, z: 180, rotation: Math.PI, destination: "plains", label: "South to Central Hub" },
     ],
@@ -295,7 +295,7 @@ export const WORLD_ZONES: ZoneDefinition[] = [
       hasTradePost: true,
     },
     docks: [
-      { x: 0, z: -180, rotation: 0, destination: "snow", label: "North to Frozen Reach" },
+      { x: 0, z: -180, rotation: 0, destination: "ethereal", label: "North to Eternity Falls" },
       { x: 180, z: 0, rotation: Math.PI / 2, destination: "plains", label: "East to Central Hub" },
       { x: 0, z: 180, rotation: Math.PI, destination: "swamp", label: "South to Fetid Swamp" },
     ],

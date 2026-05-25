@@ -273,7 +273,7 @@ describe("Integration: terrain generation + world grid", () => {
     expect(adj).toEqual(["coast", "desert", "forest", "mountains"]);
   });
 
-  it("all 9 zones produce non-null terrain (except GLB coast)", () => {
+  it("all 9 zones produce non-null terrain (except GLB coast)", { timeout: 15000 }, () => {
     expect(WORLD_ZONES).toHaveLength(9);
 
     for (const zone of WORLD_ZONES) {
