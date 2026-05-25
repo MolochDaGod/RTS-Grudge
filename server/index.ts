@@ -40,7 +40,9 @@ app.use("/api/ai-read", aiLimiter);
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: false }));
 
-app.use("/Models", express.static(path.resolve(process.cwd(), "Models")));
+// Legacy Models/ mount removed — all static assets (models, icons, fonts,
+// sounds) live in client/public/ and are served from dist/public/ in
+// production via serveStatic(), or by Vite's dev server in development.
 
 export function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
