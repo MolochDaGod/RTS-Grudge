@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader, GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
-// Cloth physics will be ported separately
-// import { ClothSimulation, createClothGeometry, updateClothGeometry, WindForce } from './clothPhysics';
+import { ClothSimulation, createClothGeometry, updateClothGeometry, type WindForce } from './clothPhysics';
 import { SHIP_TYPES } from './types';
 
 export interface ShipPrefabConfig {
@@ -1444,6 +1443,6 @@ export class ShipPrefabFactory {
 }
 
 export function getShipTierFromType(shipType: string): number {
-  const ship = SHIP_TYPES[shipType];
-  return ship?.tier ?? 3;
+  const ship = SHIP_TYPES[shipType as keyof typeof SHIP_TYPES];
+  return ship ? Math.ceil(Object.keys(SHIP_TYPES).indexOf(shipType as keyof typeof SHIP_TYPES) / 2) + 1 : 3;
 }

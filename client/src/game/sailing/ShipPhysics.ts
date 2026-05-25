@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { WeatherConfig } from './types';
+import { getWeatherState, type WeatherConfig } from './types';
 
 export interface ShipPhysicsState {
   roll: number;
@@ -233,14 +233,15 @@ export class ShipPhysics {
     }
 
     const severityMultiplier = waveHeight * (1 + weather.windStrength * 0.02);
+    const weatherState = getWeatherState(weather);
     
-    if (weather.state === 'storm') {
+    if (weatherState === 'storm') {
       if (Math.random() < delta * 0.08 * severityMultiplier) {
         const stormDamage = 0.3 * severityMultiplier;
         weatherDamage += stormDamage;
         this.state.structuralDamage += stormDamage * 0.2;
       }
-    } else if (weather.state === 'hurricane') {
+    } else if (weatherState === 'hurricane') {
       if (Math.random() < delta * 0.15 * severityMultiplier) {
         const hurricaneDamage = 1.0 * severityMultiplier;
         weatherDamage += hurricaneDamage;
@@ -251,7 +252,7 @@ export class ShipPhysics {
       if (Math.random() < debrisChance) {
         weatherDamage += 3;
       }
-    } else if (weather.state === 'heavy_rain') {
+    } else if (weatherState === 'heavy_rain') {
       if (Math.random() < delta * 0.03) {
         weatherDamage += 0.1 * severityMultiplier;
       }

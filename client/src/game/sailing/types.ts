@@ -8,6 +8,8 @@
 
 // ── Weather ──────────────────────────────────────────────────────────────────
 
+export type WeatherState = "calm" | "light_rain" | "heavy_rain" | "storm" | "hurricane";
+
 export interface WeatherConfig {
   windStrength: number;     // 0-1, drives sail speed + wave amplitude
   windDirection: number;    // radians, world-space
@@ -17,6 +19,18 @@ export interface WeatherConfig {
   visibility: number;       // metres, fog distance
   rainIntensity: number;    // 0-1
   fogDensity: number;       // 0-1
+  /** Derived weather state — defaults to 'calm' if omitted */
+  state?: WeatherState;
+}
+
+/** Derive weather state from stormIntensity if not explicitly set. */
+export function getWeatherState(weather: WeatherConfig): WeatherState {
+  if (weather.state) return weather.state;
+  if (weather.stormIntensity >= 0.7) return "hurricane";
+  if (weather.stormIntensity >= 0.4) return "storm";
+  if (weather.stormIntensity >= 0.15) return "heavy_rain";
+  if (weather.rainIntensity > 0.2) return "light_rain";
+  return "calm";
 }
 
 export const DEFAULT_WEATHER: WeatherConfig = {
