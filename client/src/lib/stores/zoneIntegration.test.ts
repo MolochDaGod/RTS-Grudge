@@ -76,8 +76,15 @@ describe("Integration: socket join → zone travel → dungeon → death", () =>
     zm.join(sock, "coast", PLAYER);
     zm.updatePosition(sock, [50, 2, 30], 1.57, "run");
 
-    // Stats still show 1 player
-    expect(zm.getStats().totalPlayers).toBe(1);
+    // Join a second player so the returned players array includes player 1's updated state
+    const sock2 = mockSocket("s2");
+    const res = zm.join(sock2, "coast", { ...PLAYER, playerId: "observer" });
+    const moved = res.players.find(p => p.playerId === "player_smoke")!;
+
+    expect(moved.position).toEqual([50, 2, 30]);
+    expect(moved.rotation).toBeCloseTo(1.57);
+    expect(moved.animation).toBe("run");
+    expect(zm.getStats().totalPlayers).toBe(2);
   });
 
   it("4 → game flow: coast → open_water (dock travel to plains)", () => {
@@ -202,11 +209,9 @@ describe("Integration: socket join → zone travel → dungeon → death", () =>
 describe("Integration: channel auto-scaling", () => {
   it("creates second channel when first fills to 50", () => {
     const zm = new ZoneManager();
-    const sockets: any[] = [];
 
     for (let i = 0; i < 51; i++) {
       const s = mockSocket(`s${i}`);
-      sockets.push(s);
       zm.join(s, "coast", {
         playerId: `p${i}`,
         characterName: `Hero${i}`,
@@ -269,13 +274,15 @@ describe("Integration: terrain generation + world grid", () => {
   });
 
   it("all 9 zones produce non-null terrain (except GLB coast)", () => {
+    expect(WORLD_ZONES).toHaveLength(9);
+
     for (const zone of WORLD_ZONES) {
       const terrain = generateZoneTerrain(zone);
       if (zone.terrain.type === "glb") {
         expect(terrain).toBeNull();
       } else {
         expect(terrain).not.toBeNull();
-        expect(terrain!.heightData.length).toBe(1025 * 1025);
+        expect(terrain!.heightData.length).toBe((terrain!.resolution + 1) ** 2);
       }
     }
   });
