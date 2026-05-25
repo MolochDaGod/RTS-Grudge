@@ -1,6 +1,7 @@
 import { useEffect, lazy, Suspense } from "react";
 import { useLocation } from "wouter";
 import { useGame, type GamePhase } from "./lib/stores/useGame";
+import { useGameFlow } from "./lib/stores/useGameFlow";
 import { useAudio } from "./lib/stores/useAudio";
 import GameScene from "./game/GameScene";
 import BakedDungeonScene from "./game/dungeon/BakedDungeonScene";
@@ -143,6 +144,11 @@ function App() {
     return () => window.removeEventListener("keydown", handleKey);
   }, [phase, togglePanel, closePanel, pause, resume]);
 
+  // ── Game flow fade overlay ─────────────────────────────────────────────
+  const fadeOpacity = useGameFlow((s) => s.fadeOpacity);
+  const fadeColor = useGameFlow((s) => s.fadeColor);
+  const fadePhase = useGameFlow((s) => s.fadePhase);
+
   return (
     <div style={{ width: "100vw", height: "100vh", position: "relative", overflow: "hidden" }}>
       <AutoSaveController />
@@ -206,6 +212,20 @@ function App() {
         }>
           <ControllerPage />
         </Suspense>
+      )}
+      {/* ── Game flow fade overlay ─────────────────────────────────────── */}
+      {fadePhase !== "none" && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            backgroundColor: fadeColor,
+            opacity: fadeOpacity,
+            pointerEvents: fadePhase === "hold" ? "all" : "none",
+            transition: "none",
+          }}
+        />
       )}
     </div>
   );

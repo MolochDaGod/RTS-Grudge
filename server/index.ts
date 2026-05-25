@@ -3,6 +3,8 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import { Server as SocketIOServer } from "socket.io";
+import { registerZoneHandlers, zoneManager } from "./zoneManager";
 import path from "path";
 import helmet from "helmet";
 import compression from "compression";
@@ -140,11 +142,26 @@ app.use((req, res, next) => {
   // Other ports are firewalled. Default to 5000 if not specified.
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
+  // ── Socket.IO for MMO zone multiplayer ──────────────────────────────────
+  const io = new SocketIOServer(httpServer, {
+    cors: {
+      origin: process.env.CORS_ORIGINS
+        ? process.env.CORS_ORIGINS.split(",").map(s => s.trim())
+        : "*",
+      methods: ["GET", "POST"],
+    },
+    transports: ["websocket", "polling"],
+  });
+  registerZoneHandlers(io);
+  log("Socket.IO zone handlers registered");
+
+  // Zone stats endpoint
+  app.get("/api/zone-stats", (_req: Request, res: Response) => {
+    res.json(zoneManager.getStats());
+  });
+
   const port = parseInt(process.env.PORT || "5000", 10);
-  // reusePort is Linux-only (SO_REUSEPORT); omitting it on all platforms
-  // avoids ENOTSUP on Windows in local dev. Production Railway containers
-  // run Linux so this is safe to remove unconditionally.
   httpServer.listen(port, "0.0.0.0", () => {
-    log(`serving on port ${port}`);
+    log(`serving on port ${port} (http + ws)`);
   });
 })();
