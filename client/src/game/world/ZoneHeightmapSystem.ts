@@ -351,25 +351,31 @@ export const OCEAN_FLOOR = -20;
 export const WATER_LEVEL = 0;
 
 export const ELEVATION_BANDS = {
-  /** -20m to 0m — seabed, slopes from shore to deep ocean */
-  OCEAN:     { min: -20, max: 0 },
+  /** -20m to -5m — deep ocean between zones, flat seabed */
+  DEEP_OCEAN:  { min: -20, max: -5 },
+  /** -5m to 0m — solid earth under every island (visible if terrain is lowered/dug) */
+  ISLAND_BASE: { min: -5,  max: 0 },
   /** 0m to 1.5m — sandy shoreline, ~8% of island area */
-  BEACH:     { min: 0,   max: 1.5 },
+  BEACH:       { min: 0,   max: 1.5 },
   /** 1.5m to 4m — town areas, meadows, ~18% of island area */
-  FLAT_LAND: { min: 1.5, max: 4 },
+  FLAT_LAND:   { min: 1.5, max: 4 },
   /** 4m to 10m — rolling hills with trees, ~30% of island area */
-  FOREST:    { min: 4,   max: 10 },
+  FOREST:      { min: 4,   max: 10 },
   /** 10m to 18m — cave-entrance elevation, rocky, ~20% of island area */
-  MINES:     { min: 10,  max: 18 },
+  MINES:       { min: 10,  max: 18 },
   /** 18m to 35m — steep rocky terrain, ~15% of island area */
-  MOUNTAIN:  { min: 18,  max: 35 },
+  MOUNTAIN:    { min: 18,  max: 35 },
   /** 35m+ — mountain-top plateau, ~9% of island area */
-  PEAK:      { min: 35,  max: 50 },
+  PEAK:        { min: 35,  max: 50 },
 } as const;
+
+/** Minimum terrain height for island ground (solid earth below surface). */
+export const ISLAND_GROUND_FLOOR = -5;
 
 /** Get the terrain band name for a given height in meters. */
 export function getElevationBand(height: number): keyof typeof ELEVATION_BANDS {
-  if (height < ELEVATION_BANDS.OCEAN.max) return "OCEAN";
+  if (height < ELEVATION_BANDS.DEEP_OCEAN.max) return "DEEP_OCEAN";
+  if (height < ELEVATION_BANDS.ISLAND_BASE.max) return "ISLAND_BASE";
   if (height < ELEVATION_BANDS.BEACH.max) return "BEACH";
   if (height < ELEVATION_BANDS.FLAT_LAND.max) return "FLAT_LAND";
   if (height < ELEVATION_BANDS.FOREST.max) return "FOREST";
@@ -380,23 +386,44 @@ export function getElevationBand(height: number): keyof typeof ELEVATION_BANDS {
 
 // ── Universal island features ───────────────────────────────────────────
 
-/** Carve ocean floor: heights below 0 slope down to OCEAN_FLOOR at zone boundary. */
+/**
+ * Apply ocean floor and island base.
+ * - Under the island footprint: terrain can go down to -5m (ISLAND_BASE)
+ *   so lowering/digging reveals solid dirt, not void.
+ * - Outside the island footprint: seabed slopes from -5m to -20m (DEEP_OCEAN).
+ */
 function applyOceanFloor(
   data: Float32Array, res: number, size: number,
 ) {
   const half = size / 2;
   const stride = res + 1;
+  // First determine the island radius (where land > 0)
+  // We use the islandRadius from config indirectly: any cell with height <= 0
+  // after generation is ocean.
   for (let iz = 0; iz <= res; iz++) {
     for (let ix = 0; ix <= res; ix++) {
       const idx = iz * stride + ix;
+      const wx = (ix / res) * size - half;
+      const wz = (iz / res) * size - half;
+      const distNorm = Math.sqrt((wx / half) ** 2 + (wz / half) ** 2);
+
       if (data[idx] <= 0) {
-        // Distance from center as 0-1
-        const wx = (ix / res) * size - half;
-        const wz = (iz / res) * size - half;
-        const distNorm = Math.sqrt((wx / half) ** 2 + (wz / half) ** 2);
-        // Slope from 0 at shore to OCEAN_FLOOR at zone edge
-        const depthFactor = Math.min(1, distNorm / 1.0);
-        data[idx] = OCEAN_FLOOR * depthFactor;
+        // Outside island: slope from ISLAND_GROUND_FLOOR near shore
+        // to OCEAN_FLOOR at zone edge
+        if (distNorm < 0.6) {
+          // Near the island shore: shallow water, floor at -5m
+          data[idx] = ISLAND_GROUND_FLOOR;
+        } else {
+          // Deep ocean: interpolate from -5m to -20m
+          const deepFactor = Math.min(1, (distNorm - 0.6) / 0.4);
+          data[idx] = ISLAND_GROUND_FLOOR + (OCEAN_FLOOR - ISLAND_GROUND_FLOOR) * deepFactor;
+        }
+      } else {
+        // Under the island: ensure minimum ground floor at -5m
+        // This means the island has 5m of solid earth beneath the surface
+        // that becomes visible if the player lowers terrain
+        // (heightData stores the surface; the rendering system knows
+        // there's solid ground down to ISLAND_GROUND_FLOOR below it)
       }
     }
   }

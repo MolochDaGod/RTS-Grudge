@@ -5,9 +5,9 @@
  * is a full zone with its own biome, terrain, faction town, dungeons, mob
  * spawns, and docks for inter-zone travel.
  *
- *   [Snow/Fabled]    [Mountains/Neutral]  [Lava/Legion]
+ *   [Ethereal/Void]  [Mountains/Neutral]  [Jungle/Crusade]
  *   [Forest/Crusade] [Plains/Hub]         [Desert/Legion]
- *   [Swamp/Neutral]  [Coast/Pirate★]      [Jungle/Crusade]
+ *   [Swamp/Neutral]  [Coast/Pirate★]      [Lava/Legion]
  *
  * ★ Coast is the starting zone — uses the tutorial island GLB scene.
  *   All other zones use procedural heightmap terrain from IslandGenerator.
@@ -23,14 +23,14 @@ import type { EnemyType } from "../systems/EnemyManager";
 // ── Zone definition ──────────────────────────────────────────────────────────
 
 export type ZoneId =
-  | "plains"   // center hub
-  | "coast"    // starting zone (tutorial island)
+  | "plains"    // center hub
+  | "coast"     // starting zone (tutorial island)
   | "forest"
   | "desert"
   | "swamp"
-  | "snow"
-  | "lava"
-  | "jungle"
+  | "ethereal"  // NW — Eternity Falls, void water, Shattered Deep
+  | "lava"      // SE — Ember Reaches, volcanic birth of new islands
+  | "jungle"    // NE — Emerald Jungle, Crusade frontier
   | "mountains";
 
 export type FactionId = "neutral" | "crusade" | "fabled" | "legion" | "pirate";
@@ -139,49 +139,48 @@ function gridOffset(row: number, col: number): { x: number; z: number } {
 export const WORLD_ZONES: ZoneDefinition[] = [
   // ─── Row 0 (North) ──────────────────────────────────────────────────────
   {
-    id: "snow",
-    name: "The Frozen Reach",
-    subtitle: "Fabled Faction Territory",
-    description: "Glacial peaks and frozen tundra. The Fabled faction maintains their stronghold in an ice fortress atop the highest ridge. Yetis and frost elementals guard ancient ruins beneath the permafrost.",
+    id: "ethereal",
+    name: "Eternity Falls",
+    subtitle: "The Shattered Deep — Void Water Zone",
+    description: "Where the ocean meets the void. Eternity Falls consumes and recycles all things that drift into its pull — ships, islands, even time itself. Sinking islands descend into ethereal mist. The water glows with spectral energy and ancient ruins surface briefly before being swallowed again. This is where the world ends and begins anew.",
     gridRow: 0, gridCol: 0,
     worldOffset: gridOffset(0, 0),
     size: ISLAND_SIZE,
-    levelRange: [15, 30],
-    faction: "fabled",
-    biome: "snow",
-    terrain: { type: "heightmap", biome: "arctic", seed: 7001 },
+    levelRange: [35, 50],
+    faction: "neutral",
+    biome: "swamp", // low terrain, heavy water, eerie fog
+    terrain: { type: "heightmap", biome: "cursed", seed: 7001 },
     town: {
-      center: { x: 0, z: 20 },
-      name: "Frosthold",
-      npcCount: 12,
+      center: { x: 0, z: 200 },
+      name: "The Threshold",
+      npcCount: 8,
       hasCraftingHub: true,
-      hasFactionVendor: true,
-      hasTradePost: true,
+      hasFactionVendor: false,
+      hasTradePost: false,
     },
     docks: [
-      { x: -80, z: 180, rotation: Math.PI, destination: "forest", label: "South to Dark Forest" },
-      { x: 180, z: 0, rotation: Math.PI / 2, destination: "mountains", label: "East to Iron Peaks" },
+      { x: -80, z: 1800, rotation: Math.PI, destination: "forest", label: "South to Dark Forest" },
+      { x: 1800, z: 0, rotation: Math.PI / 2, destination: "mountains", label: "East to Iron Peaks" },
     ],
     dungeons: [
-      { x: -60, z: -100, tier: 2, name: "Frozen Crypt", minLevel: 18 },
-      { x: 80, z: -80, tier: 3, name: "Glacial Caverns", minLevel: 24 },
+      { x: -600, z: -800, tier: 4, name: "Abyssal Rift", minLevel: 38 },
+      { x: 500, z: -600, tier: 5, name: "Void Sanctum", minLevel: 45 },
     ],
     boss: {
-      center: { x: 0, z: -140 },
-      radius: 30,
-      bossType: "yeti",
-      bossName: "Avalanche, the Frost King",
-      minLevel: 28,
-      respawnSeconds: 1800,
+      center: { x: 0, z: -1200 },
+      radius: 40,
+      bossType: "demon",
+      bossName: "The Eternalkeeper",
+      minLevel: 48,
+      respawnSeconds: 3600,
     },
     camps: [
-      { x: -120, z: -40, name: "Fabled Outpost", type: "faction" },
-      { x: 100, z: 60, name: "Ice Troll Camp", type: "bandit" },
-      { x: -30, z: 120, name: "Fur Trader", type: "merchant" },
+      { x: -800, z: -300, name: "Sunken Ruins", type: "bandit" },
+      { x: 700, z: 400, name: "Void Researchers", type: "merchant" },
     ],
-    ambientColor: "#cce0ff",
-    fogColor: "#889aab",
-    fogDensity: 0.02,
+    ambientColor: "#221144",
+    fogColor: "#110033",
+    fogDensity: 0.04,
   },
   {
     id: "mountains",
@@ -229,49 +228,49 @@ export const WORLD_ZONES: ZoneDefinition[] = [
     fogDensity: 0.015,
   },
   {
-    id: "lava",
-    name: "The Ember Reaches",
-    subtitle: "Legion Faction Territory",
-    description: "Volcanic wasteland of molten rivers and obsidian spires. The Legion faction has built their war citadel in the caldera. Demons and fire elementals roam the ashen plains.",
+    id: "jungle",
+    name: "The Emerald Jungle",
+    subtitle: "Crusade Frontier",
+    description: "Dense tropical canopy with hidden Crusade temples and dinosaur nesting grounds. The Jade Seas crash against cliffs lined with ancient ruins. Raptors hunt in coordinated packs. The jungle conceals the oldest temples on the archipelago.",
     gridRow: 0, gridCol: 2,
     worldOffset: gridOffset(0, 2),
     size: ISLAND_SIZE,
-    levelRange: [25, 45],
-    faction: "legion",
-    biome: "lava",
-    terrain: { type: "heightmap", biome: "volcanic", seed: 7003 },
+    levelRange: [15, 35],
+    faction: "crusade",
+    biome: "jungle",
+    terrain: { type: "heightmap", biome: "tropical", seed: 7003 },
     town: {
-      center: { x: 0, z: 20 },
-      name: "Cinderhall",
-      npcCount: 14,
+      center: { x: 0, z: 200 },
+      name: "Temple Landing",
+      npcCount: 12,
       hasCraftingHub: true,
       hasFactionVendor: true,
       hasTradePost: true,
     },
     docks: [
-      { x: -180, z: 0, rotation: -Math.PI / 2, destination: "mountains", label: "West to Iron Peaks" },
-      { x: 0, z: 180, rotation: Math.PI, destination: "desert", label: "South to Scorched Wastes" },
+      { x: -1800, z: 0, rotation: -Math.PI / 2, destination: "mountains", label: "West to Iron Peaks" },
+      { x: 0, z: 1800, rotation: Math.PI, destination: "desert", label: "South to Scorched Wastes" },
     ],
     dungeons: [
-      { x: -80, z: -100, tier: 3, name: "Magma Core", minLevel: 28 },
-      { x: 60, z: -130, tier: 5, name: "Inferno Sanctum", minLevel: 40 },
+      { x: -700, z: -800, tier: 2, name: "Raptor Nest", minLevel: 18 },
+      { x: 600, z: -900, tier: 4, name: "Jade Temple", minLevel: 30 },
     ],
     boss: {
-      center: { x: 0, z: -160 },
-      radius: 40,
-      bossType: "demon",
-      bossName: "Moloch, the Ember Lord",
-      minLevel: 42,
-      respawnSeconds: 3600,
+      center: { x: 0, z: -1200 },
+      radius: 35,
+      bossType: "trex",
+      bossName: "Deathjaw, the Jungle King",
+      minLevel: 33,
+      respawnSeconds: 2400,
     },
     camps: [
-      { x: -130, z: 50, name: "Legion Forward Base", type: "faction" },
-      { x: 110, z: -60, name: "Demon Cultists", type: "bandit" },
-      { x: -40, z: 130, name: "Obsidian Trader", type: "merchant" },
+      { x: -900, z: 400, name: "Crusade Temple Camp", type: "faction" },
+      { x: 800, z: -300, name: "Tribal Village", type: "bandit" },
+      { x: -200, z: 900, name: "Jungle Herbalist", type: "merchant" },
     ],
-    ambientColor: "#ffccaa",
-    fogColor: "#cc6633",
-    fogDensity: 0.025,
+    ambientColor: "#88cc66",
+    fogColor: "#335522",
+    fogDensity: 0.028,
   },
 
   // ─── Row 1 (Center) ─────────────────────────────────────────────────────
@@ -499,49 +498,49 @@ export const WORLD_ZONES: ZoneDefinition[] = [
     fogDensity: 0.01,
   },
   {
-    id: "jungle",
-    name: "The Emerald Jungle",
-    subtitle: "Crusade Frontier",
-    description: "Dense tropical canopy with hidden Crusade temples and dinosaur nesting grounds. The Jade Seas crash against cliffs lined with ancient ruins. Raptors hunt in coordinated packs.",
+    id: "lava",
+    name: "The Ember Reaches",
+    subtitle: "Legion Faction Territory — Volcanic Birth",
+    description: "Volcanic wasteland of molten rivers and obsidian spires where new islands are born from the earth. The Legion faction built their war citadel in the caldera. Lava flows create new land that pushes outward, forming the youngest islands in the archipelago. Demons and fire elementals roam the ashen plains.",
     gridRow: 2, gridCol: 2,
     worldOffset: gridOffset(2, 2),
     size: ISLAND_SIZE,
-    levelRange: [15, 35],
-    faction: "crusade",
-    biome: "jungle",
-    terrain: { type: "heightmap", biome: "tropical", seed: 7009 },
+    levelRange: [25, 45],
+    faction: "legion",
+    biome: "lava",
+    terrain: { type: "heightmap", biome: "volcanic", seed: 7009 },
     town: {
-      center: { x: 0, z: 20 },
-      name: "Temple Landing",
-      npcCount: 12,
+      center: { x: 0, z: 200 },
+      name: "Cinderhall",
+      npcCount: 14,
       hasCraftingHub: true,
       hasFactionVendor: true,
       hasTradePost: true,
     },
     docks: [
-      { x: 0, z: -180, rotation: 0, destination: "desert", label: "North to Scorched Wastes" },
-      { x: -180, z: 0, rotation: -Math.PI / 2, destination: "coast", label: "West to Pirate Coast" },
+      { x: 0, z: -1800, rotation: 0, destination: "desert", label: "North to Scorched Wastes" },
+      { x: -1800, z: 0, rotation: -Math.PI / 2, destination: "coast", label: "West to Pirate Coast" },
     ],
     dungeons: [
-      { x: -70, z: -100, tier: 2, name: "Raptor Nest", minLevel: 18 },
-      { x: 80, z: -120, tier: 4, name: "Jade Temple", minLevel: 30 },
+      { x: -600, z: -800, tier: 3, name: "Magma Core", minLevel: 28 },
+      { x: 500, z: -1000, tier: 5, name: "Inferno Sanctum", minLevel: 40 },
     ],
     boss: {
-      center: { x: 0, z: -150 },
-      radius: 35,
-      bossType: "trex",
-      bossName: "Deathjaw, the Jungle King",
-      minLevel: 33,
-      respawnSeconds: 2400,
+      center: { x: 0, z: -1300 },
+      radius: 40,
+      bossType: "demon",
+      bossName: "Moloch, the Ember Lord",
+      minLevel: 42,
+      respawnSeconds: 3600,
     },
     camps: [
-      { x: -120, z: 60, name: "Crusade Temple Camp", type: "faction" },
-      { x: 100, z: -40, name: "Tribal Village", type: "bandit" },
-      { x: -20, z: 120, name: "Jungle Herbalist", type: "merchant" },
+      { x: -1000, z: 400, name: "Legion Forward Base", type: "faction" },
+      { x: 800, z: -500, name: "Demon Cultists", type: "bandit" },
+      { x: -300, z: 1000, name: "Obsidian Trader", type: "merchant" },
     ],
-    ambientColor: "#88cc66",
-    fogColor: "#335522",
-    fogDensity: 0.028,
+    ambientColor: "#ffccaa",
+    fogColor: "#cc6633",
+    fogDensity: 0.025,
   },
 ];
 
