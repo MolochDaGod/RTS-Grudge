@@ -1,0 +1,85 @@
+# ── Grudge Warlords — Local Development Stack ─────────────────────────────────
+#
+# Start everything:  docker compose up
+# Game server only:  docker compose up app
+# Database only:     docker compose up mysql
+#
+# The game server runs in dev mode (Vite HMR) by default.
+# For production testing: docker compose -f docker-compose.yml -f docker-compose.prod.yml up
+# ──────────────────────────────────────────────────────────────────────────────
+
+services:
+  # ── MySQL ─────────────────────────────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: grudge-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: grudge_root
+      MYSQL_DATABASE: grudge_game
+      MYSQL_USER: grudge_admin
+      MYSQL_PASSWORD: grudge_dev
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis (session store + zone channel state) ────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: grudge-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Game Server (dev mode) ────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: build  # stop at build stage, use dev command below
+    container_name: grudge-server
+    restart: unless-stopped
+    working_dir: /app
+    command: npm run dev
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: development
+      PORT: "5000"
+      MYSQL_HOST: mysql
+      MYSQL_PORT: "3306"
+      MYSQL_USER: grudge_admin
+      MYSQL_PASSWORD: grudge_dev
+      MYSQL_DATABASE: grudge_game
+      REDIS_URL: redis://redis:6379
+      GRUDGE_ID_URL: https://id.grudge-studio.com
+    volumes:
+      # Mount source for HMR (Vite watches these)
+      - ./client:/app/client
+      - ./server:/app/server
+      - ./shared:/app/shared
+      - ./scripts:/app/scripts
+      # Exclude node_modules (use container's copy)
+      - /app/node_modules
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  mysql_data:
+  redis_data:
