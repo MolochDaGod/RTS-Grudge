@@ -40,3 +40,5 @@ artifacts/
 *.swo
 
 Tactical-Infinity/
+.vercel
+.env*.local

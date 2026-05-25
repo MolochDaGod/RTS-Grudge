@@ -27,7 +27,6 @@ RUN npm ci
 COPY client/ client/
 COPY server/ server/
 COPY shared/ shared/
-COPY script/ script/
 COPY scripts/ scripts/
 COPY vite.config.ts tsconfig.json tailwind.config.ts postcss.config.js ./
 
