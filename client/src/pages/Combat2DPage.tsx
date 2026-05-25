@@ -1,5 +1,5 @@
 import { useGame } from "@/lib/stores/useGame";
-import { useGrudgeSync } from "@/lib/stores/useGrudgeSync";
+import { useCharacterAPI } from "@/lib/characters/useCharacterAPI";
 
 const FONTS = {
   title: "'MorkDungeon', 'Cinzel', serif",
@@ -16,8 +16,8 @@ const FONTS = {
  */
 export default function Combat2DPage() {
   const { goToHome, goToCharacterSelect, selectedCharacter } = useGame();
-  const { activeCharId, characters } = useGrudgeSync();
-  const activeChar = characters.find(c => String(c.id) === activeCharId);
+  const { active: activeChar } = useCharacterAPI();
+  const activeCharId = activeChar?.character_id ?? null;
 
   const charName = activeChar?.name || selectedCharacter.name || "Hero";
   const charClass = selectedCharacter.combatClass;
