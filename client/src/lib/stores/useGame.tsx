@@ -87,19 +87,18 @@ export interface CharacterConfig {
 }
 
 export const DEFAULT_CHARACTER: CharacterConfig = {
-  characterId: "knight",
-  // Grave Knight is now an NPC-only model (Hero Forge removed it from the
-  // selectable lineup). Use the Human (assassin-male) playable model as the
-  // default visual; combatClass/weapons below remain sword+shield melee.
-  modelPath: "/models/characters/assassin-male.glb",
-  name: "Knight",
+  characterId: "human_warrior",
+  // Default to the Grudge 6 Human (Western Kingdoms) race model —
+  // Crusade faction warrior with sword + shield.
+  modelPath: "https://molochdagod.github.io/ObjectStore/models/factioncharacters/wk/WK_Characters_customizable.glb",
+  name: "Warlord",
   scale: 1.0,
   baseHeight: 1.8,
   speedMultiplier: 1.0,
   combatClass: "melee",
   weaponRight: "sword",
   weaponLeft: "shield",
-  faction: "pirate",
+  faction: "crusade",
   materialColors: {
     skin: null,
     clothing: null,
