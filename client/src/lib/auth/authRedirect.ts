@@ -159,8 +159,12 @@ export function hasToken(): boolean {
 // ---------------------------------------------------------------------------
 
 /**
- * Parse the `?grudge_token=...&expires_at=...` query params that
- * id.grudge-studio.com appends after a successful login.
+ * Parse auth tokens from URL query params.
+ *
+ * Supports two flows:
+ *   1. id.grudge-studio.com redirect: `?grudge_token=...&expires_at=...`
+ *   2. Cross-game SSO handoff:        `?sso_token=...&grudge_id=...&username=...`
+ *      (sent by gameNav.ts when navigating between fleet games)
  *
  * Stores the token and returns `true` if a token was found + stored.
  * Call this at the top of your app's entry point (before any auth checks).
@@ -168,17 +172,42 @@ export function hasToken(): boolean {
 export function handleAuthCallback(): boolean {
   if (typeof window === "undefined") return false;
   const p = new URLSearchParams(window.location.search);
-  const token   = p.get("grudge_token");
-  const exp     = p.get("expires_at");
-  if (!token) return false;
 
-  const expiryMs = exp ? Number(exp) : Date.now() + 7 * 24 * 60 * 60 * 1000; // 7-day default
-  storeToken(token, expiryMs);
+  // Flow 1: id.grudge-studio.com direct redirect
+  const grudgeToken = p.get("grudge_token");
+  if (grudgeToken) {
+    const exp = p.get("expires_at");
+    const expiryMs = exp ? Number(exp) : Date.now() + 7 * 24 * 60 * 60 * 1000;
+    storeToken(grudgeToken, expiryMs);
+    const clean = new URL(window.location.href);
+    clean.searchParams.delete("grudge_token");
+    clean.searchParams.delete("expires_at");
+    window.history.replaceState({}, "", clean.toString());
+    return true;
+  }
 
-  // Clean the URL so the token isn't left in the address bar / history
-  const clean = new URL(window.location.href);
-  clean.searchParams.delete("grudge_token");
-  clean.searchParams.delete("expires_at");
-  window.history.replaceState({}, "", clean.toString());
-  return true;
+  // Flow 2: Cross-game SSO token pickup (?sso_token=...&grudge_id=...&username=...)
+  const ssoToken = p.get("sso_token");
+  if (ssoToken) {
+    const expiryMs = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7-day default
+    storeToken(ssoToken, expiryMs);
+    // Persist grudge_id and username if provided
+    const grudgeId = p.get("grudge_id");
+    const username = p.get("username");
+    if (grudgeId) {
+      try { localStorage.setItem("grudge.playerId", `grudge_${grudgeId}`); } catch {}
+    }
+    if (username) {
+      try { localStorage.setItem("grudge.displayName", username); } catch {}
+    }
+    // Clean the URL
+    const clean = new URL(window.location.href);
+    clean.searchParams.delete("sso_token");
+    clean.searchParams.delete("grudge_id");
+    clean.searchParams.delete("username");
+    window.history.replaceState({}, "", clean.toString());
+    return true;
+  }
+
+  return false;
 }
