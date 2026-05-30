@@ -21,49 +21,65 @@ export interface EnemyModelDef {
 }
 
 const CDN = "https://assets.grudge-studio.com/models";
+/** CDN for faction characters — used for humanoid enemies like dark elves. */
+const CHAR_CDN = "https://molochdagod.github.io/ObjectStore/models/factioncharacters";
+
+// Available local enemy models (cultist_armed, big_scary_t2/t3, etc.)
+// Available local wildlife: Cow, Horse, Llama, Pig, Pug, Sheep, Zebra
+// Available dinosaurs: Apatosaurus, Parasaurolophus, Stegosaurus, Trex, Triceratops, Velociraptor
+const LOCAL_ENEMIES = {
+  cultist:  "/models/enemies/cultist_armed.glb",
+  beast2:   "/models/enemies/big_scary_t2.glb",
+  beast3:   "/models/enemies/big_scary_t3.glb",
+  dante:    "/models/enemies/dante_beast.glb",
+  medusa:   "/models/enemies/medusa.glb",
+  pincher:  "/models/enemies/pincher.glb",
+  cow:      "/models/wildlife/Cow.glb",
+  horse:    "/models/wildlife/Horse.glb",
+  pig:      "/models/wildlife/Pig.glb",
+  sheep:    "/models/wildlife/Sheep.glb",
+};
 
 export const ENEMY_MODEL_REGISTRY: Partial<Record<EnemyType, EnemyModelDef>> = {
-  // ── Ground monsters (blob pack) ──────────────────────────────────────────
-  skeleton:  { modelPath: "/models/monsters/big/Orc.glb",             scale: 1.0 },
-  spider:    { modelPath: "/models/monsters/blob/GreenSpikyBlob.glb",  scale: 0.7 },
-  golem:     { modelPath: "/models/monsters/big/Yeti.glb",             scale: 1.8 },
-  pirate:    { modelPath: "/models/monsters/big/Orc.glb",              scale: 1.0 },
-  witch:     { modelPath: "/models/monsters/blob/Wizard.glb",          scale: 1.0 },
-  ninja:     { modelPath: "/models/monsters/big/Ninja.glb",            scale: 1.0 },
-  orc:       { modelPath: "/models/monsters/big/Orc.glb",              scale: 1.4 },
-  demon:     { modelPath: "/models/monsters/big/Demon.glb",            scale: 2.0 },
-  blue_demon:{ modelPath: "/models/monsters/flying/Demon.glb",         scale: 1.6 },
-  mushroom_king: { modelPath: "/models/monsters/big/MushroomKing.glb", scale: 2.5 },
-  yeti:      { modelPath: "/models/monsters/big/Yeti.glb",             scale: 2.2 },
-  ghost:     { modelPath: "/models/monsters/flying/Ghost.glb",         scale: 1.2 },
-  frog:      { modelPath: "/models/monsters/big/Frog.glb",             scale: 1.3 },
-  blob:      { modelPath: "/models/monsters/blob/GreenBlob.glb",       scale: 0.8 },
-  cactoro:   { modelPath: "/models/monsters/big/Cactoro.glb",          scale: 1.3 },
-  tribal:    { modelPath: "/models/monsters/big/Tribal.glb",           scale: 1.2 },
-  bunny:     { modelPath: "/models/monsters/blob/Cat.glb",             scale: 0.6 },
-  alien:     { modelPath: "/models/monsters/big/Alien.glb",            scale: 1.8 },
+  // ── Ground monsters — redirected to local enemy/wildlife/dino models ─────
+  skeleton:  { modelPath: LOCAL_ENEMIES.cultist,          scale: 1.0 },
+  spider:    { modelPath: LOCAL_ENEMIES.pincher,           scale: 0.7 },
+  golem:     { modelPath: LOCAL_ENEMIES.beast3,            scale: 1.8 },
+  pirate:    { modelPath: LOCAL_ENEMIES.cultist,           scale: 1.0 },
+  witch:     { modelPath: LOCAL_ENEMIES.medusa,            scale: 1.0 },
+  ninja:     { modelPath: LOCAL_ENEMIES.cultist,           scale: 1.0 },
+  orc:       { modelPath: `${CHAR_CDN}/orc/ORC_Characters_Customizable.glb`, scale: 1.4 },
+  demon:     { modelPath: LOCAL_ENEMIES.dante,             scale: 2.0 },
+  blue_demon:{ modelPath: LOCAL_ENEMIES.dante,             scale: 1.6 },
+  mushroom_king: { modelPath: LOCAL_ENEMIES.beast3,        scale: 2.5 },
+  yeti:      { modelPath: LOCAL_ENEMIES.beast3,            scale: 2.2 },
+  ghost:     { modelPath: LOCAL_ENEMIES.medusa,            scale: 1.2 },
+  frog:      { modelPath: LOCAL_ENEMIES.pincher,           scale: 1.3 },
+  blob:      { modelPath: LOCAL_ENEMIES.beast2,            scale: 0.8 },
+  cactoro:   { modelPath: LOCAL_ENEMIES.beast2,            scale: 1.3 },
+  tribal:    { modelPath: LOCAL_ENEMIES.cultist,           scale: 1.2 },
+  bunny:     { modelPath: LOCAL_ENEMIES.pig,               scale: 0.6 },
+  alien:     { modelPath: LOCAL_ENEMIES.dante,             scale: 1.8 },
 
-  // ── Dark Elf camp enemies (replace pirate camps) ───────────────────────────────────────────────
-  // Local: elf-male.glb (existing character model). CDN override once ELF_ranger uploads.
-  dark_elf:  { modelPath: "/models/characters/elf-male.glb", scale: 1.0, animPack: "ELF_" },
+  // ── Dark Elf camp enemies — CDN elf model ───────────────────────────────
+  dark_elf:  { modelPath: `${CHAR_CDN}/elf/ELF_Characters_customizable.glb`, scale: 1.0, animPack: "ELF_" },
 
-  // ── Dinosaurs ────────────────────────────────────────────────────────────
+  // ── Dinosaurs (all exist locally) ────────────────────────────────────────
   dino:         { modelPath: "/models/monsters/dinosaurs/Apatosaurus.glb",    scale: 3.0 },
   raptor:       { modelPath: "/models/monsters/dinosaurs/Velociraptor.glb",   scale: 2.0 },
   trex:         { modelPath: "/models/monsters/dinosaurs/Trex.glb",           scale: 4.5 },
   triceratops:  { modelPath: "/models/monsters/dinosaurs/Triceratops.glb",    scale: 3.5 },
 
-  // ── Flying monsters ──────────────────────────────────────────────────────
-  dragon:    { modelPath: "/models/monsters/flying/Dragon_Evolved.glb",       scale: 3.0 },
-  armabee:   { modelPath: "/models/monsters/flying/Armabee.glb",              scale: 1.2 },
-  alpaking:  { modelPath: "/models/monsters/flying/Alpaking.glb",             scale: 2.0 },
+  // ── Flying monsters — use available local enemies ───────────────────────
+  dragon:    { modelPath: LOCAL_ENEMIES.dante,             scale: 3.0 },
+  armabee:   { modelPath: LOCAL_ENEMIES.pincher,           scale: 1.2 },
+  alpaking:  { modelPath: LOCAL_ENEMIES.beast2,            scale: 2.0 },
 
   // ── Thrower / ranged archetypes ──────────────────────────────────────────
-  // Reuse existing character-size monsters with different colors (tint at render time)
-  thrower_brute:     { modelPath: "/models/monsters/big/Orc.glb",     scale: 1.0 },
-  thrower_assassin:  { modelPath: "/models/monsters/big/Ninja.glb",   scale: 1.0 },
-  thrower_soldier:   { modelPath: "/models/monsters/big/Tribal.glb",  scale: 1.0 },
-  thrower_berserker: { modelPath: "/models/monsters/big/Demon.glb",   scale: 1.0 },
+  thrower_brute:     { modelPath: `${CHAR_CDN}/orc/ORC_Characters_Customizable.glb`,  scale: 1.0 },
+  thrower_assassin:  { modelPath: LOCAL_ENEMIES.cultist,    scale: 1.0 },
+  thrower_soldier:   { modelPath: LOCAL_ENEMIES.cultist,    scale: 1.0 },
+  thrower_berserker: { modelPath: LOCAL_ENEMIES.dante,      scale: 1.0 },
 
   // ── Sci-fi / Advance Wars units (CDN) ────────────────────────────────────
   aw_infantry:    { modelPath: `${CDN}/rts_infantry.glb`,      scale: 1.0 },
@@ -72,16 +88,16 @@ export const ENEMY_MODEL_REGISTRY: Partial<Record<EnemyType, EnemyModelDef>> = {
   mech_tripod:    { modelPath: `${CDN}/rts_tripod.glb`,        scale: 3.5 },
   scifi_soldier:  { modelPath: `${CDN}/scifi_soldier.glb`,     scale: 1.0 },
   cyborg_unit:    { modelPath: `${CDN}/cyborg_unit.glb`,       scale: 1.4 },
-  cyborg_soldier: { modelPath: `${CDN}/cyborg_soldier.glb`,   scale: 1.2 },
-  shadow_soldier: { modelPath: `${CDN}/shadow_soldier.glb`,   scale: 1.0 },
-  scifi_trooper:  { modelPath: `${CDN}/scifi_trooper.glb`,    scale: 1.0 },
-  scifi_officer:  { modelPath: `${CDN}/scifi_officer.glb`,    scale: 1.0 },
+  cyborg_soldier: { modelPath: `${CDN}/cyborg_soldier.glb`,    scale: 1.2 },
+  shadow_soldier: { modelPath: `${CDN}/shadow_soldier.glb`,    scale: 1.0 },
+  scifi_trooper:  { modelPath: `${CDN}/scifi_trooper.glb`,     scale: 1.0 },
+  scifi_officer:  { modelPath: `${CDN}/scifi_officer.glb`,     scale: 1.0 },
 };
 
-/** Resolve model def for an enemy type. Returns a fallback blob if unknown. */
+/** Resolve model def for an enemy type. Returns a local fallback if unknown. */
 export function getEnemyModelDef(type: EnemyType): EnemyModelDef {
   return ENEMY_MODEL_REGISTRY[type] ?? {
-    modelPath: "/models/monsters/blob/GreenBlob.glb",
+    modelPath: LOCAL_ENEMIES.beast2,
     scale: 1.0,
   };
 }

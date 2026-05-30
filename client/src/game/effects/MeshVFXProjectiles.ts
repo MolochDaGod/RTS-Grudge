@@ -163,8 +163,66 @@ const meshCache = new Map<string, THREE.Group>();
 let preloaded = false;
 
 /**
+ * Build a procedural VFX mesh when the GLB file is missing. Uses simple
+ * Three.js geometry (sphere, cone, torus) with emissive materials so the
+ * game's VFX system never shows a magenta cube for missing effects.
+ */
+function createProceduralVFX(type: MeshVFXType, def: MeshVFXDef): THREE.Group {
+  const group = new THREE.Group();
+  group.name = `procedural_vfx_${type}`;
+
+  const mat = new THREE.MeshStandardMaterial({
+    color: def.emissiveColor,
+    emissive: new THREE.Color(def.emissiveColor),
+    emissiveIntensity: def.emissiveIntensity,
+    transparent: true,
+    opacity: 0.85,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    roughness: 0.3,
+    metalness: 0.0,
+  });
+
+  let geo: THREE.BufferGeometry;
+
+  switch (type) {
+    case "rasengan":
+    case "energy_orb":
+    case "magic_orb":
+    case "sphere_explosion":
+      geo = new THREE.SphereGeometry(0.5, 16, 12);
+      break;
+    case "tornado_stylized":
+    case "tornado":
+      geo = new THREE.ConeGeometry(0.5, 1.5, 12, 1, true);
+      break;
+    case "cast_circle":
+      geo = new THREE.TorusGeometry(0.6, 0.08, 8, 24);
+      break;
+    case "hex_shield":
+      geo = new THREE.IcosahedronGeometry(0.6, 1);
+      mat.wireframe = true;
+      break;
+    case "sparks_explosion":
+      geo = new THREE.OctahedronGeometry(0.4, 0);
+      break;
+    case "splash":
+      geo = new THREE.RingGeometry(0.3, 0.7, 16);
+      break;
+    default:
+      geo = new THREE.SphereGeometry(0.4, 12, 8);
+  }
+
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.castShadow = false;
+  mesh.receiveShadow = false;
+  group.add(mesh);
+  return group;
+}
+
+/**
  * Preload all VFX meshes. Call once at game start.
- * Returns when all meshes are loaded (or logs warnings on failure).
+ * Falls back to procedural geometry when GLBs are missing.
  */
 export async function preloadMeshVFX(): Promise<void> {
   if (preloaded) return;
@@ -173,15 +231,27 @@ export async function preloadMeshVFX(): Promise<void> {
   const promises = [...uniquePaths].map(async (path) => {
     try {
       const gltf = await loadAsset(path, "low", `vfx_mesh_${path}`);
+      // Check if the AssetLoader returned a fallback cube (missing file)
+      if (gltf.scene.userData?.isAssetFallback) {
+        throw new Error(`fallback cube for ${path}`);
+      }
       const group = new THREE.Group();
       group.add(gltf.scene.clone());
       meshCache.set(path, group);
     } catch (err) {
-      console.warn(`[MeshVFX] Failed to preload ${path}:`, err);
+      console.warn(`[MeshVFX] GLB unavailable for ${path}, using procedural fallback`);
     }
   });
 
   await Promise.all(promises);
+
+  // Generate procedural fallbacks for any VFX type whose GLB didn't load.
+  for (const [type, def] of Object.entries(VFX_DEFS) as [MeshVFXType, MeshVFXDef][]) {
+    if (!meshCache.has(def.path)) {
+      meshCache.set(def.path, createProceduralVFX(type, def));
+    }
+  }
+
   preloaded = true;
 }
 

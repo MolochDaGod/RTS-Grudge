@@ -87,32 +87,24 @@ function App() {
   const { setBackgroundMusic, setHitSound, setSuccessSound, setHeavyImpactSound, setClimbScrapeSound } = useAudio();
 
   useEffect(() => {
-    const bgMusic = new Audio("/sounds/background.mp3");
-    bgMusic.loop = true;
-    bgMusic.volume = 0.2;
-    setBackgroundMusic(bgMusic);
+    // Safe audio loader — missing files on disk are common (large binary
+    // assets not committed to git). Creates the Audio element and wires a
+    // one-shot error handler so 404s log a warning instead of crashing.
+    function safeAudio(src: string, volume: number, loop = false): Audio {
+      const a = new Audio(src);
+      a.volume = volume;
+      a.loop = loop;
+      a.addEventListener("error", () => {
+        console.warn(`[Audio] sound file not found: ${src}`);
+      }, { once: true });
+      return a;
+    }
 
-    const hitSfx = new Audio("/sounds/hit.mp3");
-    hitSfx.volume = 0.3;
-    setHitSound(hitSfx);
-
-    const successSfx = new Audio("/sounds/success.mp3");
-    successSfx.volume = 0.5;
-    setSuccessSound(successSfx);
-
-    // Heavy impact sample for charge-strike (and other "big hit") releases.
-    // Reuses the bundled thunder clip — a deep, weighty boom that feels
-    // distinct from the regular hit.mp3 swing impact.
-    const heavyImpactSfx = new Audio("/sounds/threejs-games/thunder.mp3");
-    heavyImpactSfx.volume = 0.55;
-    setHeavyImpactSound(heavyImpactSfx);
-
-    // Soft scrape loop for active climbing. Dedicated cloth/leather-on-stone
-    // sample (synthesized procedurally, seamless loop) — useAudio runs it at
-    // near-natural playbackRate with a subtle wobble + lateral tint applied
-    // per-frame so the loop doesn't sit on a single flat tone.
-    const climbScrapeSfx = new Audio("/sounds/climb-scrape.wav");
-    setClimbScrapeSound(climbScrapeSfx);
+    setBackgroundMusic(safeAudio("/sounds/background.mp3", 0.2, true));
+    setHitSound(safeAudio("/sounds/hit.mp3", 0.3));
+    setSuccessSound(safeAudio("/sounds/success.mp3", 0.5));
+    setHeavyImpactSound(safeAudio("/sounds/threejs-games/thunder.mp3", 0.55));
+    setClimbScrapeSound(safeAudio("/sounds/climb-scrape.wav", 0.4));
   }, [setBackgroundMusic, setHitSound, setSuccessSound, setHeavyImpactSound, setClimbScrapeSound]);
 
   useEffect(() => {

@@ -5,19 +5,50 @@ import {
   equipmentConfig, armorData, consumableData,
 } from "@shared/schema";
 
-// Use the Cloudflare objectstore worker or the explicit override from env.
-// OBJECTSTORE_WORKER_URL is the root domain — always append /api/v1 so
-// fetches land on the correct endpoint path.
+// Resolve the game-data endpoint. The asset-api Worker (see workers/asset-api,
+// wrangler.toml) serves bare keys at `<host>/gamedata/<key>` where <key> is one
+// of weapons|skills|materials|equipment|armor|consumables — no `.json` suffix.
+// Precedence:
+//   1. OBJECT_STORE_BASE — used verbatim (full URL incl. path)
+//   2. OBJECTSTORE_WORKER_URL / ASSET_API_BASE — host only; we append /gamedata
+//      unless the override already contains a /gamedata or /api path segment
+//   3. Production default: https://api.grudge-studio.com/gamedata
 function buildStoreBase(): string {
-  if (process.env.OBJECT_STORE_BASE) return process.env.OBJECT_STORE_BASE;
+  if (process.env.OBJECT_STORE_BASE) {
+    return process.env.OBJECT_STORE_BASE.replace(/\/+$/, "");
+  }
   const workerRoot =
     process.env.OBJECTSTORE_WORKER_URL ||
     process.env.ASSET_API_BASE ||
-    "https://objectstore.grudge-studio.com";
-  // Strip any trailing slash, then append /api/v1
-  return `${workerRoot.replace(/\/+$/, "")}/api/v1`;
+    "https://api.grudge-studio.com";
+  const trimmed = workerRoot.replace(/\/+$/, "");
+  if (/\/(gamedata|api)(\/|$)/.test(trimmed)) return trimmed;
+  return `${trimmed}/gamedata`;
 }
 const OBJECT_STORE_BASE = buildStoreBase();
+
+// Fetch a game-data JSON blob from the asset Worker. Guards against HTML
+// error pages (Cloudflare default 404s, captive portals) so a misconfigured
+// endpoint doesn't produce "Unexpected token '<'" parse-error noise.
+async function fetchGameData(key: string): Promise<any | null> {
+  const url = `${OBJECT_STORE_BASE}/${key}`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      console.warn(`[grudge] ${key}: ${res.status} ${res.statusText} from ${url}`);
+      return null;
+    }
+    const ct = (res.headers.get("content-type") ?? "").toLowerCase();
+    if (!ct.includes("json")) {
+      console.warn(`[grudge] ${key}: non-JSON response (content-type=${ct || "unknown"}) from ${url}`);
+      return null;
+    }
+    return await res.json();
+  } catch (e) {
+    console.warn(`[grudge] ${key} fetch failed:`, (e as Error).message);
+    return null;
+  }
+}
 
 // ── Object Store Sync ────────────────────────────────────────────────────────
 
@@ -34,9 +65,8 @@ export async function syncObjectStore() {
   }
 
   try {
-    const res = await fetch(`${OBJECT_STORE_BASE}/weapons.json`);
-    if (res.ok) {
-      const data = await res.json();
+    const data = await fetchGameData("weapons");
+    if (data) {
       for (const [catKey, catData] of Object.entries(data.categories || {})) {
         const cat = catData as any;
         for (const item of cat.items || []) {
@@ -59,9 +89,8 @@ export async function syncObjectStore() {
   } catch (e) { console.warn("[grudge] Weapons sync partial:", (e as Error).message); }
 
   try {
-    const res = await fetch(`${OBJECT_STORE_BASE}/skills.json`);
-    if (res.ok) {
-      const data = await res.json();
+    const data = await fetchGameData("skills");
+    if (data) {
       for (const [wType, catData] of Object.entries(data.categories || {})) {
         const cat = catData as any;
         for (const skill of cat.skills || []) {
@@ -82,9 +111,8 @@ export async function syncObjectStore() {
   } catch (e) { console.warn("[grudge] Skills sync partial:", (e as Error).message); }
 
   try {
-    const res = await fetch(`${OBJECT_STORE_BASE}/materials.json`);
-    if (res.ok) {
-      const data = await res.json();
+    const data = await fetchGameData("materials");
+    if (data) {
       for (const [catKey, catData] of Object.entries(data.categories || {})) {
         const cat = catData as any;
         for (const mat of cat.items || []) {
@@ -102,9 +130,8 @@ export async function syncObjectStore() {
   } catch (e) { console.warn("[grudge] Materials sync partial:", (e as Error).message); }
 
   try {
-    const res = await fetch(`${OBJECT_STORE_BASE}/equipment.json`);
-    if (res.ok) {
-      const data = await res.json();
+    const data = await fetchGameData("equipment");
+    if (data) {
       const entries = [
         { key: "slots", value: data.slots || [] },
         { key: "tiers", value: data.tiers || {} },
@@ -120,9 +147,8 @@ export async function syncObjectStore() {
   } catch (e) { console.warn("[grudge] Equipment sync partial:", (e as Error).message); }
 
   try {
-    const res = await fetch(`${OBJECT_STORE_BASE}/armor.json`);
-    if (res.ok) {
-      const data = await res.json();
+    const data = await fetchGameData("armor");
+    if (data) {
       for (const [matKey, matData] of Object.entries(data.materials || {})) {
         const mat = matData as any;
         for (const item of mat.items || []) {
@@ -156,9 +182,8 @@ export async function syncObjectStore() {
   } catch (e) { console.warn("[grudge] Armor sync partial:", (e as Error).message); }
 
   try {
-    const res = await fetch(`${OBJECT_STORE_BASE}/consumables.json`);
-    if (res.ok) {
-      const data = await res.json();
+    const data = await fetchGameData("consumables");
+    if (data) {
       for (const [catKey, catData] of Object.entries(data.categories || {})) {
         const cat = catData as any;
         for (const item of cat.items || []) {

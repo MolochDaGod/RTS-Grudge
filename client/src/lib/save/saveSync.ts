@@ -6,6 +6,7 @@ import { useMissions } from "@/lib/stores/useMissions";
 import { useProfessions } from "@/lib/stores/useProfessions";
 import { usePets } from "@/lib/stores/usePets";
 import { useBuildingStorage } from "@/lib/stores/useBuildingStorage";
+import { useGame } from "@/lib/stores/useGame";
 import { getPlayerId } from "./playerId";
 
 /**
@@ -49,6 +50,12 @@ export interface GameSnapshot {
     furnacePending: unknown | null;
   };
   buildingStorage?: Record<string, unknown[]>;
+  /** World position — which sub-scene the player was in, and where. */
+  worldContext?: {
+    inTutorialIsland: boolean;
+    spawnX?: number;
+    spawnZ?: number;
+  };
 }
 
 export function snapshotGame(): GameSnapshot {
@@ -95,6 +102,14 @@ export function snapshotGame(): GameSnapshot {
       return { pets: ps.pets, furnacePending: ps.furnacePending };
     })(),
     buildingStorage: useBuildingStorage.getState().chests,
+    worldContext: (() => {
+      const gm = useGame.getState();
+      return {
+        inTutorialIsland: !!gm.inTutorialIsland,
+        spawnX: (gm as any).playerPosition?.x,
+        spawnZ: (gm as any).playerPosition?.z,
+      };
+    })(),
   };
 }
 
@@ -156,6 +171,9 @@ export function restoreGame(snapshot: GameSnapshot): void {
     }
     if (snapshot.buildingStorage) {
       useBuildingStorage.setState({ chests: snapshot.buildingStorage as any });
+    }
+    if (snapshot.worldContext) {
+      useGame.setState({ inTutorialIsland: snapshot.worldContext.inTutorialIsland });
     }
     console.log("[save] Restored snapshot from", new Date(snapshot.timestamp).toLocaleString());
   } catch (e) {

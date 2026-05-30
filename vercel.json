@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run build",
+  "buildCommand": "npx vite build",
   "outputDirectory": "dist/public",
   "framework": null,
   "routes": [
@@ -22,8 +22,11 @@
       "continue": true
     },
     {
-      "src": "/(.*)\\.(?:glb|gltf|png|jpg|webp|mp3|wav|ogg|wasm)$",
-      "headers": { "Cache-Control": "public, max-age=86400" },
+      "src": "/(.*)\\.(?:glb|gltf|fbx|png|jpg|webp|mp3|wav|ogg|wasm)$",
+      "headers": {
+        "Cache-Control": "public, max-age=86400",
+        "Access-Control-Allow-Origin": "*"
+      },
       "continue": true
     },
     { "handle": "filesystem" },
@@ -34,7 +37,8 @@
       "source": "/(.*)",
       "headers": [
         { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Content-Security-Policy", "value": "frame-ancestors 'self' https://id.grudge-studio.com https://*.grudge-studio.com" }
+        { "key": "Content-Security-Policy", "value": "frame-ancestors 'self' https://id.grudge-studio.com https://*.grudge-studio.com" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
       ]
     }
   ]

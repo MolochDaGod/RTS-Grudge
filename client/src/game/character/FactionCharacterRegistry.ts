@@ -106,10 +106,21 @@ export interface RaceConfig {
   /** GLB model path (external weapon attach — current RTS-Grudge pipeline) */
   glbModels: { male: string; female: string };
   /**
-   * Bear-form GLB for the Worge race. When set, CLASS_ABILITY_3 swaps
-   * the player model to this path and back.
+   * Bear-form GLB for the Worge race. When set, CLASS_ABILITY_3 (KeyX) swaps
+   * the player model to this path and back to the base human form.
    */
   bearFormGlb?: string;
+  /**
+   * Wolf-form GLB for the Worge race. When set, CLASS_ABILITY_1 (KeyE) swaps
+   * the player model to this path. Distinct from bear so a Worge can hot-swap
+   * between predator (wolf) and bruiser (bear) silhouettes from any form.
+   */
+  wolfFormGlb?: string;
+  /**
+   * Optional per-form visual-height multiplier consumed by the player model
+   * loader. Lets wolf/bear reuse the same GLB at different silhouettes.
+   */
+  formScale?: { bear?: number; wolf?: number };
   /** Unity equipment slot mapping: category → bone Transform name */
   unitySlots: {
     weapon: string;   // mainHand bone
@@ -236,12 +247,23 @@ export const RACE_CONFIGS: Record<string, RaceConfig> = {
     race: "barbarian" as any,
     faction: "wild",
     fbxModel: "/models/factioncharacters/WesternKingdoms/models/WK_Characters_customizable.FBX",
+    // Default Worge silhouette is the human nature-mage: mage clothing,
+    // intended to be equipped with the Verdant Wrath Staff (`staff_3`) so the
+    // ranged kit is healing/HoT-focused. CLASS_ABILITY_1/3 swap to wolf/bear.
     glbModels: {
-      male: "/models/characters/night_stalker-male.glb",
-      female: "/models/characters/night_stalker-female.glb",
+      male:   `${GRUDGE6_CDN}/wk/WK_Characters_customizable.glb`,
+      female: `${GRUDGE6_CDN}/wk/WK_Characters_customizable.glb`,
     },
-    /** Bear-form model — swapped in when the Worge's CLASS_ABILITY_3 fires. */
+    /** Bear-form model — swapped in when the Worge's CLASS_ABILITY_3 (X) fires. */
     bearFormGlb: "/models/characters/stylized_nightmarish_werewolf.glb",
+    /**
+     * Wolf-form model — swapped in when CLASS_ABILITY_1 (E) fires. Reuses the
+     * werewolf GLB for now and is differentiated visually by `formScale.wolf`
+     * (smaller, faster silhouette). Drop a dedicated wolf GLB into
+     * /models/characters/ and update this path to upgrade.
+     */
+    wolfFormGlb: "/models/characters/stylized_nightmarish_werewolf.glb",
+    formScale: { bear: 1.15, wolf: 0.78 },
     unitySlots: {
       weapon: "R_hand_container",
       head: "Bip001 Head",

@@ -209,12 +209,15 @@ function PlayerModel({
   // keeps the store callback off the React render path.
   const dodgeProcPending = useRef(false);
 
-  // Worge bear form transform. Toggled by CLASS_ABILITY_3 (X key) when the
-  // selected character has a worgeFormModelPath set. Swapping this path causes
-  // useCharacterController to reload the model, giving a brief morph into the
-  // nightmarish werewolf and back. The cooldown gate (classAbility3) provides
-  // the 12s revert window before the next toggle is allowed.
-  const [bearFormActive, setBearFormActive] = useState(false);
+  // Worge shapeshifter form. Three-state machine: 'human' (default — mage
+  // clothing with the nature staff, used for ranged casting / healing),
+  // 'bear' (KeyX, CLASS_ABILITY_3, heavy melee) and 'wolf' (KeyE,
+  // CLASS_ABILITY_1, fast melee). Each transition is a plain model-path swap
+  // routed through useCharacterController, which reloads the GLB through the
+  // standard pipeline — no skinned-mesh morph targets are involved so the
+  // animation mixer never has to blend incompatible rigs. The per-ability
+  // cooldown is the revert window before the next toggle is allowed.
+  const [worgeForm, setWorgeForm] = useState<"human" | "bear" | "wolf">("human");
   const [hitParticleActive, setHitParticleActive] = useState(false);
   const hitParticlePos = useRef<[number, number, number]>([0, 0, 0]);
   const [healParticleActive, setHealParticleActive] = useState(false);
@@ -315,8 +318,19 @@ function PlayerModel({
   const selectedCharacter = useGame((s) => s.selectedCharacter);
   const physicsConfig = useGameConfig((s) => s.config.physics);
   const { camera, gl } = useThree();
-  const charScale = selectedCharacter.scale;
-  const charSpeedMult = selectedCharacter.speedMultiplier;
+  // Worge form scale modifier — wolf reads smaller/faster, bear bulkier — is
+  // applied on top of the base character scale so a single GLB can carry both
+  // silhouettes without authoring separate models.
+  const worgeFormMul =
+    worgeForm === "bear"
+      ? selectedCharacter.worgeFormScale?.bear ?? 1
+      : worgeForm === "wolf"
+        ? selectedCharacter.worgeFormScale?.wolf ?? 1
+        : 1;
+  const charScale = selectedCharacter.scale * worgeFormMul;
+  const charSpeedMult =
+    selectedCharacter.speedMultiplier *
+    (worgeForm === "wolf" ? 1.25 : worgeForm === "bear" ? 0.9 : 1);
   const charHeight = selectedCharacter.baseHeight * charScale;
   const matOverrides = useMemo(
     () => buildMaterialOverrides(selectedCharacter.materialColors),
@@ -333,11 +347,22 @@ function PlayerModel({
   );
   const activeWeaponType = resolveEquippedWeaponType(equippedMainHandWeaponType);
 
-  // Resolve the active character model path. Worge players toggle into their
-  // bear form via CLASS_ABILITY_3; all other characters always use the base path.
-  const formModelPath = bearFormActive && selectedCharacter.worgeFormModelPath
-    ? selectedCharacter.worgeFormModelPath
-    : selectedCharacter.modelPath;
+  // Resolve the active character model path. Worge players toggle between
+  // three forms — human (mage/staff default), wolf (KeyE, CLASS_ABILITY_1) and
+  // bear (KeyX, CLASS_ABILITY_3). `worgeBearFormModelPath` is the modern field;
+  // `worgeFormModelPath` is kept as the legacy alias so old data still works.
+  // Non-Worge characters always resolve to `modelPath`.
+  const bearFormPath =
+    selectedCharacter.worgeBearFormModelPath ??
+    selectedCharacter.worgeFormModelPath ??
+    null;
+  const wolfFormPath = selectedCharacter.worgeWolfFormModelPath ?? null;
+  const formModelPath =
+    worgeForm === "bear" && bearFormPath
+      ? bearFormPath
+      : worgeForm === "wolf" && wolfFormPath
+        ? wolfFormPath
+        : selectedCharacter.modelPath;
 
   // Migrated to the new controller pipeline: speed-driven locomotion blend
   // tree (idle ↔ walk ↔ run ↔ sprint) plus a bone-masked upper-body combat
@@ -1477,12 +1502,19 @@ function PlayerModel({
 
       // Class ability "E" → primary class ability (cooldown classAbility1).
       // Suppressed near a dock so E keeps doubling as the dock-board prompt.
+      // For Worge characters, E also toggles wolf form. When the player is
+      // already in wolf form a second press reverts to the human (mage) form
+      // so the same key is the on/off switch for the predator silhouette.
       if (e.code === "KeyE") {
         if ((window as any).__nearDock) return;
         const cdReady = useGame.getState().skillCooldowns.classAbility1 <= 0;
         if (cdReady && useStamina(STAMINA_COSTS.classAbility || 25)) {
           useSkillCooldown("classAbility1", 6.0);
           sendCombat({ type: "CLASS_ABILITY" });
+          const wolfPath = selectedCharacter.worgeWolfFormModelPath;
+          if (wolfPath) {
+            setWorgeForm((prev) => (prev === "wolf" ? "human" : "wolf"));
+          }
         }
       }
 
@@ -1496,15 +1528,19 @@ function PlayerModel({
       }
 
       // Class ability "X" → tertiary class ability (cooldown classAbility3).
-      // For Worge characters, this also toggles the bear form model swap.
+      // For Worge characters, X toggles bear form. A second press reverts
+      // back to human; transitioning here from wolf also resolves to bear
+      // (single hop, never wolf→human→bear) so the player can chain forms.
       if (e.code === "KeyX") {
         const cdReady = useGame.getState().skillCooldowns.classAbility3 <= 0;
         if (cdReady && useStamina(STAMINA_COSTS.classAbility3 || 35)) {
           useSkillCooldown("classAbility3", 12.0);
           sendCombat({ type: "CLASS_ABILITY_3" });
-          // Worge bear form: toggle model when worgeFormModelPath is set.
-          if (selectedCharacter.worgeFormModelPath) {
-            setBearFormActive(prev => !prev);
+          const bearPath =
+            selectedCharacter.worgeBearFormModelPath ??
+            selectedCharacter.worgeFormModelPath;
+          if (bearPath) {
+            setWorgeForm((prev) => (prev === "bear" ? "human" : "bear"));
           }
         }
       }

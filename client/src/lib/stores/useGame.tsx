@@ -7,8 +7,9 @@ import { useCharacterStats, type HeroClass } from "@/lib/stores/useCharacterStat
 export type { HeroClass };
 import { onModeSwitch } from "@/game/controllers/ModeController";
 import { useCampaign } from "@/lib/stores/useCampaign";
+import { markIntroSeen } from "@/lib/save/introFlags";
 
-export type GamePhase = "menu" | "home" | "characterSelect" | "loading" | "intro" | "playing" | "dead" | "paused" | "admin" | "gge" | "controller" | "combat2d" | "islandV2" | "wallet";
+export type GamePhase = "menu" | "home" | "characterSelect" | "loading" | "intro" | "playing" | "dead" | "paused" | "admin" | "gge" | "controller" | "combat2d" | "islandV2" | "wallet" | "playEntrypoint";
 export type InteractionMode = "combat" | "build" | "harvest";
 
 export type WeaponType = "sword" | "greatsword" | "staff" | "wand" | "bow" | "axe" | "poleaxe" | "hammer" | "dagger" | "shield" | "fists" | "crossbow" | "gun";
@@ -194,6 +195,7 @@ interface GameState {
   goToCombat2d: () => void;
   goToIslandV2: () => void;
   goToWallet: () => void;
+  goToPlayEntrypoint: () => void;
   startLoading: (config: CharacterConfig) => void;
   finishLoading: () => void;
   finishIntro: () => void;
@@ -384,6 +386,7 @@ export const useGame = create<GameState>()(
     goToCombat2d: () => set({ phase: "combat2d" }),
     goToIslandV2: () => set({ phase: "islandV2" }),
     goToWallet: () => set({ phase: "wallet" }),
+    goToPlayEntrypoint: () => set({ phase: "playEntrypoint" }),
     startLoading: (config) => set({
       selectedCharacter: config,
       phase: "loading",
@@ -408,17 +411,20 @@ export const useGame = create<GameState>()(
     finishIntro: () => {
       const s = get();
       if (s.phase === "intro") {
-        // Explicitly re-assert inTutorialIsland so the shipwreck scene
-        // loads even if a state-update race briefly cleared the flag.
-        // The campaign flow (PLAY button) always intends to land on the
-        // shipwreck / tutorial island after the intro cinematic.
+        // Mark intro as seen so returning players skip it.
+        markIntroSeen();
+        // The campaign flow (PLAY button → PlayEntrypoint → intro cinematic)
+        // always intends to land on the shipwreck / tutorial island after
+        // the intro. `finishIntro` is only reachable from the "intro" phase,
+        // which is only entered when `startCampaign()` ran, so unconditionally
+        // forcing the wreck-island flag here is safe and matches the
+        // cinematic's final beat (player washing up on the shore).
         set({
           phase: "playing", score: 0, wave: 1, enemiesKilled: 0,
           dayTime: 0.3, isDaytime: true, weather: "clear", weatherIntensity: 0, showCrafting: false,
           inDungeon: false, inHousing: false, dungeonLevel: 1, dungeonSeed: 0,
           overworldReturnPos: null, housingReturnPos: null,
-          // Preserve or re-assert: campaign always starts on the shipwreck.
-          inTutorialIsland: s.inTutorialIsland !== false,
+          inTutorialIsland: true,
           ...INITIAL_PROGRESSION,
         });
       }

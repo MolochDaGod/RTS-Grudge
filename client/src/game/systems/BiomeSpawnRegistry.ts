@@ -191,7 +191,7 @@ export const BIOME_ZONES: BiomeZone[] = [
       { type: "cyborg_soldier", minDistance: 25, weight: 2 },
     ],
     wildlife: [
-      WILDLIFE_MODELS.fish, WILDLIFE_MODELS.frog,
+      WILDLIFE_MODELS.fish,
     ],
     envProps: [],
   },
