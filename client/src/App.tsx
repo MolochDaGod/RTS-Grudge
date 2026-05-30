@@ -148,10 +148,11 @@ function App() {
       {phase === "characterSelect" && <CharacterSelectScreen />}
       {phase === "loading" && <LoadingScreen />}
       {phase === "intro" && <IntroCutscene />}
-      {(phase === "playing" || phase === "paused") && !inDungeon && !inHousing && !inTutorialIsland && <GameScene />}
+      {/* All 3D play uses GameScene — single 9-zone map. Dungeons and
+          housing are sub-scenes within the same world (entered via portals). */}
+      {(phase === "playing" || phase === "paused") && !inDungeon && !inHousing && <GameScene />}
       {(phase === "playing" || phase === "paused") && inDungeon && <BakedDungeonScene />}
       {(phase === "playing" || phase === "paused") && inHousing && <HousingScene />}
-      {(phase === "playing" || phase === "paused") && inTutorialIsland && <TutorialIslandScene />}
       {(phase === "playing" || phase === "paused") && <WeaponOffsetTuner />}
       {/*
         F8 dev panel + its terrain debug overlay are mounted at the

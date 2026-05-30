@@ -140,6 +140,16 @@ export function initAssetLoader(renderer?: THREE.WebGLRenderer): GLTFLoader {
 
   sharedLoader.setMeshoptDecoder(MeshoptDecoder);
 
+  // Suppress the "Unknown extension KHR_materials_pbrSpecularGlossiness"
+  // warning that older GLBs (ship models, pirate island pack) trigger.
+  // The models load fine without the extension — metallic-roughness
+  // PBR takes over automatically.
+  const _origWarn = console.warn;
+  console.warn = (...args: any[]) => {
+    if (typeof args[0] === "string" && args[0].includes("KHR_materials_pbrSpecularGlossiness")) return;
+    _origWarn.apply(console, args);
+  };
+
   initLoadersGl();
 
   return sharedLoader;

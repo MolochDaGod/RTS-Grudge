@@ -318,15 +318,67 @@ export class ZoneManager {
     }
   }
 
+  // ── Instance zones (dungeons, home islands, housing) ───────────────────
+  // Instances exist off the 9-zone sector map. Each is a private channel
+  // scoped to a party or individual player. They are created on demand
+  // and GC'd when all players leave.
+
+  /**
+   * Create a private instance zone for dungeons, home islands, or housing.
+   * Returns the instanceId (channelId) the client should zone:join into.
+   *
+   * @param instanceType "dungeon" | "home_island" | "housing"
+   * @param ownerId      Player or party leader who owns this instance
+   * @param seed         Optional seed (dungeon level, island seed, etc.)
+   */
+  createInstance(
+    instanceType: "dungeon" | "home_island" | "housing",
+    ownerId: string,
+    seed?: number,
+  ): string {
+    const instanceId = `inst_${instanceType}_${ownerId}_${++this.channelCounter}`;
+    const channel: ZoneChannel = {
+      channelId: instanceId,
+      zoneId: `${instanceType}:${ownerId}`,
+      players: new Map(),
+      createdAt: Date.now(),
+    };
+    this.channels.set(instanceId, channel);
+    console.log(`[zone] Created ${instanceType} instance ${instanceId}${seed != null ? ` (seed=${seed})` : ""}`);
+    return instanceId;
+  }
+
+  /** Check if an instance exists and return its player count. */
+  getInstanceInfo(instanceId: string): { exists: boolean; players: number; zoneId: string } | null {
+    const ch = this.channels.get(instanceId);
+    if (!ch) return null;
+    return { exists: true, players: ch.players.size, zoneId: ch.zoneId };
+  }
+
+  /** List all active instances of a given type. */
+  listInstances(instanceType?: string): { instanceId: string; zoneId: string; players: number }[] {
+    const results: { instanceId: string; zoneId: string; players: number }[] = [];
+    for (const ch of this.channels.values()) {
+      if (ch.channelId.startsWith("inst_")) {
+        if (!instanceType || ch.zoneId.startsWith(`${instanceType}:`)) {
+          results.push({ instanceId: ch.channelId, zoneId: ch.zoneId, players: ch.players.size });
+        }
+      }
+    }
+    return results;
+  }
+
   /** Get stats for monitoring. */
-  getStats(): { channels: number; totalPlayers: number; perZone: Record<string, number> } {
+  getStats(): { channels: number; totalPlayers: number; perZone: Record<string, number>; instances: number } {
     const perZone: Record<string, number> = {};
     let totalPlayers = 0;
+    let instances = 0;
     for (const ch of this.channels.values()) {
       perZone[ch.zoneId] = (perZone[ch.zoneId] || 0) + ch.players.size;
       totalPlayers += ch.players.size;
+      if (ch.channelId.startsWith("inst_")) instances++;
     }
-    return { channels: this.channels.size, totalPlayers, perZone };
+    return { channels: this.channels.size, totalPlayers, perZone, instances };
   }
 }
 
@@ -387,6 +439,26 @@ export function registerZoneHandlers(io: SocketIOServer): void {
     // zone:chat
     socket.on("zone:chat", (data: any) => {
       zoneManager.handleChat(socket, data.message || "");
+    });
+
+    // ── Instance events ──────────────────────────────────────────────
+    socket.on("zone:create-instance", (data: any, cb?: Function) => {
+      const instanceId = zoneManager.createInstance(
+        data.type || "dungeon",
+        data.ownerId || socket.id,
+        data.seed,
+      );
+      if (cb) cb({ success: true, instanceId });
+    });
+
+    socket.on("zone:instance-info", (data: any, cb?: Function) => {
+      const info = zoneManager.getInstanceInfo(data.instanceId);
+      if (cb) cb(info ?? { exists: false });
+    });
+
+    socket.on("zone:list-instances", (data: any, cb?: Function) => {
+      const list = zoneManager.listInstances(data.type);
+      if (cb) cb({ instances: list });
     });
 
     // Disconnect
