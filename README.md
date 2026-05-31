@@ -18,13 +18,14 @@
 7. [Combat UI](#combat-ui)
 8. [Harvest Mode](#harvest-mode)
 9. [Build Mode](#build-mode)
-10. [Weapon Prefabs & Object Storage](#weapon-prefabs--object-storage)
-11. [Skill Icons & Hotbar](#skill-icons--hotbar)
-12. [API Reference](#api-reference)
-13. [Routes](#routes)
-14. [Deployment](#deployment)
-15. [Environment Variables](#environment-variables)
-16. [Grudge Fleet](#grudge-fleet)
+10. [Character Prefab System](#character-prefab-system)
+11. [Weapon Prefabs & Object Storage](#weapon-prefabs--object-storage)
+12. [Skill Icons & Hotbar](#skill-icons--hotbar)
+13. [API Reference](#api-reference)
+14. [Routes](#routes)
+15. [Deployment](#deployment)
+16. [Environment Variables](#environment-variables)
+17. [Grudge Fleet](#grudge-fleet)
 
 ---
 
@@ -50,7 +51,7 @@ Grudge Warlords is a browser-based open-world MMO where players:
 | Routing | Wouter |
 | Auth | Puter.js + Grudge Auth (id.grudge-studio.com) |
 | Backend | Node.js/Express on Railway |
-| CDN / Object Storage | Cloudflare R2 via `molochdagod.github.io/ObjectStore` |
+| CDN / Object Storage | Cloudflare R2 via `assets.grudge-studio.com` |
 | Frontend Deploy | Vercel |
 | UI Framework | React 18 + TypeScript |
 
@@ -327,12 +328,142 @@ addBuildingResources("building_uid_123", [5, 0, 10], [
 
 ---
 
+## Character Prefab System
+
+Every playable character is a **single skinned GLB mesh** from the Grudge6 faction
+pack. Equipment (weapons, armor, shields) is attached at runtime via bone
+containers — the character mesh itself never changes geometry for gear.
+
+### Mesh Architecture
+
+Each Grudge6 race GLB (`WK_Characters.glb`, `BRB_Characters.glb`, etc.) ships
+with **one unified skinned mesh** containing all equipment child meshes toggled
+by prefix. The naming convention:
+
+```
+{RACE}_{SLOT}_{VARIANT}
+```
+
+Examples: `WK_Armor_Plate`, `BRB_Helm_Horned`, `ELF_Cape_Woodland`.
+
+At load time the character system calls `detectBodyParts()` to catalogue every
+child mesh by its prefix, then `applyBodyMorph()` to show/hide the appropriate
+set for the selected equipment loadout.
+
+### Bone Hierarchy & Attachment Points
+
+All 6 race skeletons share the same **Bip001** bone hierarchy (retargetable),
+with standardised container bones for weapon/item attachment:
+
+| Container Bone | Purpose | Items |
+|---|---|---|
+| `R_hand_container` | Right-hand weapon | Swords, axes, hammers, wands, bows |
+| `L_hand_container` | Left-hand weapon / off-hand | Shields, tomes, daggers, off-hand relics |
+| `L_shield_container` | Shield (alternative) | Shields mounted on forearm |
+| `Spine2` / `Back` | Back accessory | Quivers, capes, 2H weapons (sheathed) |
+| `Head` | Helm slot | Helmets, hoods |
+
+The `findBoneByAlias()` system in `BoneAliases.ts` handles skeleton variations
+across different model sources (Mixamo, Bip001, custom) by searching a priority
+list of bone name aliases for each slot.
+
+### Weapon Attachment Rules
+
+| Grip Style | Right Hand | Left Hand | Examples |
+|---|---|---|---|
+| **1H + Shield** | Weapon mesh | Shield mesh | Sword + shield, mace + shield |
+| **1H + Off-hand** | Weapon mesh | Tome / relic | Wand + spellbook |
+| **Dual Wield** | Weapon mesh | Weapon mesh (clone) | Twin daggers |
+| **2H Melee** | Weapon mesh (grip) | IK target (off-hand grip local) | Greatsword, poleaxe, hammer |
+| **2H Ranged** | Weapon mesh | IK target | Bow, crossbow, rifle |
+| **Unarmed** | (empty) | (empty) | Fists — Kick/Throw anims |
+
+For 2H weapons, `offHandGripLocal` on `WeaponModelEntry` specifies the local-space
+position where the left hand should grip the weapon shaft. The `computeWeaponTransform()`
+function in `BoneAliases.ts` calculates the final bone-local transform.
+
+### Animation Pack Loading
+
+Animations are **skinless GLBs** — skeleton + clip data, no mesh. They load from
+R2 at `assets.grudge-studio.com/models/animations/` and retarget to whatever
+character mesh is active via `retargetClips()` in `BoneAliases.ts`.
+
+The pack priority chain per weapon type:
+
+```
+Weapon-specific pack (combat clips)
+  → grudge6_brb_base (locomotion / reactions / gestures)
+    → glocomotion (Mixamo locomotion fallback)
+```
+
+| Pack | Clips | Covers |
+|---|---|---|
+| `grudge6_brb_base` | 36 | idle, walk, run, jump, fall, land, roll, climb (6), swim (2), crouch (4), hit, death, stun, attack, kick, throw, gestures |
+| `grudge6_brb_sword_shield` | 9 | Slash combos (4), casting, power up, spin, counter |
+| `grudge6_brb_greatsword` | 4 | Great sword slash (2), 2H combos (2) |
+| `grudge6_brb_onehanded` | 3 | Sword combo, club combo, dual-wield |
+| `grudge6_brb_magic` | 8 | Spell casting, 1H/2H cast, area attacks (3), magic attacks (3) |
+| `grudge6_brb_emotes` | 4 | Dances, taunt |
+| `glocomotion` | 21 | idle, walk, run, jump, strafe (4), turn (4), fall, land, roll, dodge, crouch (2), sneak |
+
+### Equipment Mesh Visibility
+
+When a player equips gear, the character system toggles child mesh visibility:
+
+```ts
+// Equipping plate armor on a WK character:
+character.traverse((child) => {
+  if (child.name.startsWith("WK_Armor_")) {
+    child.visible = child.name === "WK_Armor_Plate";
+  }
+});
+```
+
+The `detectBodyParts()` function returns a `ModelAnalysis` with categorised
+mesh lists (`armor`, `helm`, `cape`, `boots`, etc.) so the equipment UI can
+toggle entire categories without manual mesh name lookup.
+
+### Body Morphing
+
+`applyBodyMorph()` adjusts bone scales to modify character proportions:
+
+```ts
+interface BodyMorphConfig {
+  muscle: number;        // 0.5–2.0 (default 1.0)
+  shoulderWidth: number; // 0.5–2.0
+  legLength: number;     // 0.5–1.5
+}
+```
+
+Race presets apply morph overrides: Dwarves get `legLength: 0.85`, Orcs get
+`muscle: 1.4, shoulderWidth: 1.3`, etc.
+
+### CDN Asset Paths (R2)
+
+```
+assets.grudge-studio.com/
+├── models/grudge6/
+│   ├── wk/WK_Characters.glb          # Western Kingdoms (Human)
+│   ├── brb/BRB_Characters.glb        # Barbarian
+│   ├── elf/ELF_Characters.glb        # Elf
+│   ├── dwf/DWF_Characters.glb        # Dwarf
+│   ├── orc/ORC_Characters.glb        # Orc
+│   ├── ud/UD_Characters.glb          # Undead
+│   ├── variants/                     # Weapon variant GLBs
+│   └── animations/                   # Action-adventure FBXes
+├── models/animations/
+│   ├── grudge6_brb/{base,emotes,sword_shield,greatsword,onehanded,magic}/
+│   └── glocomotion/                  # Mixamo locomotion GLBs
+```
+
+---
+
 ## Weapon Prefabs & Object Storage
 
 ### CDN Base URL
 
 ```
-https://molochdagod.github.io/ObjectStore/icons/pack
+https://assets.grudge-studio.com/icons/pack
 ```
 
 ### Weapon Icon URL Pattern
@@ -341,7 +472,7 @@ https://molochdagod.github.io/ObjectStore/icons/pack
 {CDN_BASE}/weapons/{typeFolder}/{itemName_slug}.png
 ```
 
-Example: `https://molochdagod.github.io/ObjectStore/icons/pack/weapons/swords/iron_longsword.png`
+Example: `https://assets.grudge-studio.com/icons/pack/weapons/swords/iron_longsword.png`
 
 ### Weapon Type Folders
 
@@ -370,7 +501,7 @@ Example: `https://molochdagod.github.io/ObjectStore/icons/pack/weapons/swords/ir
 {CDN_BASE}/armor/{material}/{slot}/{rarity}.png
 ```
 
-Example: `https://molochdagod.github.io/ObjectStore/icons/pack/armor/leather/chest/rare.png`
+Example: `https://assets.grudge-studio.com/icons/pack/armor/leather/chest/rare.png`
 
 Materials: `cloth` · `leather` · `metal`  
 Slots: `helm` · `shoulder` · `chest` · `legs` · `boots` · `belt` · `gloves` · `cape`  
@@ -438,7 +569,7 @@ Skill icons resolve via the Grudge Object Store CDN:
 {CDN_BASE}/skills/{class}/{skillName}.png
 ```
 
-Example: `https://molochdagod.github.io/ObjectStore/icons/pack/skills/warrior/charge.png`
+Example: `https://assets.grudge-studio.com/icons/pack/skills/warrior/charge.png`
 
 ### Default Hotbar Action Slots
 
@@ -565,7 +696,7 @@ for every path; the React app dispatches to the correct phase on mount.
 | `/play` | playing | GameScene | 3D open world — combat, harvest, build, sail |
 | `/combat` | combat2d | Combat2DPage | Gruda Wars 2D combat entry |
 | `/island-v2` | islandV2 | IslandV2Page | Shipwreck Island survival launcher |
-| `/gge` | gge | GGEEditor | Level & scene editor |
+| `/forge` | forge | ForgeEmbed | Grudge Studio Forge (scene editor) |
 | `/controller` | controller | ControllerPage | Animation & input lab |
 | `/admin` | admin | AdminPanel | Server management |
 
