@@ -66,7 +66,7 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
-    "@types/yuka": "^0.7.4",
+    "@aws-sdk/lib-storage": "^3.1057.0",
     "@tailwindcss/typography": "^0.5.19",
     "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.19",
@@ -74,6 +74,7 @@
     "@types/node": "20.16.11",
     "@types/react": "^18.3.28",
     "@types/react-dom": "^18.3.7",
+    "@types/yuka": "^0.7.4",
     "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.5.0",
     "cross-env": "^10.1.0",
@@ -81,8 +82,8 @@
     "esbuild": "^0.25.0",
     "gltf-pipeline": "^4.3.1",
     "postcss": "^8.4.47",
-    "tailwindcss": "^3.4.19",
     "sharp": "^0.34.5",
+    "tailwindcss": "^3.4.19",
     "tsx": "^4.19.1",
     "typescript": "5.6.3",
     "vite": "^5.4.19",
