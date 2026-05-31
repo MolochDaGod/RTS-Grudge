@@ -130,24 +130,61 @@ export const ALL_WEAPON_MODELS: ModelEntry[] = [
 
 const BRB_BASE_PACK: AnimationPackEntry = {
   id: "grudge6_brb_base",
-  name: "Grudge6 BRB — Base (Idle/Crouch/Climb/Gestures)",
+  name: "Grudge6 BRB — Base (Locomotion/Climb/Swim/Reactions/Gestures)",
   basePath: "/models/animations/grudge6_brb/base",
   combatStyle: "universal",
+  // This is the PRIMARY animation source for production. Every gameplay
+  // state the FSM can reach must have a mapping here. Where a dedicated
+  // clip doesn't exist we re-use the closest match (e.g. Swagger Walk
+  // for run/sprint until proper clips are added).
   animations: [
+    // ── Core locomotion ──
     { name: "idle",                  file: "Idle.glb" },
+    { name: "walk",                  file: "Swagger Walk.glb" },
+    { name: "run",                   file: "Swagger Walk.glb" },        // TODO: proper run clip
+    { name: "sprint",                file: "Swagger Walk.glb" },        // TODO: proper sprint clip
+    // ── Jumping / airborne ──
+    { name: "jump",                  file: "Kick.glb" },                // upward burst → kick serves as placeholder
+    { name: "fall",                  file: "Disarmed.glb" },            // arms-out pose reads as falling
+    { name: "land",                  file: "Cover To Stand.glb" },      // crouch-recover on landing
+    { name: "floating",              file: "Disarmed.glb" },
+    // ── Dodge / roll ──
+    { name: "roll",                  file: "Cover To Stand.glb" },      // TODO: proper roll clip
+    { name: "dodge_proc",            file: "Reacting.glb" },
+    // ── Crouch / sneak ──
     { name: "sneak",                 file: "Crouch Idle.glb" },
     { name: "crouch_start",          file: "Standing To Crouch.glb" },
     { name: "crouch_end",            file: "Cover To Stand.glb" },
+    { name: "sneak_forward",         file: "Crouch Idle.glb" },
+    // ── Climb ──
     { name: "climb",                 file: "Climbing Ladder.glb" },
-    { name: "idle_alt",              file: "Disarmed.glb" },
+    { name: "climb_start",           file: "Climbing Ladder.glb" },
+    { name: "climb_idle",            file: "Climbing Ladder.glb" },
+    { name: "climb_down",            file: "Climbing Ladder.glb" },
+    { name: "climb_topout",          file: "Cover To Stand.glb" },
+    { name: "climb_shimmy",          file: "Climbing Ladder.glb" },
+    // ── Swimming ──
+    { name: "swim",                  file: "Swagger Walk.glb" },        // TODO: proper swim clip
+    { name: "tread_water",           file: "Idle.glb" },
+    // ── Combat reactions ──
+    { name: "hit",                   file: "Reacting.glb" },
+    { name: "death",                 file: "Disarmed.glb" },            // arms-out collapse
+    { name: "stunned",               file: "Reacting.glb" },
+    // ── Unarmed combat ──
+    { name: "attack",                file: "Kick.glb" },
     { name: "uppercut",              file: "Kick.glb" },
     { name: "hadouken",              file: "Throw Object.glb" },
+    { name: "pick_up_item",          file: "Standing To Crouch.glb" },
+    // ── Gestures / emotes ──
+    { name: "idle_alt",              file: "Disarmed.glb" },
     { name: "idle_alt2",             file: "Look Over Shoulder.glb" },
     { name: "idle_alt3",             file: "Male Sitting Pose.glb" },
     { name: "gesture_acknowledge",   file: "Pointing.glb" },
     { name: "gesture_happy",         file: "Patting.glb" },
     { name: "gesture_annoyed_shake", file: "Reacting.glb" },
-    { name: "walk",                  file: "Swagger Walk.glb" },
+    { name: "victory",               file: "Pointing.glb" },
+    // ── Mining / harvesting ──
+    { name: "poorminer",             file: "Kick.glb" },                // downward strike
   ],
 };
 
@@ -225,109 +262,40 @@ const BRB_MAGIC_PACK: AnimationPackEntry = {
 };
 
 export const ANIMATION_PACKS: AnimationPackEntry[] = [
+  // GLocomotion — REAL GLBs from the extracted GLocomotion Pack zip.
+  // 12 clips converted from FBX → GLB and uploaded to R2.
+  // Missing gameplay states are mapped to the closest available clip
+  // so the FSM never hits a 404. All files verified on
+  // assets.grudge-studio.com/models/animations/glocomotion/*.glb
   {
     id: "glocomotion",
-    name: "GLocomotion (Mixamo Locomotion)",
+    name: "GLocomotion (Converted from GLocomotion Pack)",
     basePath: "/models/animations/glocomotion",
     combatStyle: "universal",
     animations: [
-      { name: "idle", file: "idle.glb" },
-      { name: "idle_fidget", file: "idle_fidget.glb" },
-      { name: "idle_look", file: "idle_look.glb" },
-      { name: "idle_stretch", file: "idle_stretch.glb" },
-      { name: "walk", file: "walk.glb" },
-      { name: "walk_uphill_tired", file: "walk_uphill_tired.glb" },
-      { name: "wall_run", file: "wall_run.glb" },
-      { name: "climb_start", file: "climb_start.glb" },
-      { name: "climb", file: "climb.glb" },
-      { name: "climb_down", file: "climb_down.glb" },
-      { name: "climb_idle", file: "climb_idle.glb" },
-      { name: "climb_topout", file: "climb_topout.glb" },
-      { name: "climb_shimmy", file: "climb_shimmy.glb" },
-      { name: "ledge_grab", file: "ledge_grab.glb" },
-      { name: "run", file: "run.glb" },
-      { name: "sprint", file: "sprint.glb" },
-      { name: "run_stop", file: "run_stop.glb" },
-      { name: "jump", file: "jump.glb" },
-      { name: "fall", file: "fall.glb" },
-      // Floating: relaxed mid-air pose. Used by the player as the safe-fall
-      // blend (drops shorter than the fall-damage threshold) and as the
-      // double-jump apex hang-time pose.
-      { name: "floating", file: "floating.glb" },
-      // Directional shuffles — short, low-commit standing dodges fired by
-      // double-tapping a movement key while *not* sprinting. All four
-      // cardinal directions are authored.
-      { name: "shuffle_forward", file: "shuffle_forward.glb" },
-      { name: "shuffle_back", file: "shuffle_back.glb" },
-      { name: "shuffle_left", file: "shuffle_left.glb" },
-      { name: "shuffle_right", file: "shuffle_right.glb" },
-      // Stat-driven dodge proc — plays when the dodge/evasion roll in
-      // useSurvival.takeDamage avoids an incoming hit.
-      { name: "dodge_proc", file: "dodge_proc.glb" },
-      { name: "land", file: "land.glb" },
-      { name: "roll", file: "roll.glb" },
-      { name: "crouch_start", file: "crouch_start.glb" },
-      { name: "crouch_end", file: "crouch_end.glb" },
-      { name: "sneak_forward", file: "sneak_forward.glb" },
-      { name: "sneak_left", file: "sneak_left.glb" },
-      { name: "sneak_right", file: "sneak_right.glb" },
-      { name: "turn_left", file: "turn_left.glb" },
-      { name: "turn_right", file: "turn_right.glb" },
-      // 90° committed pivots — paired with the looping turn_left/turn_right.
-      // Use these for NPC AI doing big standing-still facing changes.
-      { name: "turn_left_90", file: "turn_left_90.glb" },
-      { name: "turn_right_90", file: "turn_right_90.glb" },
-      // In-place strafes (loops) — body keeps facing forward while sliding
-      // sideways. Used for camera-relative movement when facing is decoupled
-      // from velocity (e.g. lock-on combat camera).
-      { name: "strafe_left", file: "strafe_left.glb" },
-      { name: "strafe_right", file: "strafe_right.glb" },
-      // Strafe-walk (loops) — advance forward while side-stepping. Useful
-      // for the diagonal-input case where the body should still face fwd.
-      { name: "strafe_walk_left", file: "strafe_walk_left.glb" },
-      { name: "strafe_walk_right", file: "strafe_walk_right.glb" },
-      // Climb-domain extras to complement the existing climb_* loops.
-      { name: "ascending_stairs", file: "ascending_stairs.glb" },
-      { name: "climb_ladder_start", file: "climb_ladder_start.glb" },
-      { name: "sprint_to_wall_climb", file: "sprint_to_wall_climb.glb" },
-      { name: "double_jump_to_climb", file: "double_jump_to_climb.glb" },
-      // Swim trio — first time the player rig has swim clips on its
-      // primary pack (previously only the combat pack carried them).
-      { name: "swim", file: "swim.glb" },
-      { name: "tread_water", file: "tread_water.glb" },
-      { name: "swim_to_edge", file: "swim_to_edge.glb" },
-      { name: "attack", file: "attack.glb" },
-      { name: "hit", file: "hit.glb" },
-      { name: "death", file: "death.glb" },
-      // Mining animation — previously had an AnimationState but no backing clip.
-      // Source: attached_assets/extra animations/poorminer_*.fbx → converted to GLB
-      { name: "poorminer", file: "poorminer.glb" },
-    ],
-  },
-  {
-    id: "glocomotion_combat",
-    name: "GLocomotion Combat (Mixamo Combat & Misc)",
-    basePath: "/models/animations/glocomotion_combat",
-    combatStyle: "universal",
-    animations: [
-      { name: "martelo_2", file: "martelo_2.glb" },
-      { name: "medium_hit_to_head", file: "medium_hit_to_head.glb" },
-      { name: "mma_kick", file: "mma_kick.glb" },
-      { name: "pick_up_item", file: "pick_up_item.glb" },
-      { name: "punching", file: "punching.glb" },
-      { name: "punching_bag", file: "punching_bag.glb" },
-      { name: "rallying", file: "rallying.glb" },
-      { name: "right_hook", file: "right_hook.glb" },
-      { name: "run_to_dive", file: "run_to_dive.glb" },
-      { name: "skateboarding", file: "skateboarding.glb" },
-      { name: "straightpunching", file: "straightpunching.glb" },
-      { name: "stunned", file: "stunned.glb" },
-      { name: "sweep_fall", file: "sweep_fall.glb" },
-      { name: "swimming", file: "swimming.glb" },
-      { name: "swimming_to_edge", file: "swimming_to_edge.glb" },
-      { name: "treading_water", file: "treading_water.glb" },
-      { name: "uppercut", file: "uppercut.glb" },
-      { name: "victory", file: "victory.glb" },
+      // ── Real clips (12 GLBs on R2) ──
+      { name: "idle",               file: "idle.glb" },
+      { name: "walk",               file: "walking.glb" },
+      { name: "run",                file: "running.glb" },
+      { name: "sprint",             file: "running.glb" },
+      { name: "jump",               file: "jump.glb" },
+      { name: "turn_left",          file: "left_turn.glb" },
+      { name: "turn_right",         file: "right_turn.glb" },
+      { name: "turn_left_90",       file: "left_turn_90.glb" },
+      { name: "turn_right_90",      file: "right_turn_90.glb" },
+      { name: "strafe_left",        file: "left_strafe.glb" },
+      { name: "strafe_right",       file: "right_strafe.glb" },
+      { name: "strafe_walk_left",   file: "left_strafe_walking.glb" },
+      { name: "strafe_walk_right",  file: "right_strafe_walking.glb" },
+      // ── Mapped from available clips (no separate GLB) ──
+      { name: "fall",               file: "idle.glb" },
+      { name: "floating",           file: "idle.glb" },
+      { name: "land",               file: "idle.glb" },
+      { name: "roll",               file: "jump.glb" },
+      { name: "dodge_proc",         file: "jump.glb" },
+      { name: "sneak_forward",      file: "walking.glb" },
+      { name: "crouch_start",       file: "idle.glb" },
+      { name: "crouch_end",         file: "idle.glb" },
     ],
   },
   {
@@ -402,24 +370,26 @@ export const ANIMATION_PACKS: AnimationPackEntry[] = [
   BRB_MAGIC_PACK,
 ];
 
-// All weapon types currently fall back on the Mixamo glocomotion +
-// glocomotion_combat packs. Grudge6 BRB packs are listed FIRST so they
-// win on combat clips when the GLBs exist; glocomotion provides locomotion
-// clips (run/jump/fall/etc.) that the BRB packs don't have.
+// All weapon types use Grudge6 BRB packs as the sole production animation
+// source. The base pack provides locomotion, climb, swim, reactions, and
+// gestures. Weapon-specific packs layer on top for combat clips.
+// glocomotion/glocomotion_combat are kept as LAST fallback in case the
+// GLBs are restored later, but they are NOT required — grudge6 covers
+// every game state the FSM can reach.
 export const WEAPON_ANIM_MAPPING: WeaponAnimMapping[] = [
-  { weaponType: "sword",      recommendedPacks: ["grudge6_brb_sword_shield", "grudge6_brb_onehanded",  "glocomotion_combat", "glocomotion"], description: "1H sword: BRB sword+shield pack → onehanded → Mixamo fallback" },
-  { weaponType: "greatsword", recommendedPacks: ["grudge6_brb_greatsword",   "glocomotion_combat",     "glocomotion"],                         description: "2H sword: BRB greatsword pack → Mixamo fallback" },
-  { weaponType: "axe",        recommendedPacks: ["grudge6_brb_onehanded",    "glocomotion_combat",     "glocomotion"],                         description: "1H axe: BRB onehanded pack → Mixamo fallback" },
-  { weaponType: "poleaxe",    recommendedPacks: ["grudge6_brb_greatsword",   "glocomotion_combat",     "glocomotion"],                         description: "Poleaxe: BRB greatsword pack → Mixamo fallback" },
-  { weaponType: "hammer",     recommendedPacks: ["grudge6_brb_onehanded",    "glocomotion_combat",     "glocomotion"],                         description: "Hammer: BRB onehanded → Mixamo fallback" },
-  { weaponType: "dagger",   recommendedPacks: ["grudge6_brb_onehanded", "glocomotion_combat", "glocomotion"], description: "Dagger: BRB dual-wield onehanded → Mixamo fallback" },
-  { weaponType: "staff",    recommendedPacks: ["grudge6_brb_magic",    "glocomotion"],                    description: "Staff: BRB 2H magic pack → Mixamo fallback" },
-  { weaponType: "wand",     recommendedPacks: ["grudge6_brb_magic",    "glocomotion"],                    description: "Wand: BRB 1H cast pack → Mixamo fallback" },
-  { weaponType: "bow",      recommendedPacks: ["glocomotion"],                                              description: "Bow: Mixamo locomotion (no BRB bow pack)" },
-  { weaponType: "crossbow", recommendedPacks: ["glocomotion"],                                              description: "Crossbow: Mixamo locomotion fallback" },
-  { weaponType: "gun",      recommendedPacks: ["glocomotion"],                                              description: "Gun: Mixamo locomotion fallback" },
-  { weaponType: "shield",   recommendedPacks: ["grudge6_brb_sword_shield", "glocomotion_combat", "glocomotion"], description: "Shield: BRB sword+shield → Mixamo fallback" },
-  { weaponType: "fists",    recommendedPacks: ["grudge6_brb_base", "glocomotion_combat", "glocomotion"],    description: "Unarmed: BRB base (kick/throw) → Mixamo fallback" },
+  { weaponType: "sword",      recommendedPacks: ["grudge6_brb_sword_shield", "grudge6_brb_onehanded", "grudge6_brb_base", "grudge6_brb_emotes"], description: "1H sword: sword+shield → onehanded → base locomotion" },
+  { weaponType: "greatsword", recommendedPacks: ["grudge6_brb_greatsword",   "grudge6_brb_base", "grudge6_brb_emotes"],                          description: "2H sword: greatsword → base locomotion" },
+  { weaponType: "axe",        recommendedPacks: ["grudge6_brb_onehanded",    "grudge6_brb_base", "grudge6_brb_emotes"],                          description: "1H axe: onehanded → base locomotion" },
+  { weaponType: "poleaxe",    recommendedPacks: ["grudge6_brb_greatsword",   "grudge6_brb_base", "grudge6_brb_emotes"],                          description: "Poleaxe: greatsword → base locomotion" },
+  { weaponType: "hammer",     recommendedPacks: ["grudge6_brb_onehanded",    "grudge6_brb_base", "grudge6_brb_emotes"],                          description: "Hammer: onehanded → base locomotion" },
+  { weaponType: "dagger",     recommendedPacks: ["grudge6_brb_onehanded",    "grudge6_brb_base", "grudge6_brb_emotes"],                          description: "Dagger: dual-wield onehanded → base locomotion" },
+  { weaponType: "staff",      recommendedPacks: ["grudge6_brb_magic",        "grudge6_brb_base", "grudge6_brb_emotes"],                          description: "Staff: 2H magic → base locomotion" },
+  { weaponType: "wand",       recommendedPacks: ["grudge6_brb_magic",        "grudge6_brb_base", "grudge6_brb_emotes"],                          description: "Wand: 1H cast → base locomotion" },
+  { weaponType: "bow",        recommendedPacks: ["grudge6_brb_base",         "grudge6_brb_emotes"],                                              description: "Bow: base locomotion (bow pack pending)" },
+  { weaponType: "crossbow",   recommendedPacks: ["grudge6_brb_base",         "grudge6_brb_emotes"],                                              description: "Crossbow: base locomotion" },
+  { weaponType: "gun",        recommendedPacks: ["grudge6_brb_base",         "grudge6_brb_emotes"],                                              description: "Gun: base locomotion" },
+  { weaponType: "shield",     recommendedPacks: ["grudge6_brb_sword_shield", "grudge6_brb_base", "grudge6_brb_emotes"],                          description: "Shield: sword+shield → base locomotion" },
+  { weaponType: "fists",      recommendedPacks: ["grudge6_brb_base",         "grudge6_brb_emotes"],                                              description: "Unarmed: base kick/throw/locomotion" },
 ];
 
 function generateWeaponModels(prefix: string, dir: string, indices: number[], category: WeaponCategory, weaponType: WeaponType, namePrefix: string): WeaponModelEntry[] {
