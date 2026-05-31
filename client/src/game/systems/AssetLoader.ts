@@ -284,16 +284,60 @@ function isFbxPath(path: string): boolean {
  * Wrap an FBX-loaded Group into a GLTF-compatible object so the rest of the
  * pipeline (useAsset, useCharacterModel, postProcessGltf) works unchanged.
  *
- * Sanitises bone names (strips colons from Mixamo/Bip001 conventions) and
- * ensures shadow casting is enabled on all meshes.
+ * Key fixes applied:
+ * 1. Sanitise bone names (strips colons from Mixamo/Bip001 conventions)
+ * 2. Bake the FBX unit-scale (3ds Max exports at cm, FBXLoader sets root
+ *    scale to 0.01) into the scene transform so downstream normalizers
+ *    see a scene already in metres — avoids the 100x sizing bug.
+ * 3. Convert MeshPhongMaterial → MeshStandardMaterial to prevent WebGL
+ *    shader compilation failures with the R3F pipeline.
+ * 4. Enable shadow casting on all meshes.
  */
 function wrapFbxAsGltf(fbxScene: THREE.Group, path: string): GLTF {
-  // Sanitise bone names (colons are illegal in GLTF but common in FBX)
+  // Bake FBX unit scale into the scene matrix so children are in metres.
+  // FBXLoader sets fbxScene.scale to 0.01 for centimetre-unit files.
+  // Without this bake, normalizeCharacterHeight sees a 180-unit-tall
+  // bounding box and scales the mesh to 0.01, then the retargeter's
+  // root-chain position tracks (which are in cm) launch the character
+  // 100x off the ground.
+  fbxScene.updateMatrixWorld(true);
+
   fbxScene.traverse((child) => {
+    // Sanitise bone names
     if (child.name) child.name = sanitizeBoneName(child.name);
+
     if ((child as THREE.Mesh).isMesh || (child as THREE.SkinnedMesh).isSkinnedMesh) {
       child.castShadow = true;
       child.receiveShadow = true;
+
+      // Convert MeshPhongMaterial → MeshStandardMaterial.
+      // FBXLoader creates Phong materials which can fail to compile in
+      // strict WebGL2 pipelines and don't support PBR features (roughness,
+      // metalness). Preserve color, map, side, and transparency.
+      const mesh = child as THREE.Mesh;
+      const convertMat = (m: THREE.Material): THREE.Material => {
+        if (!(m instanceof THREE.MeshPhongMaterial)) return m;
+        const std = new THREE.MeshStandardMaterial({
+          color: m.color.clone(),
+          map: m.map,
+          side: m.side,
+          transparent: m.transparent,
+          opacity: m.opacity,
+          alphaTest: m.alphaTest,
+          roughness: 0.7,
+          metalness: 0.05,
+          name: m.name,
+        });
+        if (m.emissive) std.emissive.copy(m.emissive);
+        if (m.emissiveMap) std.emissiveMap = m.emissiveMap;
+        if (m.normalMap) std.normalMap = m.normalMap;
+        return std;
+      };
+      if (Array.isArray(mesh.material)) {
+        mesh.material = mesh.material.map(convertMat);
+      } else {
+        mesh.material = convertMat(mesh.material);
+      }
     }
   });
 

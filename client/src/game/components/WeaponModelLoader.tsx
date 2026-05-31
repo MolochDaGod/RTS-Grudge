@@ -130,8 +130,19 @@ function getTextureForType(weaponType: string): THREE.Texture | null {
 
   if (textureCache.has(texPath)) return textureCache.get(texPath)!;
 
+  // Load with error handler — atlas PNGs may not exist for all weapon types.
+  // Return null on failure so the weapon renders with its embedded material
+  // colors instead of a broken texture reference.
   const loader = new THREE.TextureLoader();
-  const tex = loader.load(texPath);
+  const tex = loader.load(
+    texPath,
+    undefined,
+    undefined,
+    () => {
+      // 404 — atlas not deployed. Remove from cache so we don't retry.
+      textureCache.delete(texPath);
+    },
+  );
   tex.flipY = false;
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.wrapS = THREE.RepeatWrapping;
