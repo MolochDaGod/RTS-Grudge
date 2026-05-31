@@ -9,7 +9,7 @@ import { onModeSwitch } from "@/game/controllers/ModeController";
 import { useCampaign } from "@/lib/stores/useCampaign";
 import { markIntroSeen } from "@/lib/save/introFlags";
 
-export type GamePhase = "menu" | "home" | "characterSelect" | "loading" | "intro" | "playing" | "dead" | "paused" | "admin" | "gge" | "controller" | "combat2d" | "islandV2" | "wallet" | "playEntrypoint";
+export type GamePhase = "menu" | "home" | "characterSelect" | "loading" | "intro" | "playing" | "dead" | "paused" | "admin" | "forge" | "controller" | "combat2d" | "islandV2" | "wallet" | "playEntrypoint";
 export type InteractionMode = "combat" | "build" | "harvest";
 
 export type WeaponType = "sword" | "greatsword" | "staff" | "wand" | "bow" | "axe" | "poleaxe" | "hammer" | "dagger" | "shield" | "fists" | "crossbow" | "gun";
@@ -91,7 +91,7 @@ export const DEFAULT_CHARACTER: CharacterConfig = {
   characterId: "human_warrior",
   // Default to the Grudge 6 Human (Western Kingdoms) race model —
   // Crusade faction warrior with sword + shield.
-  modelPath: "https://molochdagod.github.io/ObjectStore/models/factioncharacters/wk/WK_Characters_customizable.glb",
+  modelPath: "https://assets.grudge-studio.com/models/grudge6/wk/WK_Characters.glb",
   name: "Warlord",
   scale: 1.0,
   baseHeight: 1.8,
@@ -190,7 +190,7 @@ interface GameState {
   goToHome: () => void;
   goToCharacterSelect: () => void;
   goToAdmin: () => void;
-  goToGGE: () => void;
+  goToForge: () => void;
   goToController: () => void;
   goToCombat2d: () => void;
   goToIslandV2: () => void;
@@ -381,7 +381,7 @@ export const useGame = create<GameState>()(
     goToHome: () => set({ phase: "home" }),
     goToCharacterSelect: () => set({ phase: "characterSelect" }),
     goToAdmin: () => set({ phase: "admin" }),
-    goToGGE: () => set({ phase: "gge" }),
+    goToForge: () => set({ phase: "forge" }),
     goToController: () => set({ phase: "controller" }),
     goToCombat2d: () => set({ phase: "combat2d" }),
     goToIslandV2: () => set({ phase: "islandV2" }),

@@ -72,7 +72,7 @@ const noop = () => {};
 const CLASS_CYCLE = ["warrior", "mage", "ranger", "worge"] as const;
 
 export default function MenuScreen() {
-  const { goToGGE, goToController, goToCharacterSelect, enterTutorialIsland, goToHome } = useGame();
+  const { goToForge, goToController, goToCharacterSelect, enterTutorialIsland, goToHome } = useGame();
   const startCampaign = useCampaign((s) => s.startCampaign);
   const [activeClass, setActiveClass] = useState<string>("warrior");
   const [particles] = useState(() =>
@@ -266,18 +266,18 @@ export default function MenuScreen() {
           </button>
 
           <button
-            onClick={goToGGE}
+            onClick={goToForge}
             type="button"
             className="flex items-center justify-center gap-2 py-2 px-3 bg-zinc-900 text-purple-300 border-2 border-purple-900/60 rounded-md hover:bg-zinc-800 hover:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
-            aria-label="Open Level Editor"
-            title="Scenes, terrain, enemies, physics"
+            aria-label="Open Grudge Studio Forge"
+            title="Three.js scene editor, AI game builder, 96+ models"
           >
             <Settings className="w-4 h-4" />
             <span
               className="text-sm font-bold tracking-wider"
               style={{ fontFamily: FONTS.header }}
             >
-              EDITOR
+              FORGE
             </span>
           </button>
 

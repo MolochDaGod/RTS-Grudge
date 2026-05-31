@@ -13,8 +13,24 @@
       "dest": "https://id.grudge-studio.com/auth/$1"
     },
     {
+      "src": "/models/(.*)\\.(?:glb|gltf|fbx|bin)$",
+      "dest": "https://assets.grudge-studio.com/models/$1",
+      "headers": {
+        "Cache-Control": "public, max-age=86400",
+        "Access-Control-Allow-Origin": "*"
+      }
+    },
+    {
       "src": "/Models/(.*)",
       "dest": "https://assets.grudge-studio.com/models/$1"
+    },
+    {
+      "src": "/textures/(.*)\\.(?:png|jpg|webp)$",
+      "dest": "https://assets.grudge-studio.com/textures/$1",
+      "headers": {
+        "Cache-Control": "public, max-age=86400",
+        "Access-Control-Allow-Origin": "*"
+      }
     },
     {
       "src": "/assets/(.*)",
@@ -37,7 +53,7 @@
       "source": "/(.*)",
       "headers": [
         { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Content-Security-Policy", "value": "frame-ancestors 'self' https://id.grudge-studio.com https://*.grudge-studio.com" },
+        { "key": "Content-Security-Policy", "value": "frame-ancestors 'self' https://id.grudge-studio.com https://*.grudge-studio.com; frame-src 'self' https://forge.grudge-studio.com https://*.grudge-studio.com" },
         { "key": "Access-Control-Allow-Origin", "value": "*" }
       ]
     }

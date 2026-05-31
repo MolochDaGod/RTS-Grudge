@@ -5,6 +5,7 @@ import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { resolveCharacterModelPath } from "./CharacterModelResolver";
+import { resolveAssetPath } from "./AssetCDNResolver";
 
 export type AssetPriority = "critical" | "high" | "medium" | "low";
 
@@ -396,7 +397,9 @@ export function loadAsset(
   priority: AssetPriority = "medium",
   requesterTag: string | null = null,
 ): Promise<GLTF> {
-  const path = resolveCharacterModelPath(rawPath);
+  // Character model paths → CDN (faction GLBs), then general CDN resolver
+  // rewrites remaining /models/... paths to assets.grudge-studio.com in prod.
+  const path = resolveAssetPath(resolveCharacterModelPath(rawPath));
   if (gltfCache.has(path)) {
     stats.cacheHits++;
     return Promise.resolve(gltfCache.get(path)!);

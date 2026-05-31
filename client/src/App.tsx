@@ -21,7 +21,7 @@ import { TerrainDebugHUD } from "./game/cheats/TerrainDebugHUD";
 import { StreamedColliderStatsHUD } from "./game/cheats/StreamedColliderDebugOverlay";
 import "@fontsource/inter";
 
-const GGEEditor = lazy(() => import("./game/editor/GGEEditor"));
+const ForgeEmbed = lazy(() => import("./game/editor/ForgeEmbed"));
 const ControllerPage = lazy(() => import("./game/controller/ControllerPage"));
 const HomePage = lazy(() => import("./pages/HomePage"));
 const Combat2DPage = lazy(() => import("./pages/Combat2DPage"));
@@ -38,7 +38,7 @@ const PHASE_TO_PATH: Partial<Record<GamePhase, string>> = {
   characterSelect: "/character",
   playing:         "/play",
   admin:           "/admin",
-  gge:             "/gge",
+  forge:           "/forge",
   controller:      "/controller",
   combat2d:        "/combat",
   islandV2:        "/island-v2",
@@ -50,7 +50,7 @@ function App() {
   const {
     phase, togglePanel, closePanel, pause, resume,
     inDungeon, inHousing, inTutorialIsland, restart,
-    goToHome, goToController, goToCharacterSelect, goToAdmin, goToGGE,
+    goToHome, goToController, goToCharacterSelect, goToAdmin, goToForge,
     goToCombat2d, goToIslandV2, goToWallet,
   } = useGame();
 
@@ -63,7 +63,7 @@ function App() {
       "/home":       goToHome,
       "/character":  goToCharacterSelect,
       "/admin":      goToAdmin,
-      "/gge":        goToGGE,
+      "/forge":      goToForge,
       "/controller": goToController,
       "/combat":     goToCombat2d,
       "/island-v2":  goToIslandV2,
@@ -177,17 +177,17 @@ function App() {
         <Suspense fallback={null}><IslandV2Page /></Suspense>
       )}
       {phase === "admin" && <AdminPanel onClose={restart} />}
-      {phase === "gge" && (
+      {phase === "forge" && (
         <Suspense fallback={
           <div style={{
             position: "fixed", inset: 0, background: "#0d1117",
             display: "flex", alignItems: "center", justifyContent: "center",
             color: "#8b949e", fontSize: 14, fontFamily: "Inter, sans-serif",
           }}>
-            Loading GGE Editor...
+            Loading Grudge Studio Forge...
           </div>
         }>
-          <GGEEditor />
+          <ForgeEmbed />
         </Suspense>
       )}
       {phase === "wallet" && (
