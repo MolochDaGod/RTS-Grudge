@@ -680,6 +680,31 @@ export const WEAPON_PACK_WEAPONS: WeaponModelEntry[] = [
   { id: "wp_med_shield_heater",name: "Medieval Heater Shield",path: "/models/weapon_pack/Medieval_Shield_3.glb",  format: "glb", category: "shield",  weaponType: "shield",     defaultScale: 1.0, skipTextureAtlas: true },
 ];
 
+// --- Craftpix Low-Poly Medieval Weapons (craftpix-net-223037) ----------------
+// Converted from FBX → GLB via scripts/convert-craftpix-lowpoly.cjs.
+// These are low-poly stylized models ideal for T0 starter weapons.
+export const CRAFTPIX_LOWPOLY_WEAPONS: WeaponModelEntry[] = [
+  // Swords (3 variants)
+  { id: "clp_sword_1",   name: "LP Sword 1",      path: "/models/craftpix_lowpoly/Sword_1.glb",    format: "glb", category: "blade",   weaponType: "sword",    defaultScale: 1.0, skipTextureAtlas: true },
+  { id: "clp_sword_2",   name: "LP Sword 2",      path: "/models/craftpix_lowpoly/Sword_2.glb",    format: "glb", category: "blade",   weaponType: "sword",    defaultScale: 1.0, skipTextureAtlas: true },
+  { id: "clp_sword_3",   name: "LP Greatsword",   path: "/models/craftpix_lowpoly/Sword_3.glb",    format: "glb", category: "blade",   weaponType: "greatsword", defaultScale: 1.0, skipTextureAtlas: true, offHandGripLocal: [0, -0.20, 0] },
+  // Axe
+  { id: "clp_axe",       name: "LP Axe",          path: "/models/craftpix_lowpoly/Axe.glb",        format: "glb", category: "blade",   weaponType: "axe",      defaultScale: 1.0, skipTextureAtlas: true },
+  // Mace / Baton
+  { id: "clp_mace",      name: "LP Mace",         path: "/models/craftpix_lowpoly/Mace.glb",       format: "glb", category: "blunt",   weaponType: "hammer",   defaultScale: 1.0, skipTextureAtlas: true },
+  { id: "clp_baton",     name: "LP Baton",        path: "/models/craftpix_lowpoly/Baton.glb",      format: "glb", category: "blunt",   weaponType: "hammer",   defaultScale: 1.0, skipTextureAtlas: true },
+  // Polearms
+  { id: "clp_spear",     name: "LP Spear",        path: "/models/craftpix_lowpoly/Spear.glb",      format: "glb", category: "polearm", weaponType: "poleaxe",  defaultScale: 1.0, skipTextureAtlas: true, offHandGripLocal: [0, -0.45, 0] },
+  { id: "clp_halberd",   name: "LP Halberd",      path: "/models/craftpix_lowpoly/Halberd.glb",    format: "glb", category: "polearm", weaponType: "poleaxe",  defaultScale: 1.0, skipTextureAtlas: true, offHandGripLocal: [0, -0.45, 0] },
+  { id: "clp_poleaxe",   name: "LP Poleaxe",      path: "/models/craftpix_lowpoly/Poleaxe.glb",    format: "glb", category: "polearm", weaponType: "poleaxe",  defaultScale: 1.0, skipTextureAtlas: true, offHandGripLocal: [0, -0.45, 0] },
+  // Ranged
+  { id: "clp_bow",       name: "LP Bow",          path: "/models/craftpix_lowpoly/Bow.glb",        format: "glb", category: "ranged",  weaponType: "bow",      defaultScale: 1.0, skipTextureAtlas: true, offHandGripLocal: [0, 0, -0.30] },
+  { id: "clp_crossbow",  name: "LP Crossbow",     path: "/models/craftpix_lowpoly/Crossbow.glb",   format: "glb", category: "ranged",  weaponType: "crossbow", defaultScale: 1.0, skipTextureAtlas: true, offHandGripLocal: [0, 0, 0.18] },
+  // Shields
+  { id: "clp_shield_1",  name: "LP Shield Round", path: "/models/craftpix_lowpoly/Shield_1.glb",   format: "glb", category: "shield",  weaponType: "shield",   defaultScale: 1.0, skipTextureAtlas: true },
+  { id: "clp_shield_2",  name: "LP Shield Kite",  path: "/models/craftpix_lowpoly/Shield_2.glb",   format: "glb", category: "shield",  weaponType: "shield",   defaultScale: 1.0, skipTextureAtlas: true },
+];
+
 export const FIREARM_WEAPONS: WeaponModelEntry[] = [
   { id: "gun_revolver",    name: "Revolver",      path: "/models/threejs-games/weapons/revolver.glb",    format: "glb", category: "ranged", weaponType: "gun", defaultScale: 1.0, skipTextureAtlas: true },
   { id: "gun_luger",       name: "Luger Pistol",  path: "/models/threejs-games/weapons/luger.glb",       format: "glb", category: "ranged", weaponType: "gun", defaultScale: 1.0, skipTextureAtlas: true },
@@ -697,6 +722,7 @@ export const ALL_WEAPON_CATALOG: WeaponModelEntry[] = [
   ...WEAPON_PACK_WEAPONS,
   ...FIREARM_WEAPONS,
   ...CRAFTPIX_WEAPONS,
+  ...CRAFTPIX_LOWPOLY_WEAPONS,
   ...OFFHAND_MODELS,
 ];
 
@@ -778,6 +804,10 @@ export interface PropModelEntry {
 
 export const ARROW_MODELS: PropModelEntry[] = [
   { id: "wp_med_arrow", name: "Medieval Arrow", path: "/models/weapon_pack/Medieval_Arrow.glb", defaultLength: 1.0, axis: "y" },
+  // Craftpix Low-Poly arrows
+  { id: "clp_bow_arrow",       name: "LP Bow Arrow",       path: "/models/craftpix_lowpoly/Bow_Arrow.glb",           defaultLength: 0.8, axis: "y" },
+  { id: "clp_crossbow_arrow",  name: "LP Crossbow Bolt",   path: "/models/craftpix_lowpoly/Crossbow_Arrow.glb",      defaultLength: 0.5, axis: "y" },
+  { id: "clp_ballista_arrow",  name: "LP Ballista Bolt",   path: "/models/craftpix_lowpoly/Big_Crossbow_Arrow.glb",  defaultLength: 1.5, axis: "y" },
 ];
 
 export const BACK_ACCESSORIES: PropModelEntry[] = [

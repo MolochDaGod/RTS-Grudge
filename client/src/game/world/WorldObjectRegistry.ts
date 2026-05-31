@@ -141,6 +141,22 @@ export const WORLD_OBJECTS: WorldObjectEntry[] = [
   e("elf_smithy",   "town_medieval", "building_elf", "/models/environment/smithy.glb",            -25, 25, 1.2, 10, [6,10,6],  "⚒️", "smithy"),
   e("elf_bakery",   "market_plaza",  "building_elf", "/models/environment/bakery.glb",             40, 15, 2.5, 10, [6,10,6],  "🥐", "vendor"),
   e("elf_herbalist","market_plaza",  "building_elf", "/models/environment/herbalist_shop.glb",    -55,-30, 0.8, 10, [6,10,6],  "🌿", "vendor"),
+
+  // ── ORC SETTLEMENT BUILDINGS (craftpix low-poly) ────────────────────────
+
+  e("os_tavern",     "town_medieval", "building_rts", "/models/orc_settlement/Tavern.glb",          25, 40, 1.0, 10, [7,10,7],  "🍺", "tavern"),
+  e("os_smithy",     "town_medieval", "building_rts", "/models/orc_settlement/Smithy.glb",         -20, 45, 2.0,  9, [6, 9,6],  "⚒️", "smithy"),
+  e("os_alchemist",  "market_plaza",  "building_rts", "/models/orc_settlement/Alchemist_House.glb", 55, 45, 0.5, 10, [6,10,6],  "⚗️", "vendor"),
+  e("os_bakery",     "market_plaza",  "building_rts", "/models/orc_settlement/Bakery.glb",         -45, 40, 1.8,  9, [6, 9,6],  "🥖", "vendor"),
+  e("os_brewery",    "market_plaza",  "building_rts", "/models/orc_settlement/Brewery.glb",         60, 30, 2.3, 10, [6,10,6],  "🍺", "vendor"),
+  e("os_herbalist",  "market_plaza",  "building_rts", "/models/orc_settlement/Herbalist_Hut.glb",  -60, 35, 0.3,  8, [5, 8,5],  "🌿", "vendor"),
+  e("os_tanner",     "market_plaza",  "building_rts", "/models/orc_settlement/Tanner_Hut.glb",     -50, 55, 1.5,  8, [5, 8,5],  "🐄", "vendor"),
+  e("os_prison",     "fortress_nw",   "building_rts", "/models/orc_settlement/Prison.glb",         -55,-55, 0.8, 10, [7,10,7],  "⛓️", "none"),
+  e("os_dwelling",   "town_medieval", "building_rts", "/models/orc_settlement/Dwelling_Hut.glb",    35, 45, 0.0,  6, [4, 6,4],  "🏠", "none"),
+  e("os_tent_sm",    "wilderness_general","building_rts", "/models/orc_settlement/Tent_Small.glb",  80, 50, 0.5,  5, [4, 5,4],  "⛺", "none"),
+  e("os_tent_lg",    "wilderness_general","building_rts", "/models/orc_settlement/Tent_Large.glb",  85, 45, 1.0,  6, [5, 6,5],  "⛺", "vendor"),
+  e("os_fountain",   "town_medieval", "building_rts", "/models/orc_settlement/Fountain_Large.glb",   5, 45, 0.0,  4, null,      "⛲", "none"),
+  e("os_statue",     "town_medieval", "building_rts", "/models/orc_settlement/Statue_Orc.glb",      10, 50, 0.0,  5, null,      "🗿", "none"),
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -196,6 +196,8 @@ const WEAPON_MODELS: Record<ExtendedWeaponType, ModelSource[]> = {
     { variant: "D", path: "/models/weapons_quaternius/Sword.glb", format: "glb", pack: "quaternius" },
     { variant: "E", path: "/models/weapons_quaternius/Sword_Golden.glb", format: "glb", pack: "quaternius" },
     { variant: "F", path: "/models/kaykit_weapons/sword_A.glb", format: "glb", pack: "kaykit" },
+    { variant: "G", path: "/models/craftpix_lowpoly/Sword_1.glb", format: "glb", pack: "craftpix_lp" },
+    { variant: "H", path: "/models/craftpix_lowpoly/Sword_2.glb", format: "glb", pack: "craftpix_lp" },
   ],
   greatsword: [
     { variant: "A", path: "/models/weapon_pack/Great_Sword.glb", format: "glb", pack: "weapon_pack", offHandGrip: [0, -0.22, 0] },
@@ -204,6 +206,7 @@ const WEAPON_MODELS: Record<ExtendedWeaponType, ModelSource[]> = {
     { variant: "D", path: "/models/kaykit_weapons/sword_D.glb", format: "glb", pack: "kaykit", offHandGrip: [0, -0.20, 0] },
     { variant: "E", path: "/models/kaykit_weapons/sword_E.glb", format: "glb", pack: "kaykit", offHandGrip: [0, -0.20, 0] },
     { variant: "F", path: "/models/weapon_pack/Medieval_Sword.glb", format: "glb", pack: "medieval" },
+    { variant: "G", path: "/models/craftpix_lowpoly/Sword_3.glb", format: "glb", pack: "craftpix_lp", offHandGrip: [0, -0.20, 0] },
   ],
   axe: [
     { variant: "A", path: "/models/weapon_pack/Bearded_Axe.glb", format: "glb", pack: "weapon_pack" },
@@ -212,6 +215,7 @@ const WEAPON_MODELS: Record<ExtendedWeaponType, ModelSource[]> = {
     { variant: "D", path: "/models/weapons_quaternius/Axe_Double.glb", format: "glb", pack: "quaternius" },
     { variant: "E", path: "/models/weapons_quaternius/Axe_Small.glb", format: "glb", pack: "quaternius" },
     { variant: "F", path: "/models/kaykit_weapons/axe_B.glb", format: "glb", pack: "kaykit" },
+    { variant: "G", path: "/models/craftpix_lowpoly/Axe.glb", format: "glb", pack: "craftpix_lp" },
   ],
   hammer: [
     { variant: "A", path: "/models/weapon_pack/Anvil_Hammer.glb", format: "glb", pack: "weapon_pack", offHandGrip: [0, -0.18, 0] },
@@ -220,6 +224,7 @@ const WEAPON_MODELS: Record<ExtendedWeaponType, ModelSource[]> = {
     { variant: "D", path: "/models/weapons_quaternius/Hammer_Small.glb", format: "glb", pack: "quaternius" },
     { variant: "E", path: "/models/weapons_quaternius/Hammer_Double.glb", format: "glb", pack: "quaternius", offHandGrip: [0, -0.15, 0] },
     { variant: "F", path: "/models/kaykit_weapons/hammer_A.glb", format: "glb", pack: "kaykit", offHandGrip: [0, -0.15, 0] },
+    { variant: "G", path: "/models/craftpix_lowpoly/Baton.glb", format: "glb", pack: "craftpix_lp" },
   ],
   mace: [
     { variant: "A", path: "/models/weapon_pack/Medieval_Mace.glb", format: "glb", pack: "medieval", offHandGrip: [0, -0.18, 0] },
@@ -228,6 +233,7 @@ const WEAPON_MODELS: Record<ExtendedWeaponType, ModelSource[]> = {
     { variant: "D", path: "/models/weapons/hammers/hammer_7.glb", format: "glb", pack: "craftpix" },
     { variant: "E", path: "/models/weapons/hammers/hammer_12.glb", format: "glb", pack: "craftpix" },
     { variant: "F", path: "/models/weapons/hammers/hammer_19.glb", format: "glb", pack: "craftpix" },
+    { variant: "G", path: "/models/craftpix_lowpoly/Mace.glb", format: "glb", pack: "craftpix_lp" },
   ],
   dagger: [
     { variant: "A", path: "/models/weapon_pack/Dagger.glb", format: "glb", pack: "weapon_pack" },
@@ -244,6 +250,8 @@ const WEAPON_MODELS: Record<ExtendedWeaponType, ModelSource[]> = {
     { variant: "D", path: "/models/weapons_quaternius/Scythe.glb", format: "glb", pack: "quaternius", offHandGrip: [0, -0.45, 0] },
     { variant: "E", path: "/models/kaykit_weapons/spear_A.glb", format: "glb", pack: "kaykit", offHandGrip: [0, -0.45, 0] },
     { variant: "F", path: "/models/weapon_pack/Quarterstaff.glb", format: "glb", pack: "medieval", offHandGrip: [0, -0.45, 0] },
+    { variant: "G", path: "/models/craftpix_lowpoly/Halberd.glb", format: "glb", pack: "craftpix_lp", offHandGrip: [0, -0.45, 0] },
+    { variant: "H", path: "/models/craftpix_lowpoly/Poleaxe.glb", format: "glb", pack: "craftpix_lp", offHandGrip: [0, -0.45, 0] },
   ],
   spear: [
     { variant: "A", path: "/models/weapon_pack/Medieval_Spear.glb", format: "glb", pack: "medieval", offHandGrip: [0, -0.45, 0] },
@@ -252,6 +260,7 @@ const WEAPON_MODELS: Record<ExtendedWeaponType, ModelSource[]> = {
     { variant: "D", path: "/models/weapons/poleaxes/poleaxe_8.glb", format: "glb", pack: "craftpix", offHandGrip: [0, -0.45, 0] },
     { variant: "E", path: "/models/weapons/poleaxes/poleaxe_15.glb", format: "glb", pack: "craftpix", offHandGrip: [0, -0.45, 0] },
     { variant: "F", path: "/models/weapons/poleaxes/poleaxe_22.glb", format: "glb", pack: "craftpix", offHandGrip: [0, -0.45, 0] },
+    { variant: "G", path: "/models/craftpix_lowpoly/Spear.glb", format: "glb", pack: "craftpix_lp", offHandGrip: [0, -0.45, 0] },
   ],
   shield: [
     { variant: "A", path: "/models/kaykit_weapons/shield_A.glb", format: "glb", pack: "kaykit" },
@@ -260,6 +269,8 @@ const WEAPON_MODELS: Record<ExtendedWeaponType, ModelSource[]> = {
     { variant: "D", path: "/models/weapons_quaternius/Shield_Round.glb", format: "glb", pack: "quaternius" },
     { variant: "E", path: "/models/weapons_quaternius/Shield_Heater.glb", format: "glb", pack: "quaternius" },
     { variant: "F", path: "/models/weapon_pack/Medieval_Shield_1.glb", format: "glb", pack: "medieval" },
+    { variant: "G", path: "/models/craftpix_lowpoly/Shield_1.glb", format: "glb", pack: "craftpix_lp" },
+    { variant: "H", path: "/models/craftpix_lowpoly/Shield_2.glb", format: "glb", pack: "craftpix_lp" },
   ],
   bow: [
     { variant: "A", path: "/models/kaykit_weapons/bow_A_withString.glb", format: "glb", pack: "kaykit", offHandGrip: [0, 0, -0.30] },
@@ -268,6 +279,7 @@ const WEAPON_MODELS: Record<ExtendedWeaponType, ModelSource[]> = {
     { variant: "D", path: "/models/weapons_quaternius/Bow_Wooden.glb", format: "glb", pack: "quaternius", offHandGrip: [0, 0, -0.30] },
     { variant: "E", path: "/models/weapons_quaternius/Bow_Evil.glb", format: "glb", pack: "quaternius", offHandGrip: [0, 0, -0.30] },
     { variant: "F", path: "/models/weapon_pack/Medieval_Bow.glb", format: "glb", pack: "medieval", offHandGrip: [0, 0, -0.30] },
+    { variant: "G", path: "/models/craftpix_lowpoly/Bow.glb", format: "glb", pack: "craftpix_lp", offHandGrip: [0, 0, -0.30] },
   ],
   crossbow: [
     { variant: "A", path: "/models/weapon_pack/Crossbow.glb", format: "glb", pack: "weapon_pack", offHandGrip: [0, 0, 0.18] },
@@ -276,6 +288,7 @@ const WEAPON_MODELS: Record<ExtendedWeaponType, ModelSource[]> = {
     { variant: "D", path: "/models/weapons/crossbows/crossbow_3.glb", format: "glb", pack: "craftpix" },
     { variant: "E", path: "/models/weapons/crossbows/crossbow_4.glb", format: "glb", pack: "craftpix" },
     { variant: "F", path: "/models/weapons/crossbows/crossbow_5.glb", format: "glb", pack: "craftpix" },
+    { variant: "G", path: "/models/craftpix_lowpoly/Crossbow.glb", format: "glb", pack: "craftpix_lp" },
   ],
   gun: [
     // All paths resolve to actual public GLBs under client/public/models/weapons/

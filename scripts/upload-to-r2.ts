@@ -70,7 +70,7 @@ const ASSET_EXTENSIONS = new Set([
 ]);
 
 // Directories to scan (relative to PUBLIC_DIR)
-const SCAN_DIRS = ["models", "textures", "sounds", "fonts"];
+const SCAN_DIRS = ["models", "textures", "sounds", "fonts", "images"];
 
 function matchesCategoryFilter(entry: ManifestEntry, filter: string): boolean {
     const needle = filter.toLowerCase();

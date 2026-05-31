@@ -51,7 +51,7 @@ export interface BuildingPiece {
   path: string;
   category: BuildingCategory;
   /** Source pack for attribution / filtering */
-  pack: "kenney_fantasy" | "kaykit_dungeon";
+  pack: "kenney_fantasy" | "kaykit_dungeon" | "orc_settlement" | "orc_props";
   /** Grid snap size in meters (1 = 1m grid) */
   snapSize: number;
   /** Rotation snap in degrees (90 = quarter turns) */
@@ -270,11 +270,93 @@ const KAYKIT_PIECES: BuildingPiece[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// Orc Settlement (Craftpix Low-Poly) — 22 buildings + props + bridge
+// Converted from FBX → GLB via scripts/convert-orc-settlement.cjs
+// ---------------------------------------------------------------------------
+const OS = "/models/orc_settlement";
+
+const ORC_SETTLEMENT_PIECES: BuildingPiece[] = [
+  // ── Full Buildings (RTS-ready structures) ──
+  { id: "os_alchemist",      name: "Alchemist House",    path: `${OS}/Alchemist_House.glb`,  category: "npc_furniture", pack: "orc_settlement", snapSize: 2, rotationSnap: 90, tags: ["building", "crafting", "alchemy"] },
+  { id: "os_bakery",          name: "Bakery",             path: `${OS}/Bakery.glb`,           category: "npc_furniture", pack: "orc_settlement", snapSize: 2, rotationSnap: 90, tags: ["building", "food", "production"] },
+  { id: "os_brewery",         name: "Brewery",            path: `${OS}/Brewery.glb`,          category: "npc_furniture", pack: "orc_settlement", snapSize: 2, rotationSnap: 90, tags: ["building", "food", "production"] },
+  { id: "os_herbalist",       name: "Herbalist Hut",      path: `${OS}/Herbalist_Hut.glb`,    category: "npc_furniture", pack: "orc_settlement", snapSize: 2, rotationSnap: 90, tags: ["building", "crafting", "herbs"] },
+  { id: "os_dwelling",        name: "Dwelling Hut",       path: `${OS}/Dwelling_Hut.glb`,     category: "npc_furniture", pack: "orc_settlement", snapSize: 2, rotationSnap: 90, tags: ["building", "housing"] },
+  { id: "os_prison",          name: "Prison",             path: `${OS}/Prison.glb`,           category: "fortification", pack: "orc_settlement", snapSize: 2, rotationSnap: 90, tags: ["building", "military"] },
+  { id: "os_smithy",          name: "Smithy",             path: `${OS}/Smithy.glb`,           category: "npc_furniture", pack: "orc_settlement", snapSize: 2, rotationSnap: 90, tags: ["building", "crafting", "forge"] },
+  { id: "os_tanner",          name: "Tanner Hut",         path: `${OS}/Tanner_Hut.glb`,       category: "npc_furniture", pack: "orc_settlement", snapSize: 2, rotationSnap: 90, tags: ["building", "crafting", "leather", "skinning"] },
+  { id: "os_tavern",          name: "Tavern",             path: `${OS}/Tavern.glb`,           category: "npc_furniture", pack: "orc_settlement", snapSize: 2, rotationSnap: 90, tags: ["building", "social", "inn"] },
+
+  // ── Tents ──
+  { id: "os_tent_small",      name: "Tent (Small)",       path: `${OS}/Tent_Small.glb`,       category: "npc_furniture", pack: "orc_settlement", snapSize: 2, rotationSnap: 90, tags: ["tent", "shelter", "camp"] },
+  { id: "os_tent_large",      name: "Tent (Large)",       path: `${OS}/Tent_Large.glb`,       category: "npc_furniture", pack: "orc_settlement", snapSize: 2, rotationSnap: 90, tags: ["tent", "shelter", "camp", "market"] },
+
+  // ── Bridge (modular: end pieces + extendable middle) ──
+  { id: "os_bridge_full",     name: "Bridge (Full)",      path: `${OS}/Bridge_Full.glb`,      category: "dock",          pack: "orc_settlement", snapSize: 2, rotationSnap: 90, tags: ["bridge", "crossing"] },
+  { id: "os_bridge_end",      name: "Bridge End",         path: `${OS}/Bridge_End.glb`,       category: "dock",          pack: "orc_settlement", snapSize: 2, rotationSnap: 90, tags: ["bridge", "modular"] },
+  { id: "os_bridge_middle",   name: "Bridge Middle",      path: `${OS}/Bridge_Middle.glb`,    category: "dock",          pack: "orc_settlement", snapSize: 2, rotationSnap: 90, tags: ["bridge", "modular", "extendable"] },
+
+  // ── Market / Interaction ──
+  { id: "os_counter",         name: "Market Counter",     path: `${OS}/Market_Counter.glb`,   category: "decoration",    pack: "orc_settlement", snapSize: 1, rotationSnap: 90, tags: ["market", "vendor", "counter"] },
+
+  // ── Decoration / Props ──
+  { id: "os_fountain_sm",     name: "Fountain (Small)",   path: `${OS}/Fountain_Small.glb`,   category: "decoration",    pack: "orc_settlement", snapSize: 1, rotationSnap: 90, tags: ["fountain", "water", "decoration"] },
+  { id: "os_fountain_lg",     name: "Fountain (Large)",   path: `${OS}/Fountain_Large.glb`,   category: "decoration",    pack: "orc_settlement", snapSize: 2, rotationSnap: 90, tags: ["fountain", "water", "decoration", "landmark"] },
+  { id: "os_statue_warrior",  name: "Warrior Statue",     path: `${OS}/Statue_Warrior.glb`,   category: "decoration",    pack: "orc_settlement", snapSize: 1, rotationSnap: 90, tags: ["statue", "decoration", "landmark"] },
+  { id: "os_statue_orc",      name: "Orc Statue",         path: `${OS}/Statue_Orc.glb`,       category: "decoration",    pack: "orc_settlement", snapSize: 1, rotationSnap: 90, tags: ["statue", "decoration", "faction"] },
+  { id: "os_lamp_a",          name: "Lamp Post A",        path: `${OS}/Lamp_Post_A.glb`,      category: "decoration",    pack: "orc_settlement", snapSize: 1, rotationSnap: 90, tags: ["lamp", "light", "street"] },
+  { id: "os_lamp_b",          name: "Lamp Post B",        path: `${OS}/Lamp_Post_B.glb`,      category: "decoration",    pack: "orc_settlement", snapSize: 1, rotationSnap: 90, tags: ["lamp", "light", "street"] },
+  { id: "os_sign",            name: "Sign Post",          path: `${OS}/Sign_Post.glb`,        category: "decoration",    pack: "orc_settlement", snapSize: 1, rotationSnap: 45, tags: ["sign", "direction", "wayfinding"] },
+];
+
+// ---------------------------------------------------------------------------
+// Orc Props (Craftpix Low-Poly) — 20 interactable furniture & buildables
+// Converted from FBX → GLB via scripts/convert-all-craftpix.cjs --pack=orc_props
+// ---------------------------------------------------------------------------
+const OP = "/models/orc_props";
+
+const ORC_PROPS_PIECES: BuildingPiece[] = [
+  // ── Crafting Stations (buildable, interactable) ──
+  { id: "op_oven",         name: "Bakery Oven",       path: `${OP}/Bakery_Oven.glb`,    category: "npc_furniture", pack: "orc_props", snapSize: 2, rotationSnap: 90, tags: ["crafting", "cooking", "buildable", "oven"] },
+  { id: "op_waterwheel",   name: "Waterwheel",        path: `${OP}/Waterwheel.glb`,     category: "npc_furniture", pack: "orc_props", snapSize: 2, rotationSnap: 90, tags: ["crafting", "production", "buildable", "mill"] },
+  { id: "op_cauldron",     name: "Cauldron",          path: `${OP}/Cauldron.glb`,       category: "npc_furniture", pack: "orc_props", snapSize: 1, rotationSnap: 90, tags: ["crafting", "alchemy", "cooking", "buildable"] },
+  { id: "op_cooking_pot",  name: "Cooking Pot",       path: `${OP}/Cooking_Pot.glb`,    category: "npc_furniture", pack: "orc_props", snapSize: 1, rotationSnap: 90, tags: ["crafting", "cooking", "buildable"] },
+
+  // ── Furniture (buildable) ──
+  { id: "op_throne",       name: "Warchief Throne",   path: `${OP}/Warchief_Throne.glb`,category: "npc_furniture", pack: "orc_props", snapSize: 1, rotationSnap: 90, tags: ["furniture", "throne", "buildable", "faction"] },
+  { id: "op_table",        name: "Table",             path: `${OP}/Table.glb`,          category: "npc_furniture", pack: "orc_props", snapSize: 1, rotationSnap: 90, tags: ["furniture", "buildable"] },
+  { id: "op_chair",        name: "Chair",             path: `${OP}/Chair.glb`,          category: "npc_furniture", pack: "orc_props", snapSize: 0.5, rotationSnap: 45, tags: ["furniture", "buildable"] },
+
+  // ── Military / Faction ──
+  { id: "op_war_banner",   name: "War Banner",        path: `${OP}/War_Banner.glb`,     category: "fortification", pack: "orc_props", snapSize: 1, rotationSnap: 90, tags: ["faction", "flag", "military", "buildable"] },
+  { id: "op_alarm_horn",   name: "Alarm Horn",        path: `${OP}/Alarm_Horn.glb`,     category: "fortification", pack: "orc_props", snapSize: 1, rotationSnap: 90, tags: ["military", "alarm", "interactable", "buildable"] },
+  { id: "op_war_drum_a",   name: "War Drum A",        path: `${OP}/War_Drum_A.glb`,     category: "decoration",    pack: "orc_props", snapSize: 1, rotationSnap: 90, tags: ["military", "drum", "music", "buildable"] },
+  { id: "op_war_drum_b",   name: "War Drum B",        path: `${OP}/War_Drum_B.glb`,     category: "decoration",    pack: "orc_props", snapSize: 1, rotationSnap: 90, tags: ["military", "drum", "music", "buildable"] },
+
+  // ── Lighting ──
+  { id: "op_torch_a",      name: "Torch A",           path: `${OP}/Torch_A.glb`,        category: "decoration",    pack: "orc_props", snapSize: 0.5, rotationSnap: 45, tags: ["light", "torch", "buildable"] },
+  { id: "op_torch_b",      name: "Torch B",           path: `${OP}/Torch_B.glb`,        category: "decoration",    pack: "orc_props", snapSize: 0.5, rotationSnap: 45, tags: ["light", "torch", "buildable"] },
+
+  // ── Storage / Containers ──
+  { id: "op_barrel_a",     name: "Barrel A",          path: `${OP}/Barrel_A.glb`,       category: "decoration",    pack: "orc_props", snapSize: 0.5, rotationSnap: 45, tags: ["storage", "barrel", "buildable"] },
+  { id: "op_barrel_b",     name: "Barrel B",          path: `${OP}/Barrel_B.glb`,       category: "decoration",    pack: "orc_props", snapSize: 0.5, rotationSnap: 45, tags: ["storage", "barrel", "buildable"] },
+  { id: "op_box",          name: "Storage Box",       path: `${OP}/Storage_Box.glb`,    category: "decoration",    pack: "orc_props", snapSize: 0.5, rotationSnap: 90, tags: ["storage", "crate", "buildable"] },
+
+  // ── Small Props ──
+  { id: "op_clay_pot",     name: "Clay Pot",          path: `${OP}/Clay_Pot.glb`,       category: "decoration",    pack: "orc_props", snapSize: 0.5, rotationSnap: 45, tags: ["decoration", "pottery"] },
+  { id: "op_bottle",       name: "Bottle",            path: `${OP}/Bottle.glb`,         category: "decoration",    pack: "orc_props", snapSize: 0.5, rotationSnap: 45, tags: ["decoration", "potion"] },
+  { id: "op_cup",          name: "Drinking Cup",      path: `${OP}/Drinking_Cup.glb`,   category: "decoration",    pack: "orc_props", snapSize: 0.5, rotationSnap: 45, tags: ["decoration", "tavern"] },
+  { id: "op_sign",         name: "Sign Post",         path: `${OP}/Sign_Post.glb`,      category: "decoration",    pack: "orc_props", snapSize: 1, rotationSnap: 45, tags: ["sign", "direction"] },
+];
+
+// ---------------------------------------------------------------------------
 // Combined palette
 // ---------------------------------------------------------------------------
 export const ALL_BUILDING_PIECES: BuildingPiece[] = [
   ...KENNEY_PIECES,
   ...KAYKIT_PIECES,
+  ...ORC_SETTLEMENT_PIECES,
+  ...ORC_PROPS_PIECES,
 ];
 
 // ---------------------------------------------------------------------------
@@ -321,7 +403,7 @@ export function getDestroyedVariant(id: string): BuildingPiece | undefined {
 }
 
 /** Get pieces from a specific pack */
-export function getPiecesByPack(pack: "kenney_fantasy" | "kaykit_dungeon"): BuildingPiece[] {
+export function getPiecesByPack(pack: "kenney_fantasy" | "kaykit_dungeon" | "orc_settlement" | "orc_props"): BuildingPiece[] {
   return ALL_BUILDING_PIECES.filter(p => p.pack === pack);
 }
 
