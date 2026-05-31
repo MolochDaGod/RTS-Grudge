@@ -156,15 +156,51 @@ Examples:
 /models/weapons/offhand/DarkShield.glb
 ```
 
+### Character Models (Grudge6 Races)
+
+| Race | Prefix | FBX Path | Faction |
+|---|---|---|---|
+| Human | WK_ | `/models/grudge6/races/WK_Characters.fbx` | Crusade |
+| Barbarian | BRB_ | `/models/grudge6/races/BRB_Characters.fbx` | Crusade |
+| Elf | ELF_ | `/models/grudge6/races/ELF_Characters.fbx` | Fabled |
+| Dwarf | DWF_ | `/models/grudge6/races/DWF_Characters.fbx` | Fabled |
+| Orc | ORC_ | `/models/grudge6/races/ORC_Characters.fbx` | Legion |
+| Undead | UD_ | `/models/grudge6/races/UD_Characters.fbx` | Legion |
+| Worge | WK_ | `/models/grudge6/races/WK_Characters.fbx` | Wild |
+
+**Important**: Race models are loaded as FBX at runtime (not GLB). The FBX→GLB conversion
+strips the embedded material colors, causing yellow untextured models. `AssetLoader.ts`
+automatically detects `.fbx` extension and uses `FBXLoader` instead of `GLTFLoader`.
+
+Each model contains prefix-based child meshes (`{PREFIX}Units_Body_A` through `_E`, etc.)
+that are toggled by `EquipmentMeshManager` for equipment visualization.
+
 ### R2 Asset CDN
 
 All models served at: `https://assets.grudge-studio.com/<r2Key>`
 
-Total: ~941 assets in manifest (`dist/asset-manifest.json`)
+Total: ~960+ assets in manifest (`dist/asset-manifest.json`)
 
 Conversion scripts: `scripts/convert-all-craftpix.cjs` (unified), `scripts/convert-craftpix-lowpoly.cjs`, `scripts/convert-orc-settlement.cjs`
 
 Upload: `npx tsx scripts/upload-to-r2.ts` (S3-compatible, ETag-based dedup, multipart for >50MB)
+
+---
+
+## URL Routing
+
+| URL | Phase | Button Location |
+|---|---|---|
+| `/` | Menu (landing) | — |
+| `/home` | Game Hub | "GAME HUB" on MenuScreen |
+| `/character` | Hero Forge | "PLAY" on MenuScreen |
+| `/play` | 3D Open World | "PLAY AS HERO" in Hero Forge |
+| `/forge` | Scene Editor | "FORGE" on MenuScreen |
+| `/controller` | Animation Lab | "CONTROLLER" on MenuScreen |
+| `/combat` or `/combat2d` | 2D Combat | "2D COMBAT" on HomePage |
+| `/island` or `/island-v2` | Shipwreck Island | "ISLAND" on HomePage |
+| `/wallet` | Solana Wallet | "WALLET" on HomePage |
+| `/admin` | Admin Panel | "ADMIN" on HomePage |
 
 ---
 
