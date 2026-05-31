@@ -1,8 +1,11 @@
 /**
- * CDN root for the Grudge 6 faction character GLBs on the Object Store.
- * These are the REAL production models — local /models/characters/ only
- * has the werewolf GLB on disk; everything else must redirect here.
+ * Local FBX paths for the 6 Grudge6 race character models. Loaded at runtime
+ * via FBXLoader which preserves the embedded material colors that the GLB
+ * conversion stripped (the yellow model bug). CDN GLB paths are kept as
+ * fallback comments only.
  */
+const G6 = "/models/grudge6/races";
+/** Legacy CDN root — kept for reference, NOT used for loading. */
 const GRUDGE6_CDN = "https://assets.grudge-studio.com/models/grudge6";
 
 /**
@@ -16,41 +19,40 @@ const GRUDGE6_CDN = "https://assets.grudge-studio.com/models/grudge6";
  * They are: WK_Characters.glb, BRB_Characters.glb, etc.
  */
 const LOCAL_TO_CDN: Record<string, string> = {
-  // ── Human / Western Kingdoms ──
-  "human_battle_mage-male.glb":   `${GRUDGE6_CDN}/wk/WK_Characters.glb`,
-  "human_battle_mage-female.glb": `${GRUDGE6_CDN}/wk/WK_Characters.glb`,
-  "swordman.glb":                 `${GRUDGE6_CDN}/wk/WK_Characters.glb`,
-  // ── Assassin / Rogue → use WK human model ──
-  "assassin-male.glb":            `${GRUDGE6_CDN}/wk/WK_Characters.glb`,
-  "assassin-female.glb":          `${GRUDGE6_CDN}/wk/WK_Characters.glb`,
+  // ── Human / Western Kingdoms → local FBX with correct textures ──
+  "human_battle_mage-male.glb":   `${G6}/WK_Characters.fbx`,
+  "human_battle_mage-female.glb": `${G6}/WK_Characters.fbx`,
+  "swordman.glb":                 `${G6}/WK_Characters.fbx`,
+  "assassin-male.glb":            `${G6}/WK_Characters.fbx`,
+  "assassin-female.glb":          `${G6}/WK_Characters.fbx`,
   // ── Barbarian ──
-  "night_stalker-male.glb":       `${GRUDGE6_CDN}/brb/BRB_Characters.glb`,
-  "night_stalker-female.glb":     `${GRUDGE6_CDN}/brb/BRB_Characters.glb`,
+  "night_stalker-male.glb":       `${G6}/BRB_Characters.fbx`,
+  "night_stalker-female.glb":     `${G6}/BRB_Characters.fbx`,
   // ── Elf ──
-  "elf-male.glb":                 `${GRUDGE6_CDN}/elf/ELF_Characters.glb`,
-  "elf-female.glb":               `${GRUDGE6_CDN}/elf/ELF_Characters.glb`,
+  "elf-male.glb":                 `${G6}/ELF_Characters.fbx`,
+  "elf-female.glb":               `${G6}/ELF_Characters.fbx`,
   // ── Dwarf ──
-  "dwarf-male.glb":               `${GRUDGE6_CDN}/dwf/DWF_Characters.glb`,
-  "dwarf-female.glb":             `${GRUDGE6_CDN}/dwf/DWF_Characters.glb`,
+  "dwarf-male.glb":               `${G6}/DWF_Characters.fbx`,
+  "dwarf-female.glb":             `${G6}/DWF_Characters.fbx`,
   // ── Orc ──
-  "orc_scout-male.glb":           `${GRUDGE6_CDN}/orc/ORC_Characters.glb`,
-  "orc_scout-female.glb":         `${GRUDGE6_CDN}/orc/ORC_Characters.glb`,
+  "orc_scout-male.glb":           `${G6}/ORC_Characters.fbx`,
+  "orc_scout-female.glb":         `${G6}/ORC_Characters.fbx`,
   // ── Undead ──
-  "undead_grave_knight-male.glb":  `${GRUDGE6_CDN}/ud/UD_Characters.glb`,
-  "undead_grave_knight-female.glb":`${GRUDGE6_CDN}/ud/UD_Characters.glb`,
-  "vampire_aristocrat-male.glb":   `${GRUDGE6_CDN}/ud/UD_Characters.glb`,
-  "vampire_aristocrat-female.glb": `${GRUDGE6_CDN}/ud/UD_Characters.glb`,
-  // ── Exotic races → closest CDN equivalent ──
-  "goblin_backstabber-male.glb":  `${GRUDGE6_CDN}/orc/ORC_Characters.glb`,
-  "goblin_backstabber-female.glb":`${GRUDGE6_CDN}/orc/ORC_Characters.glb`,
-  "kobold_trap_setter-male.glb":  `${GRUDGE6_CDN}/dwf/DWF_Characters.glb`,
-  "kobold_trap_setter-female.glb":`${GRUDGE6_CDN}/dwf/DWF_Characters.glb`,
-  "avian_wind-male.glb":          `${GRUDGE6_CDN}/elf/ELF_Characters.glb`,
-  "avian_wind-female.glb":        `${GRUDGE6_CDN}/elf/ELF_Characters.glb`,
-  "centaur_outrider-male.glb":    `${GRUDGE6_CDN}/brb/BRB_Characters.glb`,
-  "centaur_outrider-female.glb":  `${GRUDGE6_CDN}/brb/BRB_Characters.glb`,
-  "lizardfolk-male.glb":          `${GRUDGE6_CDN}/orc/ORC_Characters.glb`,
-  "werewolf.glb":                 `${GRUDGE6_CDN}/brb/BRB_Characters.glb`,
+  "undead_grave_knight-male.glb":  `${G6}/UD_Characters.fbx`,
+  "undead_grave_knight-female.glb":`${G6}/UD_Characters.fbx`,
+  "vampire_aristocrat-male.glb":   `${G6}/UD_Characters.fbx`,
+  "vampire_aristocrat-female.glb": `${G6}/UD_Characters.fbx`,
+  // ── Exotic races → closest race FBX ──
+  "goblin_backstabber-male.glb":  `${G6}/ORC_Characters.fbx`,
+  "goblin_backstabber-female.glb":`${G6}/ORC_Characters.fbx`,
+  "kobold_trap_setter-male.glb":  `${G6}/DWF_Characters.fbx`,
+  "kobold_trap_setter-female.glb":`${G6}/DWF_Characters.fbx`,
+  "avian_wind-male.glb":          `${G6}/ELF_Characters.fbx`,
+  "avian_wind-female.glb":        `${G6}/ELF_Characters.fbx`,
+  "centaur_outrider-male.glb":    `${G6}/BRB_Characters.fbx`,
+  "centaur_outrider-female.glb":  `${G6}/BRB_Characters.fbx`,
+  "lizardfolk-male.glb":          `${G6}/ORC_Characters.fbx`,
+  "werewolf.glb":                 `${G6}/BRB_Characters.fbx`,
 };
 
 /** Legacy asset names (old packs) → CDN redirects. */
@@ -91,8 +93,8 @@ const CHARACTER_FALLBACKS: Record<string, string> = {
 
 const warnedPaths = new Set<string>();
 
-/** Default CDN humanoid — used when no specific mapping exists. */
-const GENERIC_HUMANOID = `${GRUDGE6_CDN}/wk/WK_Characters.glb`;
+/** Default humanoid — local FBX with correct materials. */
+const GENERIC_HUMANOID = `${G6}/WK_Characters.fbx`;
 /** Default local monster — uses an existing dinosaur model. */
 const GENERIC_MONSTER = "/models/monsters/dinosaurs/Velociraptor.glb";
 

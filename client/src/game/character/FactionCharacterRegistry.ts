@@ -18,10 +18,17 @@
 // ---------------------------------------------------------------------------
 // Grudge Object Storage CDN roots
 // ---------------------------------------------------------------------------
-/** Root for grudge6 race character GLBs and their animation packs. */
+/** Root for grudge6 race character models and their animation packs. */
 export const GRUDGE6_CDN = "https://molochdagod.github.io/ObjectStore/models/factioncharacters";
 /** Root for Bip001 animation pack GLBs shared across all 6 races. */
 export const GRUDGE6_ANIM_CDN = `${GRUDGE6_CDN}/animations`;
+/**
+ * Local FBX paths for the 6 race character models. These are loaded at runtime
+ * via FBXLoader (not GLTFLoader) which preserves the embedded material colors
+ * that the GLB conversion stripped. FBXLoader handles the Bip001 skeleton and
+ * prefix-based child mesh system correctly.
+ */
+const RACE_FBX = "/models/grudge6/races";
 
 import type { Faction, Race } from "../systems/ModelRegistry";
 
@@ -140,11 +147,10 @@ export const RACE_CONFIGS: Record<string, RaceConfig> = {
     prefix: "WK_",
     race: "human",
     faction: "crusade",
-    fbxModel: "/models/factioncharacters/WesternKingdoms/models/WK_Characters_customizable.FBX",
-    // CDN GLB path — uploaded via scripts/convert-grudge6-assets.mjs
+    fbxModel: `${RACE_FBX}/WK_Characters.fbx`,
     glbModels: {
-      male:   `${GRUDGE6_CDN}/wk/WK_Characters_customizable.glb`,
-      female: `${GRUDGE6_CDN}/wk/WK_Characters_customizable.glb`,
+      male:   `${RACE_FBX}/WK_Characters.fbx`,
+      female: `${RACE_FBX}/WK_Characters.fbx`,
     },
     unitySlots: {
       weapon: "R_hand_container",
@@ -162,10 +168,10 @@ export const RACE_CONFIGS: Record<string, RaceConfig> = {
     prefix: "BRB_",
     race: "barbarian",
     faction: "crusade",
-    fbxModel: "/models/factioncharacters/Barbarians/models/BRB_Characters_customizable.FBX",
+    fbxModel: `${RACE_FBX}/BRB_Characters.fbx`,
     glbModels: {
-      male:   `${GRUDGE6_CDN}/brb/BRB_Characters_customizable.glb`,
-      female: `${GRUDGE6_CDN}/brb/BRB_Characters_customizable.glb`,
+      male:   `${RACE_FBX}/BRB_Characters.fbx`,
+      female: `${RACE_FBX}/BRB_Characters.fbx`,
     },
     unitySlots: {
       weapon: "R_hand_container",
@@ -183,10 +189,10 @@ export const RACE_CONFIGS: Record<string, RaceConfig> = {
     prefix: "ELF_",
     race: "elf",
     faction: "fabled",
-    fbxModel: "/models/factioncharacters/Elves/models/ELF_Characters_customizable.FBX",
+    fbxModel: `${RACE_FBX}/ELF_Characters.fbx`,
     glbModels: {
-      male:   `${GRUDGE6_CDN}/elf/ELF_Characters_customizable.glb`,
-      female: `${GRUDGE6_CDN}/elf/ELF_Characters_customizable.glb`,
+      male:   `${RACE_FBX}/ELF_Characters.fbx`,
+      female: `${RACE_FBX}/ELF_Characters.fbx`,
     },
     unitySlots: {
       weapon: "R_hand_container",
@@ -204,10 +210,10 @@ export const RACE_CONFIGS: Record<string, RaceConfig> = {
     prefix: "DWF_",
     race: "dwarf",
     faction: "fabled",
-    fbxModel: "/models/factioncharacters/Dwarves/models/DWF_Characters_customizable.FBX",
+    fbxModel: `${RACE_FBX}/DWF_Characters.fbx`,
     glbModels: {
-      male:   `${GRUDGE6_CDN}/dwf/DWF_Characters_customizable.glb`,
-      female: `${GRUDGE6_CDN}/dwf/DWF_Characters_customizable.glb`,
+      male:   `${RACE_FBX}/DWF_Characters.fbx`,
+      female: `${RACE_FBX}/DWF_Characters.fbx`,
     },
     unitySlots: {
       weapon: "R_hand_container",
@@ -225,10 +231,10 @@ export const RACE_CONFIGS: Record<string, RaceConfig> = {
     prefix: "ORC_",
     race: "orc",
     faction: "legion",
-    fbxModel: "/models/factioncharacters/Orcs/models/ORC_Characters_Customizable.FBX",
+    fbxModel: `${RACE_FBX}/ORC_Characters.fbx`,
     glbModels: {
-      male:   `${GRUDGE6_CDN}/orc/ORC_Characters_Customizable.glb`,
-      female: `${GRUDGE6_CDN}/orc/ORC_Characters_Customizable.glb`,
+      male:   `${RACE_FBX}/ORC_Characters.fbx`,
+      female: `${RACE_FBX}/ORC_Characters.fbx`,
     },
     unitySlots: {
       weapon: "R_hand_container",
@@ -246,13 +252,13 @@ export const RACE_CONFIGS: Record<string, RaceConfig> = {
     prefix: "WK_", // shares the WK skeleton for animation compatibility
     race: "barbarian" as any,
     faction: "wild",
-    fbxModel: "/models/factioncharacters/WesternKingdoms/models/WK_Characters_customizable.FBX",
+    fbxModel: `${RACE_FBX}/WK_Characters.fbx`,
     // Default Worge silhouette is the human nature-mage: mage clothing,
     // intended to be equipped with the Verdant Wrath Staff (`staff_3`) so the
     // ranged kit is healing/HoT-focused. CLASS_ABILITY_1/3 swap to wolf/bear.
     glbModels: {
-      male:   `${GRUDGE6_CDN}/wk/WK_Characters_customizable.glb`,
-      female: `${GRUDGE6_CDN}/wk/WK_Characters_customizable.glb`,
+      male:   `${RACE_FBX}/WK_Characters.fbx`,
+      female: `${RACE_FBX}/WK_Characters.fbx`,
     },
     /** Bear-form model — swapped in when the Worge's CLASS_ABILITY_3 (X) fires. */
     bearFormGlb: "/models/characters/stylized_nightmarish_werewolf.glb",
@@ -280,10 +286,10 @@ export const RACE_CONFIGS: Record<string, RaceConfig> = {
     prefix: "UD_",
     race: "undead",
     faction: "legion",
-    fbxModel: "/models/factioncharacters/Undead/models/UD_Characters_customizable.FBX",
+    fbxModel: `${RACE_FBX}/UD_Characters.fbx`,
     glbModels: {
-      male:   `${GRUDGE6_CDN}/ud/UD_Characters_customizable.glb`,
-      female: `${GRUDGE6_CDN}/ud/UD_Characters_customizable.glb`,
+      male:   `${RACE_FBX}/UD_Characters.fbx`,
+      female: `${RACE_FBX}/UD_Characters.fbx`,
     },
     unitySlots: {
       weapon: "R_hand_container",
@@ -335,6 +341,11 @@ export function getRaceForModelPath(modelPath: string): RaceConfig | null {
   for (const config of Object.values(RACE_CONFIGS)) {
     if (modelPath === config.fbxModel) return config;
     if (modelPath === config.glbModels.male || modelPath === config.glbModels.female) return config;
+    // Also match R2 CDN URLs that contain the race prefix
+    const lower = modelPath.toLowerCase();
+    if (lower.includes(config.prefix.toLowerCase().replace("_", ""))) {
+      if (lower.includes("characters") && (lower.endsWith(".fbx") || lower.endsWith(".glb"))) return config;
+    }
   }
   return null;
 }

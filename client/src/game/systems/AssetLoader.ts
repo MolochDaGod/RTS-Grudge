@@ -1,11 +1,13 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { resolveCharacterModelPath } from "./CharacterModelResolver";
 import { resolveAssetPath } from "./AssetCDNResolver";
+import { sanitizeBoneName } from "./BoneAliases";
 
 export type AssetPriority = "critical" | "high" | "medium" | "low";
 
@@ -263,11 +265,75 @@ function postProcessGltf(gltf: GLTF): void {
   });
 }
 
+// ---------------------------------------------------------------------------
+// FBX loading — wraps FBXLoader result into a GLTF-compatible shape
+// ---------------------------------------------------------------------------
+let sharedFbxLoader: FBXLoader | null = null;
+
+function getSharedFbxLoader(): FBXLoader {
+  if (!sharedFbxLoader) sharedFbxLoader = new FBXLoader();
+  return sharedFbxLoader;
+}
+
+/** Detect whether a path is an FBX file (by extension). */
+function isFbxPath(path: string): boolean {
+  return /\.fbx(\?|$)/i.test(path);
+}
+
+/**
+ * Wrap an FBX-loaded Group into a GLTF-compatible object so the rest of the
+ * pipeline (useAsset, useCharacterModel, postProcessGltf) works unchanged.
+ *
+ * Sanitises bone names (strips colons from Mixamo/Bip001 conventions) and
+ * ensures shadow casting is enabled on all meshes.
+ */
+function wrapFbxAsGltf(fbxScene: THREE.Group, path: string): GLTF {
+  // Sanitise bone names (colons are illegal in GLTF but common in FBX)
+  fbxScene.traverse((child) => {
+    if (child.name) child.name = sanitizeBoneName(child.name);
+    if ((child as THREE.Mesh).isMesh || (child as THREE.SkinnedMesh).isSkinnedMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
+
+  const clips = fbxScene.animations ?? [];
+
+  return {
+    scene: fbxScene,
+    scenes: [fbxScene],
+    animations: clips,
+    cameras: [] as THREE.Camera[],
+    asset: { generator: "AssetLoader.FBXLoader", version: "2.0" },
+    parser: null,
+    userData: { isFbxSource: true, sourcePath: path },
+  } as unknown as GLTF;
+}
+
+function loadFbxOnce(path: string, onProgress?: (xhr: ProgressEvent) => void): Promise<GLTF> {
+  const loader = getSharedFbxLoader();
+  return new Promise<GLTF>((res, rej) => {
+    loader.load(
+      path,
+      (group) => res(wrapFbxAsGltf(group, path)),
+      onProgress,
+      (error) => {
+        const msg = error instanceof Error ? error.message : String(error);
+        rej(new Error(msg));
+      },
+    );
+  });
+}
+
 /**
  * Single low-level fetch attempt. Resolves with the GLTF on success, rejects
  * with a context-rich Error on failure — we don't retry inside this fn.
+ *
+ * Automatically selects FBXLoader for `.fbx` paths.
  */
 function loadOnce(path: string, onProgress?: (xhr: ProgressEvent) => void): Promise<GLTF> {
+  if (isFbxPath(path)) return loadFbxOnce(path, onProgress);
+
   const loader = getSharedLoader();
   return new Promise<GLTF>((res, rej) => {
     loader.load(

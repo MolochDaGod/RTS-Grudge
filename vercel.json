@@ -38,7 +38,7 @@
       "continue": true
     },
     {
-      "src": "/(.*)\\.(?:glb|gltf|fbx|png|jpg|webp|mp3|wav|ogg|wasm)$",
+      "src": "/(.*)\\.(?:glb|gltf|fbx|FBX|png|jpg|webp|mp3|wav|ogg|wasm)$",
       "headers": {
         "Cache-Control": "public, max-age=86400",
         "Access-Control-Allow-Origin": "*"

@@ -90,8 +90,9 @@ export interface CharacterConfig {
 export const DEFAULT_CHARACTER: CharacterConfig = {
   characterId: "human_warrior",
   // Default to the Grudge 6 Human (Western Kingdoms) race model —
-  // Crusade faction warrior with sword + shield.
-  modelPath: "https://assets.grudge-studio.com/models/grudge6/wk/WK_Characters.glb",
+  // Crusade faction warrior with sword + shield. Uses FBX for correct
+  // material colors (GLB conversion strips the embedded texture atlas).
+  modelPath: "/models/grudge6/races/WK_Characters.fbx",
   name: "Warlord",
   scale: 1.0,
   baseHeight: 1.8,
