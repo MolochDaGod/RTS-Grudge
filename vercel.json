@@ -13,7 +13,7 @@
       "dest": "https://id.grudge-studio.com/auth/$1"
     },
     {
-      "src": "/models/(.*)\\.(?:glb|gltf|fbx|bin)$",
+      "src": "/models/(.*\\.(?:glb|gltf|fbx|bin))$",
       "dest": "https://assets.grudge-studio.com/models/$1",
       "headers": {
         "Cache-Control": "public, max-age=86400",
