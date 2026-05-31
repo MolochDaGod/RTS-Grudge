@@ -108,7 +108,43 @@ Examples:
 | Weapon Pack (medieval) | 28 | `/models/weapons/` |
 | KayKit weapons | 22 | `/models/kaykit_weapons/` |
 | Quaternius weapons | 24 | `/models/weapons_quaternius/` |
+| Craftpix Low-Poly (T0 starter) | 13 | `/models/craftpix_lowpoly/` |
+| Firearm pack | 8 | `/models/threejs-games/weapons/` |
 | RPG Items | varies | `/models/rpg_items/` |
+
+### Siege & Defense (in `/public/models/`)
+
+| Pack | Count | Path |
+|---|---|---|
+| Craftpix Low-Poly siege | 7 | `/models/craftpix_lowpoly/` (Catapult, Ballista, Ram + rigs) |
+| Battle Towers (5 types × 4 levels) | 48 | `/models/battle_towers/` (static + rig + shell) |
+| Training Props | 4 | `/models/craftpix_lowpoly/` (Target Dummy, Target Board, Dartboard, Weapon Stand) |
+
+### Building & Settlement Models
+
+| Pack | Count | Path |
+|---|---|---|
+| Orc Settlement | 26 | `/models/orc_settlement/` (9 buildings, bridge, tents, props) |
+| Orc Props | 20 | `/models/orc_props/` (oven, waterwheel, throne, drums, torches) |
+| Medieval Props | 26 | `/models/medieval_props/` (barrels, chests, tools, wells) |
+| Environment Props | 20 | `/models/env_props/` (carts, gates, fences, gallows, bell) |
+
+### Terrain & Nature
+
+| Pack | Count | Path |
+|---|---|---|
+| Volcano | 20 | `/models/volcano/` (10 volcanos + 10 lava boulders) |
+| Mountain | 20 | `/models/mountain/` (hills, peaks, plateaus) |
+| Stones | 40 | `/models/stones/` (big, mid, small) |
+| Flora | 20 | `/models/flora/` (bushes, flowers, mushrooms, grass) |
+| Elven Runes | 20 | `/models/elven_runes/` (sculptures, throne, ancient tree) |
+
+### Harvesting & Mining
+
+| Pack | Count | Path |
+|---|---|---|
+| Mine | 39 | `/models/mine/` (ore nodes, crystals, sawmill, wheelbarrows) |
+| Farm Animals | 10 | `/models/farm_animals/` (cow, horse, sheep, pig, dog, etc.) |
 
 ### Off-hand Slot Models
 
@@ -119,6 +155,16 @@ Examples:
 /models/weapons/offhand/NatureShield.glb
 /models/weapons/offhand/DarkShield.glb
 ```
+
+### R2 Asset CDN
+
+All models served at: `https://assets.grudge-studio.com/<r2Key>`
+
+Total: ~941 assets in manifest (`dist/asset-manifest.json`)
+
+Conversion scripts: `scripts/convert-all-craftpix.cjs` (unified), `scripts/convert-craftpix-lowpoly.cjs`, `scripts/convert-orc-settlement.cjs`
+
+Upload: `npx tsx scripts/upload-to-r2.ts` (S3-compatible, ETag-based dedup, multipart for >50MB)
 
 ---
 
