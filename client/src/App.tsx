@@ -66,8 +66,11 @@ function App() {
       "/forge":      goToForge,
       "/controller": goToController,
       "/combat":     goToCombat2d,
+      "/combat2d":   goToCombat2d,    // alias
+      "/island":     goToIslandV2,    // intuitive alias
       "/island-v2":  goToIslandV2,
       "/wallet":     goToWallet,
+      "/play":       () => restart(),  // direct /play → start game
     };
     dispatchMap[p]?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
