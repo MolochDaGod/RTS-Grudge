@@ -1,0 +1,285 @@
+import { eq, asc } from "drizzle-orm";
+import { db } from "./db";
+import {
+  assetRegistry, weaponData, skillData, materialData,
+  equipmentConfig, armorData, consumableData,
+} from "@shared/schema";
+
+// Resolve the game-data endpoint. The asset-api Worker (see workers/asset-api,
+// wrangler.toml) serves bare keys at `<host>/gamedata/<key>` where <key> is one
+// of weapons|skills|materials|equipment|armor|consumables — no `.json` suffix.
+// Precedence:
+//   1. OBJECT_STORE_BASE — used verbatim (full URL incl. path)
+//   2. OBJECTSTORE_WORKER_URL / ASSET_API_BASE — host only; we append /gamedata
+//      unless the override already contains a /gamedata or /api path segment
+//   3. Production default: https://api.grudge-studio.com/gamedata
+function buildStoreBase(): string {
+  if (process.env.OBJECT_STORE_BASE) {
+    return process.env.OBJECT_STORE_BASE.replace(/\/+$/, "");
+  }
+  const workerRoot =
+    process.env.OBJECTSTORE_WORKER_URL ||
+    process.env.ASSET_API_BASE ||
+    "https://api.grudge-studio.com";
+  const trimmed = workerRoot.replace(/\/+$/, "");
+  if (/\/(gamedata|api)(\/|$)/.test(trimmed)) return trimmed;
+  return `${trimmed}/gamedata`;
+}
+const OBJECT_STORE_BASE = buildStoreBase();
+
+// Fetch a game-data JSON blob from the asset Worker. Guards against HTML
+// error pages (Cloudflare default 404s, captive portals) so a misconfigured
+// endpoint doesn't produce "Unexpected token '<'" parse-error noise.
+async function fetchGameData(key: string): Promise<any | null> {
+  const url = `${OBJECT_STORE_BASE}/${key}`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      console.warn(`[grudge] ${key}: ${res.status} ${res.statusText} from ${url}`);
+      return null;
+    }
+    const ct = (res.headers.get("content-type") ?? "").toLowerCase();
+    if (!ct.includes("json")) {
+      console.warn(`[grudge] ${key}: non-JSON response (content-type=${ct || "unknown"}) from ${url}`);
+      return null;
+    }
+    return await res.json();
+  } catch (e) {
+    console.warn(`[grudge] ${key} fetch failed:`, (e as Error).message);
+    return null;
+  }
+}
+
+// ── Object Store Sync ────────────────────────────────────────────────────────
+
+export async function syncObjectStore() {
+  const results = { weapons: 0, skills: 0, materials: 0, equipment: false, armor: 0, consumables: 0 };
+
+  // In local dev, skip the sync unless the caller has explicitly set
+  // OBJECT_STORE_BASE. The Cloudflare Worker API is only reachable from
+  // production (Railway) or when tunnelled. Silently returning here avoids
+  // a wall of "Unexpected token '<'" noise on every npm run dev.
+  if (process.env.NODE_ENV !== "production" && !process.env.OBJECT_STORE_BASE) {
+    console.log("[grudge] Object store sync skipped in local dev (set OBJECT_STORE_BASE to enable)");
+    return results;
+  }
+
+  try {
+    const data = await fetchGameData("weapons");
+    if (data) {
+      for (const [catKey, catData] of Object.entries(data.categories || {})) {
+        const cat = catData as any;
+        for (const item of cat.items || []) {
+          await db.insert(weaponData).values({
+            id: item.id, name: item.name, category: item.category || catKey,
+            stats: item.stats || {}, abilities: item.abilities || [],
+            passive: item.passives || [], lore: item.lore || null,
+            spritePath: item.spritePath || null, grudgeType: item.grudgeType || "item",
+          }).onDuplicateKeyUpdate({
+            set: {
+              name: item.name, stats: item.stats || {},
+              abilities: item.abilities || [], passive: item.passives || [],
+              lore: item.lore || null, spritePath: item.spritePath || null,
+            },
+          });
+          results.weapons++;
+        }
+      }
+    }
+  } catch (e) { console.warn("[grudge] Weapons sync partial:", (e as Error).message); }
+
+  try {
+    const data = await fetchGameData("skills");
+    if (data) {
+      for (const [wType, catData] of Object.entries(data.categories || {})) {
+        const cat = catData as any;
+        for (const skill of cat.skills || []) {
+          await db.insert(skillData).values({
+            id: skill.id, name: skill.name, weaponType: wType,
+            cooldown: skill.cooldown || "0s", manaCost: skill.mana || 0,
+            description: skill.desc || null, grudgeType: skill.grudgeType || "ability",
+          }).onDuplicateKeyUpdate({
+            set: {
+              name: skill.name, cooldown: skill.cooldown || "0s",
+              manaCost: skill.mana || 0, description: skill.desc || null,
+            },
+          });
+          results.skills++;
+        }
+      }
+    }
+  } catch (e) { console.warn("[grudge] Skills sync partial:", (e as Error).message); }
+
+  try {
+    const data = await fetchGameData("materials");
+    if (data) {
+      for (const [catKey, catData] of Object.entries(data.categories || {})) {
+        const cat = catData as any;
+        for (const mat of cat.items || []) {
+          await db.insert(materialData).values({
+            id: mat.id, name: mat.name, category: catKey,
+            tier: mat.tier || 0, gatheredBy: mat.gatheredBy || null,
+            grudgeType: mat.grudgeType || "material",
+          }).onDuplicateKeyUpdate({
+            set: { name: mat.name, tier: mat.tier || 0, gatheredBy: mat.gatheredBy || null },
+          });
+          results.materials++;
+        }
+      }
+    }
+  } catch (e) { console.warn("[grudge] Materials sync partial:", (e as Error).message); }
+
+  try {
+    const data = await fetchGameData("equipment");
+    if (data) {
+      const entries = [
+        { key: "slots", value: data.slots || [] },
+        { key: "tiers", value: data.tiers || {} },
+        { key: "tier_flat_bonus", value: data.tierFlatBonus || {} },
+        { key: "display_stat_map", value: data.displayStatMap || {} },
+      ];
+      for (const e of entries) {
+        await db.insert(equipmentConfig).values({ key: e.key, value: e.value })
+          .onDuplicateKeyUpdate({ set: { value: e.value } });
+      }
+      results.equipment = true;
+    }
+  } catch (e) { console.warn("[grudge] Equipment sync partial:", (e as Error).message); }
+
+  try {
+    const data = await fetchGameData("armor");
+    if (data) {
+      for (const [matKey, matData] of Object.entries(data.materials || {})) {
+        const mat = matData as any;
+        for (const item of mat.items || []) {
+          let derivedSet: string | null = item.set || item.armorSet || null;
+          if (!derivedSet && typeof item.id === "string") {
+            const parts = item.id.split("-");
+            if (parts.length >= 3) derivedSet = parts[1].charAt(0).toUpperCase() + parts[1].slice(1);
+          }
+          await db.insert(armorData).values({
+            id: item.id, name: item.name, armorSet: derivedSet,
+            type: item.type || null, material: item.material || matKey,
+            attribute: item.attribute || null, stats: item.stats || {},
+            passive: item.passive || null, effect: item.effect || null,
+            proc: item.proc || null, setBonus: item.setBonus || null,
+            lore: item.lore || null, spritePath: item.spritePath || null,
+            grudgeType: item.grudgeType || "equipment",
+          }).onDuplicateKeyUpdate({
+            set: {
+              name: item.name, armorSet: derivedSet, type: item.type || null,
+              material: item.material || matKey, attribute: item.attribute || null,
+              stats: item.stats || {}, passive: item.passive || null,
+              effect: item.effect || null, proc: item.proc || null,
+              setBonus: item.setBonus || null, lore: item.lore || null,
+              spritePath: item.spritePath || null,
+            },
+          });
+          results.armor++;
+        }
+      }
+    }
+  } catch (e) { console.warn("[grudge] Armor sync partial:", (e as Error).message); }
+
+  try {
+    const res = await fetch(`${OBJECT_STORE_BASE}/consumables.json`);
+    if (res.ok) {
+      const data = await res.json();
+      for (const [catKey, catData] of Object.entries(data.categories || {})) {
+        const cat = catData as any;
+        for (const item of cat.items || []) {
+          const id = `consumable-${catKey}-${item.id}`;
+          await db.insert(consumableData).values({
+            id, name: item.name, category: catKey,
+            lvl: item.lvl || 1, icon: item.icon || null,
+            mats: item.mats || {}, stats: item.stats || {},
+            description: item.desc || null, grudgeType: item.grudgeType || "consumable",
+          }).onDuplicateKeyUpdate({
+            set: {
+              name: item.name, lvl: item.lvl || 1, icon: item.icon || null,
+              mats: item.mats || {}, stats: item.stats || {},
+              description: item.desc || null,
+            },
+          });
+          results.consumables++;
+        }
+      }
+    }
+  } catch (e) { console.warn("[grudge] Consumables sync partial:", (e as Error).message); }
+
+  console.log(`[grudge] Synced: ${results.weapons} weapons, ${results.skills} skills, ${results.materials} materials, ${results.armor} armor, ${results.consumables} consumables, equipment=${results.equipment}`);
+  return results;
+}
+
+// ── Asset Registration ───────────────────────────────────────────────────────
+
+export async function registerAsset(asset: {
+  id: string; category: string; name: string; type: string;
+  localPath?: string; cdnUrl?: string; format?: string;
+  metadata?: Record<string, any>; boneMap?: Record<string, string>;
+  animationPack?: string;
+}) {
+  try {
+    await db.insert(assetRegistry).values({
+      id: asset.id, category: asset.category, name: asset.name, type: asset.type,
+      localPath: asset.localPath || null, cdnUrl: asset.cdnUrl || null,
+      format: asset.format || "glb", metadata: asset.metadata || {},
+      boneMap: asset.boneMap || {}, animationPack: asset.animationPack || null,
+    }).onDuplicateKeyUpdate({
+      set: {
+        name: asset.name, localPath: asset.localPath || null,
+        cdnUrl: asset.cdnUrl || null, format: asset.format || "glb",
+        metadata: asset.metadata || {}, boneMap: asset.boneMap || {},
+        animationPack: asset.animationPack || null,
+      },
+    });
+  } catch (e: any) {
+    // Extract just the MySQL error code / message — not the full SQL blob
+    // which Drizzle appends to the error message and which is very noisy.
+    const raw: string = e?.message ?? String(e);
+    const firstLine = raw.split("\n")[0].split("Failed query:")[0].trim();
+    console.warn(`[grudge] asset_registry insert failed [${asset.id}]:`, firstLine || raw.slice(0, 120));
+  }
+}
+
+// ── Query helpers ────────────────────────────────────────────────────────────
+
+export async function getAssets(category?: string) {
+  if (category) return db.select().from(assetRegistry).where(eq(assetRegistry.category, category)).orderBy(asc(assetRegistry.name));
+  return db.select().from(assetRegistry).orderBy(asc(assetRegistry.category), asc(assetRegistry.name));
+}
+
+export async function getWeapons(category?: string) {
+  if (category) return db.select().from(weaponData).where(eq(weaponData.category, category)).orderBy(asc(weaponData.name));
+  return db.select().from(weaponData).orderBy(asc(weaponData.name));
+}
+
+export async function getSkills(weaponType?: string) {
+  if (weaponType) return db.select().from(skillData).where(eq(skillData.weaponType, weaponType)).orderBy(asc(skillData.name));
+  return db.select().from(skillData).orderBy(asc(skillData.weaponType), asc(skillData.name));
+}
+
+export async function getMaterials(category?: string) {
+  if (category) return db.select().from(materialData).where(eq(materialData.category, category)).orderBy(asc(materialData.tier), asc(materialData.name));
+  return db.select().from(materialData).orderBy(asc(materialData.category), asc(materialData.tier), asc(materialData.name));
+}
+
+export async function getEquipmentConfig() {
+  const rows = await db.select().from(equipmentConfig);
+  const config: Record<string, any> = {};
+  for (const row of rows) config[row.key] = row.value;
+  return config;
+}
+
+export async function getArmor(material?: string, set?: string) {
+  let q = db.select().from(armorData).$dynamic();
+  if (material && set) q = q.where(eq(armorData.material, material));
+  else if (material) q = q.where(eq(armorData.material, material));
+  else if (set) q = q.where(eq(armorData.armorSet, set));
+  return q.orderBy(asc(armorData.material), asc(armorData.armorSet), asc(armorData.type), asc(armorData.name));
+}
+
+export async function getConsumables(category?: string) {
+  if (category) return db.select().from(consumableData).where(eq(consumableData.category, category)).orderBy(asc(consumableData.lvl), asc(consumableData.name));
+  return db.select().from(consumableData).orderBy(asc(consumableData.category), asc(consumableData.lvl), asc(consumableData.name));
+}

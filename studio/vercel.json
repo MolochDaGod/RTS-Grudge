@@ -1,0 +1,22 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "cd ../.. && pnpm install --frozen-lockfile=false && NODE_OPTIONS='--max-old-space-size=3072' pnpm --filter @workspace/studio run build",
+  "installCommand": "echo 'install handled in buildCommand'",
+  "outputDirectory": "dist/public",
+  "framework": null,
+  "devCommand": "pnpm --filter @workspace/studio run dev",
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://api.grudge-studio.com/:path*" },
+    { "source": "/assets-cdn/:path*", "destination": "https://assets.grudge-studio.com/:path*" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/models/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    }
+  ]
+}
