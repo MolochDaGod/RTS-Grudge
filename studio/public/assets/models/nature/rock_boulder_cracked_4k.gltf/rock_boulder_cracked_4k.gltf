@@ -1,0 +1,156 @@
+{
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v1.8.19",
+    "version": "2.0"
+  },
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "mesh": 0,
+      "name": "sphere_gltf"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "rock_boulder_cracked",
+      "normalTexture": {
+        "index": 0
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 1
+        },
+        "metallicFactor": 0,
+        "metallicRoughnessTexture": {
+          "index": 2
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Sphere.001",
+      "primitives": [
+        {
+          "attributes": {
+            "POSITION": 0,
+            "NORMAL": 1,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0
+        }
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    }
+  ],
+  "images": [
+    {
+      "mimeType": "image/jpeg",
+      "name": "rock_boulder_cracked_nor_gl_8k",
+      "uri": "textures/rock_boulder_cracked_nor_gl_4k.jpg"
+    },
+    {
+      "mimeType": "image/jpeg",
+      "name": "rock_boulder_cracked_diff_8k",
+      "uri": "textures/rock_boulder_cracked_diff_4k.jpg"
+    },
+    {
+      "mimeType": "image/jpeg",
+      "name": "rock_boulder_cracked_rough_8k",
+      "uri": "textures/rock_boulder_cracked_rough_4k.jpg"
+    }
+  ],
+  "accessors": [
+    {
+      "bufferView": 0,
+      "componentType": 5126,
+      "count": 53924,
+      "max": [
+        0.6954536437988281,
+        0.7112956047058105,
+        0.700233519077301
+      ],
+      "min": [
+        -0.6954537034034729,
+        -0.7145200371742249,
+        -0.7002366185188293
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 53924,
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 53924,
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5123,
+      "count": 322170,
+      "type": "SCALAR"
+    }
+  ],
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 647088,
+      "byteOffset": 0
+    },
+    {
+      "buffer": 0,
+      "byteLength": 647088,
+      "byteOffset": 647088
+    },
+    {
+      "buffer": 0,
+      "byteLength": 431392,
+      "byteOffset": 1294176
+    },
+    {
+      "buffer": 0,
+      "byteLength": 644340,
+      "byteOffset": 1725568
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 2369908,
+      "uri": "rock_boulder_cracked.bin"
+    }
+  ]
+}
