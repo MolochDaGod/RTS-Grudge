@@ -57,7 +57,7 @@ export function registerWorldSectorRoutes(app: Express): void {
    */
   app.get("/api/world/sectors/:id", (req: Request, res: Response) => {
     const { id } = req.params;
-    const sector = getSectorById(id);
+    const sector = getSectorById(String(id));
 
     if (!sector) {
       const validIds = Object.keys(BIOME_LABELS).join(", ");

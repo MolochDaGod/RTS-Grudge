@@ -500,7 +500,7 @@ function BuildingProximityDetector() {
     }
 
     if (nearest) {
-      setNearby(nearest.uid, nearest.name, nearest.icon);
+      setNearby(nearest.uid, "survival", nearest.name, nearest.icon);
     } else {
       setNearby(null);
     }

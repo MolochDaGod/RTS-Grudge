@@ -139,7 +139,7 @@ export default function ZoneTerrainMesh({
           args={[
             segments,      // nRows (Z)
             segments,      // nCols (X)
-            heightArray,
+    Array.from(heightArray),
             { x: worldSize, y: 1, z: worldSize },
           ]}
         />

@@ -68,6 +68,7 @@ interface BuildSystemState {
   removeBuilding: (uid: string) => void;
   upgradeBuilding: (uid: string) => boolean;
   addResources: (wood: number, stone: number, gold: number) => void;
+  spendResources: (cost: { wood?: number; stone?: number; gold?: number }) => void;
   unlockBuilding: (id: string) => void;
   damageBuilding: (uid: string, amount: number) => void;
 }
@@ -283,6 +284,14 @@ export const useBuildSystem = create<BuildSystemState>((set, get) => ({
       wood: s.resources.wood + wood,
       stone: s.resources.stone + stone,
       gold: s.resources.gold + gold,
+    },
+  })),
+
+  spendResources: (cost) => set(s => ({
+    resources: {
+      wood: Math.max(0, s.resources.wood - (cost.wood ?? 0)),
+      stone: Math.max(0, s.resources.stone - (cost.stone ?? 0)),
+      gold: Math.max(0, s.resources.gold - (cost.gold ?? 0)),
     },
   })),
 

@@ -223,11 +223,11 @@ export const useSurvival = create<SurvivalState>()(
     setActiveCharacter: (id: string) => set({ activeCharacterId: id }),
 
     getEffectiveMaxHealth: () => {
-      const s = useSurvival.getState();
+      const s = get();
       return effectiveMaxHealth(s.maxHealth, s.wounds.health);
     },
     getEffectiveMaxStamina: () => {
-      const s = useSurvival.getState();
+      const s = get();
       return effectiveMaxStamina(s.maxStamina, s.wounds.stamina);
     },
 
@@ -246,7 +246,7 @@ export const useSurvival = create<SurvivalState>()(
     },
 
     useMana: (amount: number) => {
-      const s = useSurvival.getState();
+      const s = get();
       if (s.mana < amount) return false;
       set({ mana: Math.max(0, s.mana - amount) });
       return true;

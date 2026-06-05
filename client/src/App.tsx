@@ -93,7 +93,7 @@ function App() {
     // Safe audio loader — missing files on disk are common (large binary
     // assets not committed to git). Creates the Audio element and wires a
     // one-shot error handler so 404s log a warning instead of crashing.
-    function safeAudio(src: string, volume: number, loop = false): Audio {
+    function safeAudio(src: string, volume: number, loop = false): HTMLAudioElement {
       const a = new Audio(src);
       a.volume = volume;
       a.loop = loop;
