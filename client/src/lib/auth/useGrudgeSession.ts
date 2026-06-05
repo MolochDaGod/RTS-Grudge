@@ -17,6 +17,7 @@ import {
 } from "./GrudgeSession";
 import { puterSignIn } from "./puter";
 import { buildLoginUrl } from "./authRedirect";
+import { ACCOUNT_URL } from "./grudgeServices";
 
 export interface UseGrudgeSessionResult {
   /** Current user. null while loading or when signed out. */
@@ -105,6 +106,6 @@ export function useGrudgeSession(): UseGrudgeSessionResult {
     signOut,
     requireAuth,
     loginUrl:   buildLoginUrl(),
-    accountUrl: "https://id.grudge-studio.com/account",
+    accountUrl: ACCOUNT_URL,
   };
 }

@@ -6,7 +6,16 @@
  * React, or the WCS puter-deploy shim.
  */
 
-export const GRUDGE_ID_URL = "https://id.grudge-studio.com";
+import {
+  GRUDGE_ID_URL as _GRUDGE_ID_URL,
+  TOKEN_KEY as _TOKEN_KEY,
+  TOKEN_EXP_KEY as _TOKEN_EXP_KEY,
+  PLAYER_ID_KEY as _PLAYER_ID_KEY,
+  DISPLAY_NAME_KEY as _DISPLAY_NAME_KEY,
+} from "./grudgeServices";
+
+/** Re-export so existing callers keep working without importing grudgeServices. */
+export const GRUDGE_ID_URL = _GRUDGE_ID_URL;
 
 // ---------------------------------------------------------------------------
 // URL builders
@@ -115,11 +124,8 @@ export function guardRoute(
 // ---------------------------------------------------------------------------
 // Token storage (thin wrappers — the real logic is in GrudgeSession.ts)
 // These are exported so vanilla JS shims can call them without importing the
-// full GrudgeSession module.
+// full GrudgeSession module. Keys come from grudgeServices.ts (single truth).
 // ---------------------------------------------------------------------------
-
-const _TOKEN_KEY     = "grudge.token";
-const _TOKEN_EXP_KEY = "grudge.token.exp";
 
 export function getStoredToken(): string | null {
   try {
@@ -195,10 +201,10 @@ export function handleAuthCallback(): boolean {
     const grudgeId = p.get("grudge_id");
     const username = p.get("username");
     if (grudgeId) {
-      try { localStorage.setItem("grudge.playerId", `grudge_${grudgeId}`); } catch {}
+      try { localStorage.setItem(_PLAYER_ID_KEY, `grudge_${grudgeId}`); } catch { }
     }
     if (username) {
-      try { localStorage.setItem("grudge.displayName", username); } catch {}
+      try { localStorage.setItem(_DISPLAY_NAME_KEY, username); } catch { }
     }
     // Clean the URL
     const clean = new URL(window.location.href);

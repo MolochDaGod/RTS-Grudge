@@ -21,25 +21,27 @@
  */
 
 import { getPuterUuidSync, puterReady, getPuterUser, type PuterUser } from "./puter";
+import {
+  GRUDGE_ID_URL,
+  TOKEN_KEY,
+  TOKEN_EXP_KEY,
+  PLAYER_ID_KEY,
+  GUEST_ID_KEY,
+  GUEST_ID_TS_KEY,
+} from "./grudgeServices";
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
-export const ID_SERVICE = "https://id.grudge-studio.com";
-
-const TOKEN_KEY      = "grudge.token";
-const TOKEN_EXP_KEY  = "grudge.token.exp";
-const PLAYER_ID_KEY  = "grudge.playerId";
+/** @deprecated Re-exported for backwards compatibility — import GRUDGE_ID_URL from grudgeServices instead. */
+export const ID_SERVICE = GRUDGE_ID_URL;
 
 /** Refresh the token when this many ms remain until expiry (15 min buffer). */
 const REFRESH_BUFFER_MS = 15 * 60 * 1000;
 
 /** How long a guest anonymous ID is trusted before a new one is minted (7 days). */
 const GUEST_ID_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-
-const GUEST_ID_KEY     = "grudge.guestId";
-const GUEST_ID_TS_KEY  = "grudge.guestId.ts";
 
 // ---------------------------------------------------------------------------
 // Types
