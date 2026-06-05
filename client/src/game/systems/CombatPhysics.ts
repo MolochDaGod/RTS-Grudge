@@ -337,13 +337,16 @@ export function spawnCombatMeshVFX(
 export function spawnHitImpactMeshVFX(
   scene: THREE.Scene | THREE.Group,
   hitPos: [number, number, number],
-  combatState: string,
+  combatState: string | undefined,
   weaponType: string,
   isCrit: boolean,
   element?: string,
 ): void {
+  // Normalize so the downstream `===` / `startsWith` checks are total
+  // (Player.tsx forwards an optional `combatState?: string`).
+  const cs = combatState ?? "";
   // Explosive arrow / AoE attacks get sphere explosion
-  if (combatState === "earthquake" || combatState === "skill3" || combatState === "classAbility3") {
+  if (cs === "earthquake" || cs === "skill3" || cs === "classAbility3") {
     spawnSphereExplosion(scene, hitPos, { element: element ?? "fire" });
     spawnSplash(scene, hitPos, { element: element ?? "lava", scale: 1.5 });
     return;
@@ -356,7 +359,7 @@ export function spawnHitImpactMeshVFX(
   }
 
   // Magic spell impacts get spark explosion with element color
-  if (isChargeWeapon(weaponType) && (combatState.startsWith("skill") || combatState.startsWith("class"))) {
+  if (isChargeWeapon(weaponType) && (cs.startsWith("skill") || cs.startsWith("class"))) {
     const colors: Record<string, number> = { fire: 0xff4400, ice: 0x44aaff, lightning: 0xeeeeff, shadow: 0x6622aa, arcane: 0x4488ff };
     spawnSparkExplosion(scene, hitPos, { color: colors[element ?? "arcane"] ?? 0xffaa44, scale: 0.5 });
   }
@@ -665,7 +668,7 @@ export function rollHitEffects(
   targetId: string,
   attackerId: string,
   weaponType: ExtendedWeaponType | string,
-  combatState: string,
+  combatState: string | undefined,
   critHit: boolean,
 ): EffectId[] {
   const applied: EffectId[] = [];
@@ -684,7 +687,7 @@ export function rollHitEffects(
   }
 
   // State-specific procs
-  const stateProcs = STATE_EFFECTS[combatState];
+  const stateProcs = combatState ? STATE_EFFECTS[combatState] : undefined;
   if (stateProcs) {
     for (const proc of stateProcs) {
       if (Math.random() < proc.chance * critMult) {

@@ -80,11 +80,33 @@ export interface CharacterConfig {
   backAccessoryId?: string | null;
   faction?: string;
   /**
-   * When set, this character is a Worge and can transform into bear form.
-   * CLASS_ABILITY_3 toggles between modelPath (human/night-stalker form) and
-   * this path (werewolf / bear form). Null for non-worge characters.
+   * Legacy alias for `worgeBearFormModelPath`. Old saves wrote a single
+   * "transform" path here before the bear/wolf split. Player.tsx still
+   * falls back to this when the explicit bear path is null, so existing
+   * Worge characters keep working. New writers should set
+   * `worgeBearFormModelPath` instead. Null for non-worge characters.
    */
   worgeFormModelPath?: string | null;
+  /**
+   * Worge bear-form GLB. CLASS_ABILITY_3 (KeyX) toggles between
+   * `modelPath` (human / night-stalker base) and this path. Null for
+   * non-worge characters or for worges that don't unlock bear form.
+   */
+  worgeBearFormModelPath?: string | null;
+  /**
+   * Worge wolf-form GLB. CLASS_ABILITY_1 (KeyE) toggles between
+   * `modelPath` and this path. Null for non-worge characters or for
+   * worges that don't unlock wolf form.
+   */
+  worgeWolfFormModelPath?: string | null;
+  /**
+   * Per-form scale multipliers applied on top of `scale` when the Worge
+   * is in bear or wolf form (see Player.tsx `worgeFormMul`). Designers
+   * tune the silhouette here so a single base height drives all three
+   * forms without authoring separate height fields. Missing entries fall
+   * back to 1.0 (no scaling).
+   */
+  worgeFormScale?: { bear?: number; wolf?: number };
 }
 
 export const DEFAULT_CHARACTER: CharacterConfig = {
