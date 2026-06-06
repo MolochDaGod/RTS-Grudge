@@ -515,6 +515,7 @@ export const SPELL_MODELS: SpellModelEntry[] = [
 
 const S = "/models/dungeon_kaykit/3dspritesa";
 const RC = "/models/dungeon_kaykit/reward chest";
+const ST = "/models/skill_tree";
 
 export const ITEM_MODELS: Record<string, { path: string; defaultScale: number }> = {
   // Legacy

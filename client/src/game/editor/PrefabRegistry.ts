@@ -372,6 +372,60 @@ const WEAPON_PREFABS: PrefabDef[] = [
 
 const SPELL_PREFABS: PrefabDef[] = SPELL_MODELS.map(spellModelToPrefab);
 
+function skillTreeItem(
+  id: string,
+  name: string,
+  itemKey: string,
+  subcategory: string,
+  targetHeight: number,
+  tags: string[],
+): PrefabDef {
+  return {
+    id,
+    name,
+    category: "item",
+    subcategory,
+    modelPath: ITEM_MODELS[itemKey].path,
+    defaultScale: [1, 1, 1],
+    targetHeight,
+    collider: { shape: "box", size: [0.2, targetHeight, 0.2], offset: [0, targetHeight / 2, 0], isTrigger: true },
+    physicsType: "none",
+    navMeshObstacle: false,
+    navMeshCarve: false,
+    castShadow: true,
+    receiveShadow: true,
+    hasAnimations: false,
+    tags: ["item", ...tags, "skill_tree"],
+  };
+}
+
+function skillTreeBuilding(
+  id: string,
+  name: string,
+  modelPath: string,
+  size: [number, number, number],
+  tags: string[],
+): PrefabDef {
+  const [w, h, d] = size;
+  return {
+    id,
+    name,
+    category: "building",
+    subcategory: "crafting_station",
+    modelPath,
+    defaultScale: [1, 1, 1],
+    targetHeight: h,
+    collider: { shape: "box", size: [w, h, d], offset: [0, h / 2, 0], isTrigger: false },
+    physicsType: "static",
+    navMeshObstacle: true,
+    navMeshCarve: true,
+    castShadow: true,
+    receiveShadow: true,
+    hasAnimations: false,
+    tags: ["building", "crafting_station", ...tags, "skill_tree"],
+  };
+}
+
 const ITEM_PREFABS: PrefabDef[] = [
   {
     id: "prefab-item-potion",
@@ -390,6 +444,26 @@ const ITEM_PREFABS: PrefabDef[] = [
     hasAnimations: false,
     tags: ["item", "potion", "consumable", "loot"],
   },
+  // Grudge skill-tree pack — tools, recipes, props, skill emblems
+  skillTreeItem("prefab-item-axe", "Axe", "tool_axe", "tool", 0.9, ["tool", "axe"]),
+  skillTreeItem("prefab-item-builder-hammer", "Builder Hammer", "tool_builder_hammer", "tool", 0.8, ["tool", "hammer", "builder"]),
+  skillTreeItem("prefab-item-repair-hammer", "Repair Hammer", "tool_repair_hammer", "tool", 0.8, ["tool", "hammer", "repair"]),
+  skillTreeItem("prefab-item-shovel", "Shovel", "tool_shovel", "tool", 1.0, ["tool", "shovel", "terrain"]),
+  skillTreeItem("prefab-item-torch", "Torch", "tool_torch", "tool", 0.7, ["tool", "torch", "light"]),
+  skillTreeItem("prefab-item-torch-burnt", "Burnt Torch", "tool_torch_burnt", "tool", 0.7, ["tool", "torch", "spent"]),
+  skillTreeItem("prefab-item-wand", "Wand", "tool_wand", "tool", 0.5, ["tool", "wand", "magic"]),
+  skillTreeItem("prefab-item-recipe", "Recipe", "recipe_scroll", "scroll", 0.3, ["recipe", "scroll"]),
+  skillTreeItem("prefab-item-recipe-rolled", "Rolled Recipe", "recipe_rolled", "scroll", 0.3, ["recipe", "scroll", "rolled"]),
+  skillTreeItem("prefab-item-rope-bundle", "Rope Bundle", "rope_bundle", "prop", 0.4, ["prop", "rope", "material"]),
+  skillTreeItem("prefab-item-emblem-cooking", "Cooking Emblem", "skill_emblem_cooking", "emblem", 0.6, ["emblem", "skill", "cooking"]),
+  skillTreeItem("prefab-item-emblem-engineering", "Engineering Emblem", "skill_emblem_engineering", "emblem", 0.6, ["emblem", "skill", "engineering"]),
+  skillTreeItem("prefab-item-emblem-mining", "Mining Emblem", "skill_emblem_mining", "emblem", 0.6, ["emblem", "skill", "mining"]),
+];
+
+const SKILL_TREE_BUILDINGS: PrefabDef[] = [
+  skillTreeBuilding("prefab-bld-workbench", "Workbench", "/models/skill_tree/Workbench.glb", [1.4, 1.0, 0.8], ["workbench"]),
+  skillTreeBuilding("prefab-bld-enhance-bench", "Enhance Bench", "/models/skill_tree/Enhance_Bench.glb", [1.6, 1.2, 1.0], ["enhance", "upgrade"]),
+  skillTreeBuilding("prefab-bld-lumberyard", "Allies Lumberyard", "/models/skill_tree/Allies_Building_Lumberyard.glb", [3.0, 2.5, 3.0], ["lumberyard", "allies"]),
 ];
 
 const CUSTOM_PREFABS_KEY = "gge-custom-prefabs";
@@ -416,7 +490,7 @@ export function getCustomPrefabs(): PrefabDef[] {
 }
 
 export function getAllPrefabs(): PrefabDef[] {
-  return [...NPC_PREFABS, ...TJG_PREFABS, ...CHAR_PREFABS, ...WEAPON_PREFABS, ...SPELL_PREFABS, ...ITEM_PREFABS, ...customPrefabs];
+  return [...NPC_PREFABS, ...TJG_PREFABS, ...CHAR_PREFABS, ...WEAPON_PREFABS, ...SPELL_PREFABS, ...ITEM_PREFABS, ...SKILL_TREE_BUILDINGS, ...customPrefabs];
 }
 
 export const ALL_PREFABS: PrefabDef[] = [
@@ -426,6 +500,7 @@ export const ALL_PREFABS: PrefabDef[] = [
   ...WEAPON_PREFABS,
   ...SPELL_PREFABS,
   ...ITEM_PREFABS,
+  ...SKILL_TREE_BUILDINGS,
 ];
 
 export function getPrefabById(id: string): PrefabDef | undefined {

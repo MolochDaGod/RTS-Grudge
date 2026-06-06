@@ -142,6 +142,51 @@ const ENTRIES: PrefabSchema[] = [
     fragments: "/models/structures/wooden_wall_fragments.glb",
   },
 
+  // -------------------- Grudge skill-tree pack buildings ------------------
+  // Crafting stations / allied building from the skill-tree FBX drop.
+  // GLBs live at client/public/models/skill_tree/. Modelled as breakable
+  // wood structures; the building interaction layer (open UI on use) will
+  // be layered on once the skill-tree UI lands (Phase 3, sign-off pending).
+  {
+    id: "workbench",
+    kind: "structure",
+    material: "wood",
+    hp: 40,
+    tool: "axe",
+    placeable: true,
+    climbable: false,
+    drops: [
+      { item: "wood", min: 2, max: 4 },
+      { item: "fiber", min: 0, max: 1, chance: 0.5 },
+    ],
+  },
+  {
+    id: "enhance_bench",
+    kind: "structure",
+    material: "wood",
+    hp: 60,
+    tool: "axe",
+    placeable: true,
+    climbable: false,
+    drops: [
+      { item: "wood", min: 3, max: 5 },
+      { item: "iron_ore", min: 0, max: 1, chance: 0.35 },
+    ],
+  },
+  {
+    id: "allies_lumberyard",
+    kind: "structure",
+    material: "wood",
+    hp: 120,
+    tool: "axe",
+    placeable: true,
+    climbable: false,
+    drops: [
+      { item: "wood", min: 6, max: 10 },
+      { item: "fiber", min: 1, max: 2, chance: 0.6 },
+    ],
+  },
+
   // -------------------- Voxel patch (the dig-spec example) ---------------
   // 6 ft total depth (5 ft diggable + 1 ft bedrock), four stacked layers,
   // 1 ft per cell, 32 ft x 32 ft footprint.
