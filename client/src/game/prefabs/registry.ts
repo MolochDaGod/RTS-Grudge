@@ -145,11 +145,11 @@ const ENTRIES: PrefabSchema[] = [
   // -------------------- Grudge skill-tree pack buildings ------------------
   // Crafting stations / allied building from the skill-tree FBX drop.
   // GLBs live at client/public/models/skill_tree/. Modelled as breakable
-  // wood structures; the building interaction layer (open UI on use) will
-  // be layered on once the skill-tree UI lands (Phase 3, sign-off pending).
+  // wood buildings — kind: "building" so the interaction layer can open
+  // the crafting / skill-tree UI on use (vs. plain `structure` walls).
   {
     id: "workbench",
-    kind: "structure",
+    kind: "building",
     material: "wood",
     hp: 40,
     tool: "axe",
@@ -162,7 +162,7 @@ const ENTRIES: PrefabSchema[] = [
   },
   {
     id: "enhance_bench",
-    kind: "structure",
+    kind: "building",
     material: "wood",
     hp: 60,
     tool: "axe",
@@ -175,7 +175,7 @@ const ENTRIES: PrefabSchema[] = [
   },
   {
     id: "allies_lumberyard",
-    kind: "structure",
+    kind: "building",
     material: "wood",
     hp: 120,
     tool: "axe",

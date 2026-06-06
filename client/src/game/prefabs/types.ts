@@ -52,6 +52,12 @@ export type Tool = "axe" | "pickaxe" | "shovel" | "sword" | "hand";
  *  - harvestable : tree, rock, ore vein, plant — yields drops on depletion.
  *  - structure   : wall, tower, fence, door — breakable, can have
  *                  detachable sub-parts and a fragments-GLB on full destroy.
+ *  - building    : crafting station / utility building (workbench, anvil,
+ *                  lumberyard). Same HP / drops / fragments contract as
+ *                  `structure`, but the interaction layer is expected to
+ *                  open a UI on use (crafting, skill tree, production).
+ *                  Authored separately so the build & interaction systems
+ *                  can dispatch on it without scanning prefab ids.
  *  - voxel_patch : a softxels-backed diggable terrain region with stacked
  *                  material layers (the sand/dirt/grass/bedrock spec).
  *  - creature    : NPC / animal / enemy slot — listed for completeness so
@@ -62,6 +68,7 @@ export type PrefabKind =
   | "static_mesh"
   | "harvestable"
   | "structure"
+  | "building"
   | "voxel_patch"
   | "creature";
 
