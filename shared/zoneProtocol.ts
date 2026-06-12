@@ -5,11 +5,12 @@
  * All zone:* Socket.IO events conform to these shapes.
  */
 
-// ── Zone IDs (mirrors WorldGridRegistry.ZoneId) ──────────────────────────────
+import type { SectorBiome } from "./worldSectors";
 
-export type ZoneId =
-  | "plains" | "coast" | "forest" | "desert" | "swamp"
-  | "snow" | "lava" | "jungle" | "mountains";
+// ── Zone IDs — aligned with the 9-biome world sector system ──────────────────
+
+/** ZoneId matches SectorBiome from worldSectors.ts (9 biome sectors). */
+export type ZoneId = SectorBiome;
 
 // ── Remote player representation ─────────────────────────────────────────────
 

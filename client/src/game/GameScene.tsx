@@ -23,6 +23,7 @@ import WaveSpawner from "./components/WaveSpawner";
 import NPCs from "./components/NPCs";
 import BiomeWildlife from "./components/BiomeWildlife";
 import HUD from "./components/HUD";
+import MatchHUD from "./components/MatchHUD";
 import DungeonEntrances from "./dungeon/DungeonEntrances";
 import HousingEntrance from "./housing/HousingEntrance";
 import PlacedBuildings from "./building/PlacedBuildings";
@@ -456,6 +457,7 @@ export default function GameScene() {
         </Suspense>
       </Canvas>
       <HUD />
+              <MatchHUD />
       <SceneInspectorPanel />
       <LocationDiscovery />
       <BuildMenu />

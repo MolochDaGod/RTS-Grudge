@@ -61,6 +61,23 @@ export interface PrefabConfig {
   scale?: number;
   /** Starting position in world space. */
   spawnPosition?: THREE.Vector3;
+  /**
+   * If true, spawn the prefab mounted on the race's cavalry FBX (see
+   * RaceConfig.cavalryFbx). Toggled at runtime via CharacterPrefab.setMounted().
+   */
+  mounted?: boolean;
+  /**
+   * Optional explicit mount model path. When set, overrides the race's default
+   * cavalry FBX (e.g. for hero-unique mounts or cross-race mount swaps).
+   */
+  mountModel?: string;
+  /**
+   * Per-slot equipment variant letters (e.g. { sword: "B", shield: "D" }).
+   * The skeleton layer toggles the matching `*_<letter>` child mesh on and
+   * hides siblings of the same slot. Slots without a letter (spear, bow,
+   * bag) accept "" to mean "visible".
+   */
+  equipmentVariants?: Record<string, string>;
 }
 
 // ---------------------------------------------------------------------------

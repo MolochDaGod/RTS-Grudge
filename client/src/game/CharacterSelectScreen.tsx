@@ -1,6 +1,7 @@
 import { useState, useRef, Suspense, useEffect, useMemo, useCallback } from "react";
 import { useCharacterAPI, type ServerCharacter } from "@/lib/characters/useCharacterAPI";
 import { SceneErrorBoundary } from "./components/SceneErrorBoundary";
+import { CharacterRosterPanel } from "./components/CharacterRosterPanel";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, TransformControls, Text } from "@react-three/drei";
 import * as THREE from "three";
@@ -9,6 +10,7 @@ import { useAsset } from "./hooks/useAsset";
 import { isRestPoseClipName } from "./hooks/useCharacterModel";
 import { AssetLoaderInit } from "./systems/AssetLoaderInit";
 import { useGame, CharacterConfig, MaterialColors, WeaponType, CombatClass } from "@/lib/stores/useGame";
+import { EquipmentMeshManager, type GroupedSlots } from "./character/EquipmentMeshManager";
 import { FACTIONS, DEFAULT_FACTION, getFaction, type FactionId } from "@/lib/data/factions";
 import { ALL_CHARACTER_MODELS } from "./systems/ModelRegistry";
 import { kickoffHeroForgePreload } from "./heroForge/preload";
@@ -25,7 +27,7 @@ import {
 } from "./systems/BoneAliases";
 import { useSurvival } from "@/lib/stores/useSurvival";
 import { useInventory } from "@/lib/stores/useInventory";
-import { useCharacterStats } from "@/lib/stores/useCharacterStats";
+import { useCharacterStats, isHeroRace, isHeroClass } from "@/lib/stores/useCharacterStats";
 import { useEnemyManager } from "./systems/EnemyManager";
 import { buildProceduralWeaponGroup as buildProceduralWeaponGroupShared } from "./components/WeaponMesh";
 import { loadWeaponModel, getWeaponDimensions, getAvailableModels, WEAPON_REAL_SIZES } from "./components/WeaponModelLoader";
@@ -724,6 +726,7 @@ function CharacterPreview({
   onAnalysis, bodyMorph, autoRotate, externalAnimUrl, externalAnimClipName, onExternalAnimLoaded,
   weaponOffset, onWeaponOffsetChange, gizmoMode, onHandBones, tPose,
   weaponModelRight, weaponModelLeft, backAccessoryId,
+  onEquipmentSlots,
 }: {
   modelPath: string; scale: number; materialColors: MaterialColors;
   materialMap: Record<string, keyof MaterialColors>; previewAnim: string;
@@ -741,6 +744,7 @@ function CharacterPreview({
   weaponModelRight?: string | null;
   weaponModelLeft?: string | null;
   backAccessoryId?: string | null;
+  onEquipmentSlots?: (mgr: EquipmentMeshManager | null) => void;
 }) {
   const gltf = useAsset(modelPath);
   const groupRef = useRef<THREE.Group>(null);
@@ -754,6 +758,7 @@ function CharacterPreview({
   const bodyPartsRef = useRef<BodyPartBones | null>(null);
   const [detectedSkelType, setDetectedSkelType] = useState<SkeletonType>("generic");
   const [autoMaterialMap, setAutoMaterialMap] = useState<Record<string, keyof MaterialColors>>({});
+  const equipManagerRef = useRef<EquipmentMeshManager | null>(null);
 
   useEffect(() => {
     if (gltf) {
@@ -839,6 +844,23 @@ function CharacterPreview({
     // the root cause of the "model goes nuts" glitch — so we leave the cloned
     // skeleton untouched and let the retargeter do all alias resolution.
 
+    // ── FBX Race Equipment Mesh Management ──
+    // When the loaded model is an FBX race character (WK_, BRB_, ELF_, DWF_,
+    // ORC_, UD_), it contains ~30-40 child meshes for every equipment variant.
+    // catalog() classifies them by slot and hides non-defaults (shows only
+    // body A, arms A, legs A, head A). This MUST happen BEFORE
+    // normalizeCharacterHeight so the bounds are computed from only the
+    // visible meshes — otherwise overlapping equipment inflates the bounds
+    // and produces wrong scale.
+    const equipMgr = new EquipmentMeshManager();
+    equipMgr.autoDetectPrefix(s);
+    if (equipMgr.prefix) {
+      equipMgr.catalog(s);
+      equipManagerRef.current = equipMgr;
+    } else {
+      equipManagerRef.current = null;
+    }
+
     // SAME canonical sizing function the in-game pipeline uses. Do not
     // inline a local "use longest axis / use max(width,height,depth) / etc."
     // formula here — that produced two different sizes for the same hero
@@ -885,8 +907,12 @@ function CharacterPreview({
   useEffect(() => {
     if (onHandBones) onHandBones(rightHandRef.current, leftHandRef.current);
     setPlayerBones(rightHandRef.current, leftHandRef.current, headRef.current);
-    return () => { setPlayerBones(null, null, null); };
-  }, [cloned, onHandBones]);
+    if (onEquipmentSlots) onEquipmentSlots(equipManagerRef.current);
+    return () => {
+      setPlayerBones(null, null, null);
+      if (onEquipmentSlots) onEquipmentSlots(null);
+    };
+  }, [cloned, onHandBones, onEquipmentSlots]);
 
   useEffect(() => {
     if (bodyPartsRef.current && cloned) {
@@ -1125,6 +1151,7 @@ function PreviewCanvas({
   onAnalysis, bodyMorph, autoRotate, externalAnimUrl, externalAnimClipName, onExternalAnimLoaded,
   weaponOffset, onWeaponOffsetChange, gizmoMode, onHandBones, tPose,
   showHeightMarkers, weaponModelRight, weaponModelLeft, backAccessoryId,
+  onEquipmentSlots,
 }: {
   modelPath: string; scale: number; materialColors: MaterialColors;
   materialMap: Record<string, keyof MaterialColors>; previewAnim: string;
@@ -1143,6 +1170,7 @@ function PreviewCanvas({
   weaponModelRight?: string | null;
   weaponModelLeft?: string | null;
   backAccessoryId?: string | null;
+  onEquipmentSlots?: (mgr: EquipmentMeshManager | null) => void;
 }) {
   return (
     <Canvas camera={{ position: [0, 1.2, 3], fov: 45 }} dpr={[1, 1.5]} style={{ width: "100%", height: "100%" }} gl={{ antialias: false, alpha: true, powerPreference: "high-performance", failIfMajorPerformanceCaveat: false, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.0, outputColorSpace: THREE.SRGBColorSpace }} onCreated={({ gl }) => { const c = gl.domElement; c.addEventListener("webglcontextlost", (e) => { e.preventDefault(); }); c.addEventListener("webglcontextrestored", () => {}); }}>
@@ -1188,6 +1216,7 @@ function PreviewCanvas({
               gizmoMode={gizmoMode} onHandBones={onHandBones} tPose={tPose}
               weaponModelRight={weaponModelRight} weaponModelLeft={weaponModelLeft}
               backAccessoryId={backAccessoryId}
+              onEquipmentSlots={onEquipmentSlots}
             />
           </Suspense>
         </SceneErrorBoundary>
@@ -1238,7 +1267,7 @@ export default function CharacterSelectScreen() {
   const { reset: resetSurvival } = useSurvival();
   const { reset: resetInventory } = useInventory();
   const { reset: resetEnemies } = useEnemyManager();
-  const { initHero } = useCharacterStats();
+  const { initHero, initHeroFromConfig } = useCharacterStats();
 
   // Belt-and-suspenders: also kick off Hero Forge model preload here in case
   // the user reaches this screen without going through the main menu first.
@@ -1261,7 +1290,9 @@ export default function CharacterSelectScreen() {
   const [weaponRight, setWeaponRight] = useState<WeaponType>(BASE_CHARACTER.defaultWeaponRight);
   const [weaponLeft, setWeaponLeft] = useState<WeaponType | null>(BASE_CHARACTER.defaultWeaponLeft);
   const [matColors, setMatColors] = useState<MaterialColors>({ skin: null, clothing: null, pants: null, hair: null, hat: null, armor: null, detail: null });
-  const [activeTab, setActiveTab] = useState<"class" | "colors" | "anims" | "body" | "weapons" | "info" | "studio" | "edit" | "debug">("class");
+  const [activeTab, setActiveTab] = useState<"class" | "colors" | "anims" | "body" | "weapons" | "equip" | "info" | "studio" | "edit" | "debug">("class");
+  const [equipManager, setEquipManager] = useState<EquipmentMeshManager | null>(null);
+  const [equipVersion, setEquipVersion] = useState(0);
   const [showDevTools, setShowDevTools] = useState<boolean>(() => {
     try { return localStorage.getItem("hero_forge_dev") === "1"; } catch { return false; }
   });
@@ -1574,6 +1605,46 @@ export default function CharacterSelectScreen() {
     });
   }, [heroName, scale, speedMult, combatClass, weaponRight, weaponLeft, matColors, bodyMorph, weaponOffset, weaponModelRight, weaponModelLeft, arrowModelId, backAccessoryId, currentModelPath, saveCharacterEdits]);
 
+  // ── Roster selection: load a saved character into the forge ──────────────
+  // Applies a server character's saved appearance/equipment onto the live editor
+  // state. Mirrors the populate effect's server branch so picking a roster card
+  // gives instant feedback before the activate round-trip resolves — and so it
+  // still works for guests whose activate PUT can't reach the backend.
+  const applyServerCharacterToEditor = useCallback((sc: ServerCharacter) => {
+    const app = (sc.appearance ?? {}) as any;
+    const eq = (sc.equipment ?? {}) as any;
+    setHeroName(sc.name ?? "Hero");
+    setScale(app.scale && app.scale > 0.5 ? app.scale : 1.0);
+    setSpeedMult(app.speedMult ?? 1.0);
+    const resolvedClass = eq.combatClass === "archer" ? "ranger" : (eq.combatClass ?? BASE_CHARACTER.defaultClass);
+    setCombatClass(resolvedClass);
+    setWeaponRight(eq.weaponRight ?? BASE_CHARACTER.defaultWeaponRight);
+    setWeaponLeft(eq.weaponLeft !== undefined ? eq.weaponLeft : BASE_CHARACTER.defaultWeaponLeft);
+    setMatColors(app.matColors ?? { skin: null, clothing: null, pants: null, hair: null, hat: null, armor: null, detail: null });
+    setBodyMorph({ ...DEFAULT_BODY_MORPH, ...Object.fromEntries(Object.entries(app.bodyMorph ?? {}).filter(([k]) => k in DEFAULT_BODY_MORPH)) });
+    setWeaponOffset(app.weaponOffset ?? { ...DEFAULT_WEAPON_OFFSET });
+    setWeaponModelRight(eq.weaponModelRight ?? getDefaultWeaponModelId(eq.weaponRight ?? BASE_CHARACTER.defaultWeaponRight));
+    setWeaponModelLeft(eq.weaponModelLeft ?? getDefaultWeaponModelId(eq.weaponLeft));
+    setArrowModelId(eq.arrowModelId ?? null);
+    setBackAccessoryId(eq.backAccessoryId ?? null);
+    if (sc.model_path && !REMOVED_HERO_FORGE_MODELS.has(sc.model_path)) {
+      setCurrentModelPath(sc.model_path);
+    }
+  }, []);
+
+  const selectServerCharacter = useCallback((sc: ServerCharacter) => {
+    if (sc.character_id === activeServerCharId.current) return;
+    // Pause autosave so the inbound character isn't immediately overwritten by a
+    // save of the outgoing editor state mid-repopulate.
+    autoSaveReady.current = false;
+    activeServerCharId.current = sc.character_id;
+    applyServerCharacterToEditor(sc);
+    // Persist the active flag to the backend so every game mode agrees on the
+    // chosen hero. Best-effort: local editor state is already updated above.
+    charAPI.activate(sc.character_id).catch(() => {});
+    setTimeout(() => { autoSaveReady.current = true; }, 200);
+  }, [applyServerCharacterToEditor, charAPI]);
+
   const handleWeaponOffsetChange = useCallback((hand: "right" | "left", pos: [number, number, number], rot: [number, number, number], scl: [number, number, number]) => {
     setWeaponOffset(prev => ({
       ...prev,
@@ -1691,7 +1762,17 @@ export default function CharacterSelectScreen() {
       faction: getFactionForModel(currentModelPath),
       worgeFormModelPath,
     };
-    initHero(BASE_CHARACTER.id);
+    // Build the active hero from the selected grudge-studio character's race +
+    // class (the 6x4 structure) when available so in-game attributes and race
+    // bonuses match the chosen character. Fall back to the named preset.
+    const ac = charAPI.active;
+    const heroRace = ac && isHeroRace(ac.race) ? ac.race : undefined;
+    const heroClass = ac && isHeroClass(ac.hero_class) ? ac.hero_class : undefined;
+    if (heroRace && heroClass) {
+      initHeroFromConfig(BASE_CHARACTER.id, { race: heroRace, heroClass });
+    } else {
+      initHero(BASE_CHARACTER.id);
+    }
     resetSurvival(); resetInventory(); resetEnemies();
     useSurvival.getState().setActiveCharacter(BASE_CHARACTER.id);
     const stats = useCharacterStats.getState().getSecondaryStats(BASE_CHARACTER.id);
@@ -1723,9 +1804,16 @@ export default function CharacterSelectScreen() {
     setBodyMorph(prev => ({ ...prev, [key]: value }));
   }, []);
 
+  const handleEquipmentSlots = useCallback((mgr: EquipmentMeshManager | null) => {
+    setEquipManager(mgr);
+    setEquipVersion(v => v + 1);
+  }, []);
+
   // Player-facing tabs: the five things you actually configure to make a hero.
+  const hasEquipment = !!equipManager?.hasPrefixMeshes;
   const playerTabs = [
     { key: "class" as const, label: "Class" },
+    ...(hasEquipment ? [{ key: "equip" as const, label: "Equipment" }] : []),
     { key: "weapons" as const, label: "Weapons" },
     { key: "colors" as const, label: "Appearance" },
     { key: "body" as const, label: "Body" },
@@ -1759,6 +1847,15 @@ export default function CharacterSelectScreen() {
       display: "flex", color: "#fff", fontFamily: "'Crimson Text', serif", overflow: "hidden",
       position: "relative",
     }}>
+      {/* ── Saved character roster (the grudge6 UUID set) ── */}
+      <CharacterRosterPanel
+        characters={charAPI.characters}
+        activeCharacterId={charAPI.active?.character_id ?? null}
+        status={charAPI.status}
+        error={charAPI.error}
+        onSelect={selectServerCharacter}
+        onRefresh={charAPI.refresh}
+      />
       {/* ── Animated class background ── */}
       <div style={{ position: "absolute", inset: 0, zIndex: 0, overflow: "hidden", pointerEvents: "none" }}>
         {(["melee", "caster", "ranger"] as (keyof typeof CHAR_CLASS_BG)[]).map(cls => (
@@ -1975,6 +2072,7 @@ export default function CharacterSelectScreen() {
             weaponModelRight={weaponModelRight}
             weaponModelLeft={weaponModelLeft}
             backAccessoryId={backAccessoryId}
+            onEquipmentSlots={handleEquipmentSlots}
           />
           <div style={{
             position: "absolute", top: 8, left: 8,
@@ -2119,6 +2217,95 @@ export default function CharacterSelectScreen() {
                 </div>
               </div>
             )}
+
+            {activeTab === "equip" && equipManager && (() => {
+              const grouped = equipManager.getGroupedSlots();
+              const GROUP_LABELS: Record<string, { label: string; color: string }> = {
+                armor: { label: "Armor", color: "#c9950a" },
+                weapons: { label: "Weapons", color: "#ff6b57" },
+                shields: { label: "Shields", color: "#6aa9ff" },
+                utility: { label: "Utility", color: "#66bb6a" },
+              };
+              return (
+                <div>
+                  <div style={{ fontSize: 10, color: "#c9950a", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6, fontWeight: "bold" }}>Equipment Slots</div>
+                  <div style={{ fontSize: 8, color: "#888", marginBottom: 8 }}>
+                    Prefix: <span style={{ color: "#ffb74d", fontFamily: "monospace" }}>{equipManager.prefix || "auto"}</span> · {equipManager.meshCount} equipment meshes detected
+                  </div>
+                  <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
+                    <button onClick={() => { equipManager.showAll(); setEquipVersion(v => v + 1); }}
+                      style={{ padding: "3px 8px", fontSize: 8, borderRadius: 3, cursor: "pointer",
+                        background: "rgba(255,152,0,0.15)", border: "1px solid rgba(255,152,0,0.3)", color: "#ff9800" }}>
+                      Show All
+                    </button>
+                    <button onClick={() => { equipManager.hideAll(); setEquipVersion(v => v + 1); }}
+                      style={{ padding: "3px 8px", fontSize: 8, borderRadius: 3, cursor: "pointer",
+                        background: "rgba(181,74,58,0.15)", border: "1px solid rgba(181,74,58,0.3)", color: "#b54a3a" }}>
+                      Hide All
+                    </button>
+                    <button onClick={() => {
+                      equipManager.hideAll();
+                      for (const slot of ["body", "arms", "legs", "head"]) {
+                        const variants = grouped.armor[slot];
+                        if (variants?.variants[0]) equipManager.equip(slot, variants.variants[0]);
+                      }
+                      setEquipVersion(v => v + 1);
+                    }}
+                      style={{ padding: "3px 8px", fontSize: 8, borderRadius: 3, cursor: "pointer",
+                        background: "rgba(76,175,80,0.15)", border: "1px solid rgba(76,175,80,0.3)", color: "#66bb6a" }}>
+                      Reset Defaults
+                    </button>
+                  </div>
+                  {(Object.entries(GROUP_LABELS) as [string, { label: string; color: string }][]).map(([groupKey, meta]) => {
+                    const slots = grouped[groupKey as keyof typeof grouped];
+                    if (!slots || Object.keys(slots).length === 0) return null;
+                    return (
+                      <div key={groupKey} style={{ marginBottom: 10 }}>
+                        <div style={{ fontSize: 9, color: meta.color, textTransform: "uppercase", letterSpacing: 1, marginBottom: 4, fontWeight: "bold" }}>{meta.label}</div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                          {Object.entries(slots).map(([slot, info]) => (
+                            <div key={slot} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              <span style={{ fontSize: 9, color: "#aaa", width: 70, textTransform: "capitalize" }}>{slot}</span>
+                              <div style={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+                                <button
+                                  onClick={() => { equipManager.unequip(slot); setEquipVersion(v => v + 1); }}
+                                  style={{
+                                    padding: "2px 6px", fontSize: 8, borderRadius: 3, cursor: "pointer",
+                                    background: !info.equipped ? "rgba(181,74,58,0.3)" : "rgba(255,255,255,0.06)",
+                                    border: !info.equipped ? "1px solid rgba(181,74,58,0.5)" : "1px solid rgba(255,255,255,0.1)",
+                                    color: !info.equipped ? "#ff8a80" : "#666",
+                                  }}>OFF</button>
+                                {info.variants.map((v: string) => {
+                                  const isEquipped = info.equipped === v;
+                                  return (
+                                    <button key={v}
+                                      onClick={() => {
+                                        if (groupKey === "weapons") equipManager.equipWeapon(slot, v);
+                                        else equipManager.equip(slot, v);
+                                        setEquipVersion(ver => ver + 1);
+                                      }}
+                                      style={{
+                                        padding: "2px 8px", fontSize: 8, borderRadius: 3, cursor: "pointer",
+                                        background: isEquipped ? `${meta.color}44` : "rgba(255,255,255,0.06)",
+                                        border: isEquipped ? `1px solid ${meta.color}` : "1px solid rgba(255,255,255,0.1)",
+                                        color: isEquipped ? meta.color : "#888",
+                                        fontWeight: isEquipped ? "bold" : "normal",
+                                      }}>{v}</button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div style={{ fontSize: 7, color: "#555", marginTop: 4 }}>
+                    Mirrors Unity PlayerEquipment.RefreshLocation() — prefix-based mesh toggling for the Grudge6 race characters (Bip001 skeleton).
+                  </div>
+                </div>
+              );
+            })()}
 
             {activeTab === "weapons" && (() => {
               const rightGrip = getWeaponGripProfile(weaponRight);

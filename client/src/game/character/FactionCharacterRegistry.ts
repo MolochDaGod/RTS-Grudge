@@ -29,6 +29,14 @@ export const GRUDGE6_ANIM_CDN = `${GRUDGE6_CDN}/animations`;
  * prefix-based child mesh system correctly.
  */
 const RACE_FBX = "/models/grudge6/races";
+/**
+ * Local root for per-race cavalry mounts, equipment FBX, and siege engines
+ * staged under client/public/models/grudge6/. Layout:
+ *   /models/grudge6/<race>/<PFX>_Cavalry.fbx
+ *   /models/grudge6/<race>/equipment/<PFX>_weapon_*.fbx
+ *   /models/grudge6/siege/<PFX>_Catapult.fbx | ELF_BoltThrower.fbx
+ */
+const GRUDGE6_BASE = "/models/grudge6";
 
 import type { Faction, Race } from "../systems/ModelRegistry";
 
@@ -139,6 +147,27 @@ export interface RaceConfig {
     hands: string;    // glove armor (skinned mesh toggle)
     feet: string;     // boot armor (skinned mesh toggle)
   };
+  /**
+   * Optional cavalry mount FBX for this race. Loaded via FBXLoader and
+   * parented under the character via CharacterPrefab.setMounted(true).
+   */
+  cavalryFbx?: string;
+  /**
+   * Optional standalone equipment FBX files (prefix-named child meshes,
+   * compatible with SLOT_DEFINITIONS regex). Paths under
+   * /models/grudge6/<race>/equipment/.
+   */
+  equipmentFbx?: {
+    weapons?: string[];
+    shields?: string[];
+    utility?: string[];
+    projectiles?: string[];
+  };
+  /**
+   * Optional siege engine FBX files (catapults, bolt throwers) tied to
+   * this race. Mirrored in SiegeAssetRegistry for RTS placement.
+   */
+  siegeFbx?: string[];
 }
 
 export const RACE_CONFIGS: Record<string, RaceConfig> = {
@@ -162,6 +191,14 @@ export const RACE_CONFIGS: Record<string, RaceConfig> = {
       hands: "arms",
       feet: "legs",
     },
+    cavalryFbx: `${GRUDGE6_BASE}/wk/WK_Cavalry.fbx`,
+    equipmentFbx: {
+      weapons: [
+        `${GRUDGE6_BASE}/wk/equipment/WK_weapon_staff_B.fbx`,
+        `${GRUDGE6_BASE}/wk/equipment/WK_weapon_sword_A.fbx`,
+      ],
+    },
+    siegeFbx: [`${GRUDGE6_BASE}/siege/WK_Catapult.fbx`],
   },
   barbarian: {
     name: "Barbarian (BRB)",
@@ -182,6 +219,16 @@ export const RACE_CONFIGS: Record<string, RaceConfig> = {
       shoulders: "shoulders",
       hands: "arms",
       feet: "legs",
+    },
+    cavalryFbx: `${GRUDGE6_BASE}/brb/BRB_Cavalry.fbx`,
+    equipmentFbx: {
+      weapons: [
+        `${GRUDGE6_BASE}/brb/equipment/BRB_weapon_hammer_B.fbx`,
+        `${GRUDGE6_BASE}/brb/equipment/BRB_weapon_spear.fbx`,
+        `${GRUDGE6_BASE}/brb/equipment/BRB_weapon_staff_B.fbx`,
+        `${GRUDGE6_BASE}/brb/equipment/BRB_weapon_sword_B.fbx`,
+      ],
+      utility: [`${GRUDGE6_BASE}/brb/equipment/BRB_bag.fbx`],
     },
   },
   elf: {
@@ -204,6 +251,15 @@ export const RACE_CONFIGS: Record<string, RaceConfig> = {
       hands: "arms",
       feet: "legs",
     },
+    cavalryFbx: `${GRUDGE6_BASE}/elf/ELF_Cavalry.fbx`,
+    equipmentFbx: {
+      weapons: [
+        `${GRUDGE6_BASE}/elf/equipment/ELF_weapon_spear.fbx`,
+        `${GRUDGE6_BASE}/elf/equipment/ELF_weapon_staff_C.fbx`,
+      ],
+      projectiles: [`${GRUDGE6_BASE}/elf/equipment/ELF_bolt.fbx`],
+    },
+    siegeFbx: [`${GRUDGE6_BASE}/siege/ELF_BoltThrower.fbx`],
   },
   dwarf: {
     name: "Dwarf (DWF)",
@@ -225,6 +281,7 @@ export const RACE_CONFIGS: Record<string, RaceConfig> = {
       hands: "arms",
       feet: "legs",
     },
+    cavalryFbx: `${GRUDGE6_BASE}/dwf/DWF_Cavalry.fbx`,
   },
   orc: {
     name: "Orc (ORC)",
@@ -246,6 +303,15 @@ export const RACE_CONFIGS: Record<string, RaceConfig> = {
       hands: "arms",
       feet: "legs",
     },
+    cavalryFbx: `${GRUDGE6_BASE}/orc/ORC_Cavalry.fbx`,
+    equipmentFbx: {
+      weapons: [
+        `${GRUDGE6_BASE}/orc/equipment/ORC_weapon_Axe_A.fbx`,
+        `${GRUDGE6_BASE}/orc/equipment/ORC_weapon_staff_B.fbx`,
+      ],
+      shields: [`${GRUDGE6_BASE}/orc/equipment/ORC_Shield_D.fbx`],
+    },
+    siegeFbx: [`${GRUDGE6_BASE}/siege/ORC_Catapult.fbx`],
   },
   worge: {
     name: "Worge",
@@ -300,6 +366,15 @@ export const RACE_CONFIGS: Record<string, RaceConfig> = {
       shoulders: "shoulders",
       hands: "arms",
       feet: "legs",
+    },
+    cavalryFbx: `${GRUDGE6_BASE}/ud/UD_Cavalry.fbx`,
+    equipmentFbx: {
+      weapons: [
+        `${GRUDGE6_BASE}/ud/equipment/UD_weapon_Spear.fbx`,
+        `${GRUDGE6_BASE}/ud/equipment/UD_weapon_staff_B.fbx`,
+        `${GRUDGE6_BASE}/ud/equipment/UD_weapon_Sword_C.fbx`,
+      ],
+      shields: [`${GRUDGE6_BASE}/ud/equipment/UD_Shield_C.fbx`],
     },
   },
 };
@@ -357,4 +432,26 @@ export function detectPrefix(meshName: string): RacePrefix | null {
     if (meshName.startsWith(p)) return p;
   }
   return null;
+}
+
+/** Cavalry mount FBX path for a race, or null if the race has no mount. */
+export function getCavalryFbx(raceKey: string): string | null {
+  return RACE_CONFIGS[raceKey]?.cavalryFbx ?? null;
+}
+
+/** All equipment FBX paths for a race, flattened across weapons/shields/utility/projectiles. */
+export function getEquipmentFbxList(raceKey: string): string[] {
+  const eq = RACE_CONFIGS[raceKey]?.equipmentFbx;
+  if (!eq) return [];
+  return [
+    ...(eq.weapons ?? []),
+    ...(eq.shields ?? []),
+    ...(eq.utility ?? []),
+    ...(eq.projectiles ?? []),
+  ];
+}
+
+/** Siege engine FBX paths owned by a race (catapults, bolt throwers). */
+export function getSiegeFbxList(raceKey: string): string[] {
+  return RACE_CONFIGS[raceKey]?.siegeFbx ?? [];
 }
