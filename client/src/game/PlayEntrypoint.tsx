@@ -19,6 +19,12 @@ import { useGame, type CharacterConfig, type CombatClass, type WeaponType, type 
 import { useCampaign } from "@/lib/stores/useCampaign";
 import { useCharacterAPI, type ServerCharacter } from "@/lib/characters/useCharacterAPI";
 import { hasSeenIntro } from "@/lib/save/introFlags";
+import { installMissingAssetGuard } from "./systems/MissingAssetGuard";
+
+// Install the missing-asset URL modifier before any drei `useTexture` /
+// GLTF loader runs so the well-known absent PSD/VFX paths resolve to a
+// blank PNG instead of crashing the Suspense boundary. Idempotent.
+installMissingAssetGuard();
 
 // ── Helper: convert a ServerCharacter (registry shape) into CharacterConfig ──
 // Matches the same mapping used in CharacterSelectScreen.handleConfirm.

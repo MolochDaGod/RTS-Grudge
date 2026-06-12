@@ -86,6 +86,34 @@ registry file — extend an existing one.
 - R2 CDN: GLBs/PNGs in production resolve from `assets.grudge-studio.com`. The
   `vercel.json` rewrites `/Models/*` → `assets.grudge-studio.com/models/*`.
 
+## D1 + R2 data layer (characters + assets)
+
+Full detail + command recipes: the **`grudge-d1-r2`** agent skill. Quick map:
+
+- **Two unrelated "UUID" systems.** Character UUIDs (`char_<nanoid>` in
+  `player_characters`) identify a player's hero; asset UUIDs identify a file on
+  R2. "Use our characters in game" = join the two via `race`/`modelPath`.
+- **Characters** live in `player_characters` (`shared/schema.ts`, composite PK
+  `playerId+characterId`, `isActive`, optimistic `version`). Read/write **only**
+  through the REST API (`server/characterRoutes.ts`): `GET/POST/PUT/DELETE
+  /api/characters/:playerId[/:charId]` + `…/activate`. Storage is MySQL in dev
+  (`server/db.ts`) but D1/Postgres in prod — never assume the engine.
+- **Asset registry** is D1 `grudge-assets-db` table `asset_registry`
+  (`workers/asset-api/schema.sql`), served by the `asset-api` Worker at
+  `api.grudge-studio.com/assets*` + `/gamedata*`. `grudgeUuid` is deterministic
+  (`sha1("grudge-asset:"+r2Key)`), so re-uploads never orphan references.
+- **Binary files** live in R2 `grudge-assets` (served at
+  `assets.grudge-studio.com` by the `r2-cdn` Worker); JSON game data in R2
+  `grudge-gamedata`. Heads-up: the R2 bucket and the grudge-backend D1 DB are
+  both named `grudge-assets` — verify `wrangler r2` vs `wrangler d1`.
+- **Publish pipeline** (from this repo): `scripts/upload-to-r2.ts` (md5/ETag
+  skip-unchanged, multipart >50MB → `dist/asset-manifest.json`) → `scripts/seed-d1.ts`
+  (upsert in batches of 100) → `npx wrangler deploy`. Runtime uploads go through
+  `server/r2Service.ts` (no-op when R2 creds are unset).
+- **Best practices**: stable string PKs, `r2_key UNIQUE` + indexes, optimistic
+  `version` (→409 on conflict), idempotent uploads, immutable cache for
+  versioned paths, admin-gate writes (`GRUDGE_ADMIN_TOKEN`), secrets via env only.
+
 ## Conventions
 
 - **Imports** use the `@/` alias = `client/src/`.

@@ -20,9 +20,9 @@ import { MAX_HEIGHT } from "./TerrainHeightField";
 //   uBrushActive (float, 0 = hidden, 1 = visible)
 
 export interface SandTerrainMaterialProps {
-  /** Override grass texture path. Defaults to the existing world grass. */
+  /** Override grass texture path. Defaults to the jungle grass pack. */
   grassUrl?: string;
-  /** Override sand texture path. Defaults to `M_Sand_diffuse.png`. */
+  /** Override sand texture path. Defaults to the shared `sand.jpg`. */
   sandUrl?: string;
   /** World-space metres for one full grass tile. Lower = denser pattern. */
   grassRepeat?: number;
@@ -31,8 +31,13 @@ export interface SandTerrainMaterialProps {
 }
 
 export function useSandTerrainMaterial(opts: SandTerrainMaterialProps = {}): THREE.MeshStandardMaterial {
-  const grassUrl = opts.grassUrl ?? "/textures/grass_detailed.png";
-  const sandUrl = opts.sandUrl ?? "/textures/M_Sand_diffuse.png";
+  // Default to textures that actually ship in `client/public/textures/`.
+  // The previous defaults (`grass_detailed.png`, `M_Sand_diffuse.png`)
+  // were never added to the repo and triggered 404s on /play. The
+  // MissingAssetGuard still catches them if a caller passes the old
+  // paths explicitly.
+  const grassUrl = opts.grassUrl ?? "/textures/terrain/jungle/Grass1_by_JJ_baseColor.png";
+  const sandUrl = opts.sandUrl ?? "/textures/sand.jpg";
   const grassRepeat = opts.grassRepeat ?? 5; // metres per tile (40 tiles across 200m)
   const sandRepeat = opts.sandRepeat ?? 4;
 

@@ -8,6 +8,7 @@ import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { resolveCharacterModelPath } from "./CharacterModelResolver";
 import { resolveAssetPath } from "./AssetCDNResolver";
 import { sanitizeBoneName } from "./BoneAliases";
+import { installMissingAssetGuard } from "./MissingAssetGuard";
 
 export type AssetPriority = "critical" | "high" | "medium" | "low";
 
@@ -131,6 +132,10 @@ function createKTX2Loader(renderer: THREE.WebGLRenderer): KTX2Loader {
 
 export function initAssetLoader(renderer?: THREE.WebGLRenderer): GLTFLoader {
   if (sharedLoader) return sharedLoader;
+
+  // Swap known-missing `.psd` / VFX texture URLs for a blank PNG so
+  // drei's `useTexture` Suspense path doesn't throw on 404. Idempotent.
+  installMissingAssetGuard();
 
   sharedLoader = new GLTFLoader();
 
