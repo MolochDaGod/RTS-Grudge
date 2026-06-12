@@ -10,23 +10,31 @@ import { subscribeWithSelector } from "zustand/middleware";
 export type { HeroClass, HeroRace, PrimaryAttributes, SecondaryStats, SkillNode, SkillEffect, HeroStatBlock, HeroDefinition } from "./characterTypes";
 export { computeSecondaryStats, ATTR_GAINS, STAT_CAPS, RESOURCE_STATS, effectivePoints } from "./attributeFormulas";
 export { computeDamageReduction, rollCrit, rollDodge, rollBlock, computeCombatDamage, synthesizeEnemyDefender } from "./combatFormulas";
-export { CDN, RACE_BONUSES, CLASS_LABELS, HERO_DEFINITIONS, getHeroDefinition } from "./heroDefinitions";
+export { CDN, RACE_BONUSES, CLASS_LABELS, HERO_DEFINITIONS, getHeroDefinition,
+  CLASS_BASE_ATTRIBUTES, HERO_RACES, HERO_CLASSES, isHeroRace, isHeroClass,
+  synthesizeHeroDefinition, getOrCreateHeroDefinition } from "./heroDefinitions";
 export { CLASS_SKILL_TREES, WEAPON_MASTERY_NODES } from "./skillTreeData";
-export { xpForLevel, attributePointsForLevel, skillPointsForLevel } from "./levelFormulas";
+export { xpForLevel, attributePointsForLevel, skillPointsForLevel, HERO_MAX_LEVEL } from "./levelFormulas";
 export { SECONDARY_STAT_LABELS, ATTRIBUTE_EFFECTS, ATTRIBUTE_ICON_BASE, ATTRIBUTE_ICON_ALTS } from "./statLabels";
 
 // ── Internal imports for the store ───────────────────────────────────────────
-import type { PrimaryAttributes, SecondaryStats, HeroClass, HeroStatBlock } from "./characterTypes";
+import type { PrimaryAttributes, SecondaryStats, HeroClass, HeroRace, HeroStatBlock } from "./characterTypes";
 import { computeSecondaryStats } from "./attributeFormulas";
-import { getHeroDefinition, RACE_BONUSES } from "./heroDefinitions";
+import { getHeroDefinition, RACE_BONUSES, synthesizeHeroDefinition } from "./heroDefinitions";
 import { CLASS_SKILL_TREES, WEAPON_MASTERY_NODES } from "./skillTreeData";
-import { xpForLevel, attributePointsForLevel, skillPointsForLevel } from "./levelFormulas";
+import { xpForLevel, attributePointsForLevel, skillPointsForLevel, HERO_MAX_LEVEL } from "./levelFormulas";
 
 // ── Store interface ──────────────────────────────────────────────────────────
 interface CharacterStatsState {
   heroes: Record<string, HeroStatBlock>;
 
   initHero: (characterId: string) => void;
+  /**
+   * Initialize (or re-identify) a hero from the 6-race x 4-class structure.
+   * Pass the player character's race + heroClass so the correct class baseline
+   * and race bonuses apply. Preserves progression when the class is unchanged.
+   */
+  initHeroFromConfig: (characterId: string, opts?: { race?: HeroRace; heroClass?: HeroClass; force?: boolean }) => void;
   allocateAttribute: (characterId: string, attr: keyof PrimaryAttributes, points: number) => void;
   resetAttributes: (characterId: string) => void;
   randomizeAttributes: (characterId: string) => void;
@@ -55,6 +63,7 @@ export const useCharacterStats = create<CharacterStatsState>()(
       const hero: HeroStatBlock = {
         characterId,
         heroClass: def.heroClass,
+        race: def.race,
         level,
         experience: 0,
         experienceToNext: xpForLevel(level + 1),
@@ -68,6 +77,46 @@ export const useCharacterStats = create<CharacterStatsState>()(
       };
 
       set(state => ({ heroes: { ...state.heroes, [characterId]: hero } }));
+    },
+
+    initHeroFromConfig: (characterId, opts) => {
+      const race = opts?.race;
+      const heroClass = opts?.heroClass;
+      // Prefer an explicit race + class (the 6x4 player-character structure)
+      // over a static preset so any of the 24 combos initializes with the right
+      // class baseline + race identity. Fall back to a named preset by id.
+      const def = (race && heroClass)
+        ? synthesizeHeroDefinition(race, heroClass, characterId)
+        : getHeroDefinition(characterId);
+      if (!def) return;
+
+      set(state => {
+        const existing = state.heroes[characterId];
+        // Same class already in play: preserve the player's progression and
+        // only sync race so the correct RACE_BONUSES apply. A class change
+        // (different character) rebuilds a fresh level-1 block.
+        if (existing && !opts?.force && existing.heroClass === def.heroClass) {
+          if (existing.race === def.race) return state;
+          return { heroes: { ...state.heroes, [characterId]: { ...existing, race: def.race } } };
+        }
+        const level = 1;
+        const hero: HeroStatBlock = {
+          characterId,
+          heroClass: def.heroClass,
+          race: def.race,
+          level,
+          experience: 0,
+          experienceToNext: xpForLevel(level + 1),
+          attributePointsSpent: 0,
+          attributePointsMax: attributePointsForLevel(level),
+          attributes: { ...def.baseAttributes },
+          baseAttributes: { ...def.baseAttributes },
+          skillPoints: skillPointsForLevel(level),
+          skillPointsTotal: skillPointsForLevel(level),
+          skills: {},
+        };
+        return { heroes: { ...state.heroes, [characterId]: hero } };
+      });
     },
 
     allocateAttribute: (characterId, attr, points) => {
@@ -190,10 +239,20 @@ export const useCharacterStats = create<CharacterStatsState>()(
         let newLevel = hero.level;
         let nextXP = hero.experienceToNext;
 
-        while (newXP >= nextXP && newLevel < 50) {
+        while (newXP >= nextXP && newLevel < HERO_MAX_LEVEL) {
           newXP -= nextXP;
           newLevel++;
           nextXP = xpForLevel(newLevel + 1);
+        }
+
+        // Heroes finish their build at HERO_MAX_LEVEL. At the cap, stop accruing
+        // toward a non-existent next level and present a full bar
+        // (experience === experienceToNext) rather than "0/next".
+        if (newLevel >= HERO_MAX_LEVEL) {
+          newLevel = HERO_MAX_LEVEL;
+          const capXP = xpForLevel(HERO_MAX_LEVEL);
+          newXP = capXP;
+          nextXP = capXP;
         }
 
         const newAttrMax = attributePointsForLevel(newLevel);
@@ -222,7 +281,9 @@ export const useCharacterStats = create<CharacterStatsState>()(
       if (!hero) return null;
 
       const def = getHeroDefinition(characterId);
-      const raceKey = def?.race;
+      // Prefer the race stored on the hero block (set for synthesized 6x4
+      // player characters); fall back to the static preset's race.
+      const raceKey = hero.race ?? def?.race;
       const effectiveAttrs = { ...hero.attributes };
       if (raceKey && RACE_BONUSES[raceKey]?.bonuses) {
         for (const [attr, bonus] of Object.entries(RACE_BONUSES[raceKey].bonuses)) {
@@ -266,8 +327,9 @@ export const useCharacterStats = create<CharacterStatsState>()(
     },
 
     getHeroClass: (characterId) => {
-      const def = getHeroDefinition(characterId);
-      return def?.heroClass ?? null;
+      // Prefer the live hero block (reflects the chosen 6x4 class) over the
+      // static preset, which may not exist for synthesized player characters.
+      return get().heroes[characterId]?.heroClass ?? getHeroDefinition(characterId)?.heroClass ?? null;
     },
 
     getHero: (characterId) => {

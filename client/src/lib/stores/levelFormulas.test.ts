@@ -33,28 +33,22 @@ describe("xpForLevel", () => {
 // ── attributePointsForLevel ──────────────────────────────────────────────────
 
 describe("attributePointsForLevel", () => {
-  it("gives 20 starting points at level 1", () => {
-    expect(attributePointsForLevel(1)).toBe(20);
+  it("gives 7 spendable points at character creation (level 1)", () => {
+    expect(attributePointsForLevel(1)).toBe(7);
   });
 
-  it("adds 7 points per level", () => {
-    // level 2: 20 + 1*7 = 27
-    expect(attributePointsForLevel(2)).toBe(27);
-    // level 5: 20 + 4*7 = 48
-    expect(attributePointsForLevel(5)).toBe(48);
+  it("adds 7 points per level (7 x level)", () => {
+    expect(attributePointsForLevel(2)).toBe(14);
+    expect(attributePointsForLevel(5)).toBe(35);
   });
 
-  it("caps at 160 points", () => {
-    // level 21: 20 + 20*7 = 160 (cap)
-    expect(attributePointsForLevel(21)).toBe(160);
-    // level 50: still 160
-    expect(attributePointsForLevel(50)).toBe(160);
-    expect(attributePointsForLevel(100)).toBe(160);
+  it("reaches 140 spendable at the level-20 hero cap", () => {
+    expect(attributePointsForLevel(20)).toBe(140);
   });
 
-  it("returns 20 for level 0 or below (no negative)", () => {
-    // max(0, 0-1) * 7 = 0 → 20
-    expect(attributePointsForLevel(0)).toBe(20);
+  it("returns 0 for level 0 or below (no negative)", () => {
+    expect(attributePointsForLevel(0)).toBe(0);
+    expect(attributePointsForLevel(-3)).toBe(0);
   });
 });
 

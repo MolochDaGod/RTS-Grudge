@@ -79,6 +79,13 @@ export interface SkillEffect {
 export interface HeroStatBlock {
   characterId: string;
   heroClass: HeroClass;
+  /**
+   * Race of this hero. Stored on the block (not just looked up from a static
+   * definition) so a custom-forged player character keeps the correct race
+   * bonuses for any of the 6 races x 4 classes. Optional for backward-compat
+   * with saves written before the 6x4 integration.
+   */
+  race?: HeroRace;
   level: number;
   experience: number;
   experienceToNext: number;

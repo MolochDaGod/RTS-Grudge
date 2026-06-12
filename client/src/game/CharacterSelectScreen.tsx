@@ -27,7 +27,7 @@ import {
 } from "./systems/BoneAliases";
 import { useSurvival } from "@/lib/stores/useSurvival";
 import { useInventory } from "@/lib/stores/useInventory";
-import { useCharacterStats } from "@/lib/stores/useCharacterStats";
+import { useCharacterStats, isHeroRace, isHeroClass } from "@/lib/stores/useCharacterStats";
 import { useEnemyManager } from "./systems/EnemyManager";
 import { buildProceduralWeaponGroup as buildProceduralWeaponGroupShared } from "./components/WeaponMesh";
 import { loadWeaponModel, getWeaponDimensions, getAvailableModels, WEAPON_REAL_SIZES } from "./components/WeaponModelLoader";
@@ -1267,7 +1267,7 @@ export default function CharacterSelectScreen() {
   const { reset: resetSurvival } = useSurvival();
   const { reset: resetInventory } = useInventory();
   const { reset: resetEnemies } = useEnemyManager();
-  const { initHero } = useCharacterStats();
+  const { initHero, initHeroFromConfig } = useCharacterStats();
 
   // Belt-and-suspenders: also kick off Hero Forge model preload here in case
   // the user reaches this screen without going through the main menu first.
@@ -1762,7 +1762,17 @@ export default function CharacterSelectScreen() {
       faction: getFactionForModel(currentModelPath),
       worgeFormModelPath,
     };
-    initHero(BASE_CHARACTER.id);
+    // Build the active hero from the selected grudge-studio character's race +
+    // class (the 6x4 structure) when available so in-game attributes and race
+    // bonuses match the chosen character. Fall back to the named preset.
+    const ac = charAPI.active;
+    const heroRace = ac && isHeroRace(ac.race) ? ac.race : undefined;
+    const heroClass = ac && isHeroClass(ac.hero_class) ? ac.hero_class : undefined;
+    if (heroRace && heroClass) {
+      initHeroFromConfig(BASE_CHARACTER.id, { race: heroRace, heroClass });
+    } else {
+      initHero(BASE_CHARACTER.id);
+    }
     resetSurvival(); resetInventory(); resetEnemies();
     useSurvival.getState().setActiveCharacter(BASE_CHARACTER.id);
     const stats = useCharacterStats.getState().getSecondaryStats(BASE_CHARACTER.id);

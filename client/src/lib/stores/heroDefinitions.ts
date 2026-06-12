@@ -115,3 +115,67 @@ export const HERO_DEFINITIONS: HeroDefinition[] = [
 export function getHeroDefinition(characterId: string): HeroDefinition | undefined {
   return HERO_DEFINITIONS.find(h => h.characterId === characterId);
 }
+
+// ── 6 races x 4 classes — the canonical playable matrix ──────────────────────
+// The named HERO_DEFINITIONS above are authored presets. For player characters
+// coming from grudge-studio (any race + any class), we synthesize a definition
+// from a per-class base attribute template; the race identity then layers its
+// RACE_BONUSES on top inside computeSecondaryStats. This lets all 24 combos
+// initialize correctly without hand-authoring every one.
+
+export const HERO_RACES: HeroRace[] = ["human", "elf", "dwarf", "orc", "barbarian", "undead"];
+export const HERO_CLASSES: HeroClass[] = ["warrior", "mage", "worge", "ranger"];
+
+export function isHeroRace(x: unknown): x is HeroRace {
+  return typeof x === "string" && (HERO_RACES as string[]).includes(x);
+}
+export function isHeroClass(x: unknown): x is HeroClass {
+  return typeof x === "string" && (HERO_CLASSES as string[]).includes(x);
+}
+
+/**
+ * Per-class starting attribute template (sums ~55, matching the authored
+ * presets). Race bonuses are applied separately in computeSecondaryStats, so
+ * these are the race-agnostic class baselines.
+ */
+export const CLASS_BASE_ATTRIBUTES: Record<HeroClass, PrimaryAttributes> = {
+  warrior: { strength: 12, vitality: 12, endurance: 8, intellect: 3,  wisdom: 4,  dexterity: 6,  agility: 5,  tactics: 5 },
+  mage:    { strength: 2,  vitality: 5,  endurance: 3, intellect: 16, wisdom: 13, dexterity: 5,  agility: 4,  tactics: 7 },
+  ranger:  { strength: 6,  vitality: 6,  endurance: 4, intellect: 5,  wisdom: 5,  dexterity: 14, agility: 11, tactics: 4 },
+  worge:   { strength: 14, vitality: 13, endurance: 8, intellect: 3,  wisdom: 3,  dexterity: 6,  agility: 5,  tactics: 3 },
+};
+
+/**
+ * Build a HeroDefinition for any race x class combo. Worge gains a beast form
+ * model id to match the authored worge presets.
+ */
+export function synthesizeHeroDefinition(
+  race: HeroRace,
+  heroClass: HeroClass,
+  characterId = `${race}_${heroClass}`,
+  name?: string,
+): HeroDefinition {
+  return {
+    characterId,
+    name: name ?? `${RACE_BONUSES[race].label} ${CLASS_LABELS[heroClass].label}`,
+    heroClass,
+    race,
+    baseAttributes: { ...CLASS_BASE_ATTRIBUTES[heroClass] },
+    lore: `${RACE_BONUSES[race].label} ${CLASS_LABELS[heroClass].label}.`,
+    ...(heroClass === "worge" ? { beastFormModelId: "raptor" } : {}),
+  };
+}
+
+/**
+ * Resolve a hero definition by id, falling back to a synthesized race x class
+ * definition when the id is not a hand-authored preset. Returns undefined only
+ * when neither a preset nor a race+class pair is available.
+ */
+export function getOrCreateHeroDefinition(
+  characterId: string,
+  race?: HeroRace,
+  heroClass?: HeroClass,
+): HeroDefinition | undefined {
+  if (race && heroClass) return synthesizeHeroDefinition(race, heroClass, characterId);
+  return getHeroDefinition(characterId);
+}
