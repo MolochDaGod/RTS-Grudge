@@ -6,6 +6,7 @@ import {
   CapsuleCollider,
   type RapierRigidBody,
 } from "@react-three/rapier";
+import { sizeCharacterCapsule, MATERIALS } from "@shared/physics";
 
 interface CharacterBounds {
   height: number;
@@ -31,12 +32,12 @@ export function KinematicCharacterBody({
 
   const sized = useMemo(() => {
     if (!bounds) return null;
-    const h = Math.max(0.4, bounds.height * scale);
-    const r = THREE.MathUtils.clamp(bounds.radiusXZ * scale, 0.15, 1.5);
-    const halfHeight = Math.max(0.05, (h - 2 * r) / 2);
-    const halfHeightR = Math.round(halfHeight * 100) / 100;
-    const radiusR = Math.round(r * 100) / 100;
-    return { halfHeight: halfHeightR, radius: radiusR };
+    // Shared sizing helper — same clamp envelope the rest of the stack uses.
+    const { halfHeight, radius } = sizeCharacterCapsule(bounds.height, bounds.radiusXZ, scale);
+    return {
+      halfHeight: Math.round(halfHeight * 100) / 100,
+      radius: Math.round(radius * 100) / 100,
+    };
   }, [bounds, scale]);
 
   useFrame(() => {
@@ -67,8 +68,8 @@ export function KinematicCharacterBody({
       <CapsuleCollider
         args={[sized.halfHeight, sized.radius]}
         position={[0, sized.halfHeight + sized.radius, 0]}
-        friction={0.4}
-        restitution={0.0}
+        friction={MATERIALS.character.friction}
+        restitution={MATERIALS.character.restitution}
       />
     </RigidBody>
   );

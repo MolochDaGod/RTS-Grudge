@@ -8,6 +8,7 @@ import {
   terrainHeights,
   terrainVersion,
 } from "./TerrainHeightField";
+import { MATERIALS } from "@shared/physics";
 
 // We can't mutate a Rapier `HeightfieldCollider`'s heights array in place
 // from React — the collider props are baked into the underlying physics
@@ -76,8 +77,8 @@ export default function TerrainCollider() {
           Array.from(heights),
           { x: elementSize * (nCols - 1), y: 1, z: elementSize * (nRows - 1) },
         ]}
-        friction={0.6}
-        restitution={0.0}
+        friction={MATERIALS.terrain.friction}
+        restitution={MATERIALS.terrain.restitution}
       />
     </RigidBody>
   );

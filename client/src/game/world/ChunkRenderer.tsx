@@ -3,6 +3,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { RigidBody, HeightfieldCollider, CylinderCollider, BallCollider } from "@react-three/rapier";
 import { COLLISION_MASKS } from "../components/BuildingColliders";
+import { MATERIALS } from "@shared/physics";
 import {
   WorldChunkManager,
   CHUNK_SIZE,
@@ -105,7 +106,7 @@ function ChunkTerrain({ chunk, islandSeed, islandSize, heightSampler }: ChunkTer
         <RigidBody type="fixed" colliders={false}>
           <HeightfieldCollider
             args={[resolution - 1, resolution - 1, colliderHeights, { x: CHUNK_SIZE, y: 1, z: CHUNK_SIZE }]}
-            friction={0.6}
+            friction={MATERIALS.terrain.friction}
           />
         </RigidBody>
       )}

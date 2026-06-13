@@ -8,6 +8,7 @@ import { PlayerColliderDebug } from "../cheats/PlayerColliderDebug";
 import { createActor } from "xstate";
 import { getTerrainHeight, globalHeightData } from "./Terrain";
 import { COLLISION_GROUPS, COLLISION_MASKS } from "./BuildingColliders";
+import { MATERIALS } from "@shared/physics";
 import { getNearClimbable } from "./nearClimbable";
 import { type AnimationState } from "../hooks/useCharacterModel";
 import { useCharacterController } from "../controllers/useCharacterController";
@@ -3338,9 +3339,9 @@ function PlayerModel({
         {hullPoints ? (
           <ConvexHullCollider
             args={[hullPoints]}
-            friction={0.5}
+            friction={MATERIALS.playerBody.friction}
             frictionCombineRule={CoefficientCombineRule.Average}
-            restitution={0.0}
+            restitution={MATERIALS.playerBody.restitution}
           />
         ) : (
           // Fallback for the brief window before scene + bounds + morph
@@ -3352,9 +3353,9 @@ function PlayerModel({
           <CapsuleCollider
             args={[PLAYER_HALF_HEIGHT, PLAYER_RADIUS]}
             position={[0, PLAYER_HALF_HEIGHT + PLAYER_RADIUS, 0]}
-            friction={0.5}
+            friction={MATERIALS.playerBody.friction}
             frictionCombineRule={CoefficientCombineRule.Average}
-            restitution={0.0}
+            restitution={MATERIALS.playerBody.restitution}
           />
         )}
         {/* Debug overlay — only renders when cheats panel is enabled

@@ -16,6 +16,7 @@ import * as THREE from "three";
 import { MovementController, type MovementInput, type MovementResult } from "../../controllers/MovementController";
 import type { SkeletonBounds, PhysicsMode } from "./types";
 import { SPEED, DEFAULT_CAPSULE, COLLISION_GROUPS, PLAYER_INTERACTION_GROUPS, ENEMY_INTERACTION_GROUPS } from "./constants";
+import { MATERIALS } from "@shared/physics";
 
 // ---------------------------------------------------------------------------
 // Rapier type stubs — we reference these structurally so the prefab system
@@ -110,8 +111,8 @@ export class CharacterBody {
     const colliderDesc = RAPIER.ColliderDesc
       .capsule(this.capsuleHalfHeight, this.capsuleRadius)
       .setTranslation(0, this.capsuleHalfHeight + this.capsuleRadius, 0)
-      .setFriction(0.4)
-      .setRestitution(0.0);
+      .setFriction(MATERIALS.character.friction)
+      .setRestitution(MATERIALS.character.restitution);
 
     const groups = this.isPlayer ? PLAYER_INTERACTION_GROUPS : ENEMY_INTERACTION_GROUPS;
     colliderDesc.setCollisionGroups(groups);
