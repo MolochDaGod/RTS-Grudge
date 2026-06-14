@@ -34,10 +34,11 @@ export function KinematicCharacterBody({
     if (!bounds) return null;
     // Shared sizing helper — same clamp envelope the rest of the stack uses.
     const { halfHeight, radius } = sizeCharacterCapsule(bounds.height, bounds.radiusXZ, scale);
-    return {
-      halfHeight: Math.round(halfHeight * 100) / 100,
-      radius: Math.round(radius * 100) / 100,
-    };
+    const halfHeightR = Math.round(halfHeight * 100) / 100;
+    const radiusR = Math.round(radius * 100) / 100;
+    // Derive the collider offset from the rounded dims (single source) so the
+    // remount key and the collider position stay in lockstep.
+    return { halfHeight: halfHeightR, radius: radiusR, offsetY: halfHeightR + radiusR };
   }, [bounds, scale]);
 
   useFrame(() => {
@@ -67,7 +68,7 @@ export function KinematicCharacterBody({
     >
       <CapsuleCollider
         args={[sized.halfHeight, sized.radius]}
-        position={[0, sized.halfHeight + sized.radius, 0]}
+        position={[0, sized.offsetY, 0]}
         friction={MATERIALS.character.friction}
         restitution={MATERIALS.character.restitution}
       />

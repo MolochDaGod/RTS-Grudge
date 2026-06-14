@@ -45,8 +45,13 @@ export function sizeCharacterCapsule(
   return { halfHeight, radius: r, offsetY: halfHeight + r };
 }
 
-/** Ready-made param set for the default player/enemy capsule (1.8 m / 0.3 m). */
-export const PLAYER_COLLIDER: CapsuleParams = {
+/**
+ * Ready-made param set for the default kinematic character capsule (1.8 m / 0.3 m),
+ * using MATERIALS.character. Named for the *kinematic capsule* role to avoid
+ * confusion with the local player's dynamic convex-hull body, which is a
+ * separate collider that uses the grippier MATERIALS.playerBody (see Player.tsx).
+ */
+export const CHARACTER_CAPSULE_COLLIDER: CapsuleParams = {
   shape: "capsule",
   ...sizeCharacterCapsule(PLAYER_CAPSULE_DEFAULT.height, PLAYER_CAPSULE_DEFAULT.radius),
   material: MATERIALS.character,
