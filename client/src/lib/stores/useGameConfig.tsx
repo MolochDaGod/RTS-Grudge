@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
+import { WORLD_GRAVITY_Y } from "@shared/physics";
 
 export interface TerrainConfig {
   worldSize: number;
@@ -216,7 +217,8 @@ const DEFAULT_NPCS: NPCConfig[] = [
 ];
 
 const DEFAULT_PHYSICS: PhysicsConfig = {
-  gravity: -20,
+  // Sourced from @shared/physics so client + (future) headless server share one value.
+  gravity: WORLD_GRAVITY_Y,
   playerSpeed: 5.0,
   sprintMultiplier: 1.8,
   jumpForce: 8.0,
