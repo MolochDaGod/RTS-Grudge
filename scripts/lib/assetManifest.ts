@@ -24,8 +24,10 @@ const WEAPON_SOURCE_SETS = new Set([
 ]);
 
 const BUILDING_SOURCE_SETS = new Set([
+  "battle_towers",
   "encampment",
   "fortress",
+  "orc_settlement",
   "raft",
   "rts",
   "rts_quaternius",
@@ -139,7 +141,9 @@ function detectSourceSet(parts: string[]): string | null {
   return parts[0] ?? null;
 }
 
-function detectBoneMap(fileName: string): string | null {
+function detectBoneMap(fileName: string, r2Key: string): string | null {
+  // grudge6 races share the Bip001 (3ds Max biped) skeleton.
+  if (r2Key.startsWith("models/grudge6/")) return "bip001";
   const lower = fileName.toLowerCase();
   if (
     lower.includes("orc") ||
@@ -162,8 +166,20 @@ function detectBoneMap(fileName: string): string | null {
 }
 
 function detectAnimationPacks(r2Key: string): string[] | null {
-  if (!r2Key.startsWith("models/characters/")) return null;
-  return ["glocomotion", "glocomotion_combat", "gestures_basic"];
+  if (r2Key.startsWith("models/characters/")) {
+    return ["glocomotion", "glocomotion_combat", "gestures_basic"];
+  }
+  // grudge6 race / cavalry / variant character models share the Bip001 packs,
+  // but the raw animation clips, equipment, and siege engines do not.
+  if (
+    r2Key.startsWith("models/grudge6/") &&
+    !r2Key.includes("/animations/") &&
+    !r2Key.includes("/equipment/") &&
+    !r2Key.includes("/siege/")
+  ) {
+    return ["glocomotion", "glocomotion_combat", "gestures_basic"];
+  }
+  return null;
 }
 
 function detectWeaponType(
@@ -203,8 +219,20 @@ function detectCategory(r2Key: string, sourceSet: string | null, fileStem: strin
   if (parts[0] === "fonts") return "font";
   if (parts[0] !== "models") return "asset";
 
+  // grudge6 is a mixed set (races + animations + equipment + siege + cavalry),
+  // so categorize by sub-path rather than the single "grudge6" source set.
+  if (sourceSet === "grudge6") {
+    const key = r2Key.toLowerCase();
+    if (key.includes("/animations/")) return "animation";
+    if (key.includes("/equipment/")) return "weapon";
+    if (key.includes("/siege/")) return "building";
+    if (key.includes("_cavalry")) return "monster"; // rideable mount creature
+    return "character"; // races/, *_Characters.*, variants/
+  }
+
   if (sourceSet === "characters" || sourceSet === "medieval_people") return "character";
-  if (sourceSet === "monsters") return "monster";
+  if (sourceSet === "monsters" || sourceSet === "enemies") return "monster";
+  if (sourceSet === "wildlife" || sourceSet === "farm_animals") return "monster";
   if (sourceSet === "animations") return "animation";
   if (sourceSet === "spells") return "spell";
   if (sourceSet === "items" || sourceSet === "rpg_items") return "item";
@@ -302,7 +330,7 @@ export function buildManifestEntry({
   const ext = path.posix.extname(normalizedKey).toLowerCase();
   const fileName = path.posix.basename(normalizedKey);
   const fileStem = fileName.replace(/\.[^.]+$/, "");
-  const boneMap = detectBoneMap(fileName);
+  const boneMap = detectBoneMap(fileName, normalizedKey);
   const animationPacks = detectAnimationPacks(normalizedKey);
   const weaponType = detectWeaponType(normalizedKey, fileStem);
   const category = detectCategory(normalizedKey, sourceSet, fileStem);

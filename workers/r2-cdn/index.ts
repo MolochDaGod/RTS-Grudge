@@ -77,9 +77,20 @@ export default {
     }
 
     const headers = new Headers(CORS);
+    // Pull any content-type / cache-control stored on the object at upload time.
+    object.writeHttpMetadata(headers);
     headers.set("Content-Type", getMime(key));
     headers.set("ETag", object.httpEtag);
-    headers.set("Cache-Control", "public, max-age=2592000, immutable");
+    // Honor a stored Cache-Control; otherwise only version-pinned (/v1/) paths
+    // are immutable. Non-versioned assets get a 1-day TTL so re-uploads refresh.
+    if (!headers.has("Cache-Control")) {
+      headers.set(
+        "Cache-Control",
+        key.includes("/v1/")
+          ? "public, max-age=31536000, immutable"
+          : "public, max-age=86400"
+      );
+    }
 
     if (object.size !== undefined) {
       headers.set("Content-Length", String(object.size));

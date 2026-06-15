@@ -10,16 +10,18 @@
  * ModelRegistry.ts so both pipelines (FBX prefix-toggle and GLB
  * external-attach) can coexist.
  *
- * CDN PATHS: The 6 grudge6 race GLBs are hosted on the Grudge Object Store.
- * Run `node scripts/convert-grudge6-assets.mjs` to convert local FBX files
- * to GLB and upload. See that script for the expected output layout.
+ * CDN PATHS: The 6 grudge6 race models are mirrored on the canonical Grudge CDN
+ * (assets.grudge-studio.com, backed by the grudge-assets R2 bucket). Runtime
+ * loading uses the local FBX paths below; the CDN constants are kept for tooling
+ * that needs absolute URLs. Bulk uploads go through scripts/upload-to-r2.ts
+ * (there is no convert-grudge6-assets script).
  */
 
 // ---------------------------------------------------------------------------
 // Grudge Object Storage CDN roots
 // ---------------------------------------------------------------------------
-/** Root for grudge6 race character models and their animation packs. */
-export const GRUDGE6_CDN = "https://molochdagod.github.io/ObjectStore/models/factioncharacters";
+/** Root for grudge6 race character models and their animation packs (canonical R2 CDN). */
+export const GRUDGE6_CDN = "https://assets.grudge-studio.com/models/grudge6";
 /** Root for Bip001 animation pack GLBs shared across all 6 races. */
 export const GRUDGE6_ANIM_CDN = `${GRUDGE6_CDN}/animations`;
 /**

@@ -52,8 +52,10 @@ export async function uploadGameData(key: string, data: unknown): Promise<string
             CacheControl: "public, max-age=300",
         })
     );
-    const cdnBase = process.env.R2_CDN_BASE ?? `https://${ACCOUNT_ID}.r2.cloudflarestorage.com/${GAMEDATA_BUCKET}`;
-    return `${cdnBase}/${key}`;
+    // Game data is served publicly via the asset-api Worker at /gamedata/:key
+    // (the route key has no .json extension).
+    const gamedataBase = process.env.GAMEDATA_PUBLIC_BASE ?? "https://api.grudge-studio.com/gamedata";
+    return `${gamedataBase}/${key.replace(/\.json$/i, "")}`;
 }
 
 /**
@@ -95,6 +97,8 @@ export async function uploadAsset(
             CacheControl: "public, max-age=86400",
         })
     );
-    const cdnBase = process.env.R2_CDN_BASE ?? `https://${ACCOUNT_ID}.r2.cloudflarestorage.com/${ASSETS_BUCKET}`;
-    return `${cdnBase}/${r2Key}`;
+    // Binaries are served publicly via the r2-cdn Worker.
+    const assetBase =
+        process.env.ASSET_CDN_BASE ?? process.env.R2_CDN_BASE ?? "https://assets.grudge-studio.com";
+    return `${assetBase}/${r2Key}`;
 }

@@ -35,6 +35,10 @@ const CORS_HEADERS = {
     "Access-Control-Allow-Headers": "Content-Type, X-Admin-Token",
 };
 
+// Validation guards for the admin write path.
+const ASSET_ID_RE = /^[A-Za-z0-9_\-]{6,64}$/;
+const MAX_UPSERT_BODY_BYTES = 128 * 1024; // 128 KB
+
 function json(body: unknown, status = 200): Response {
     return new Response(JSON.stringify(body), {
         status,
@@ -174,6 +178,19 @@ async function handleGetAsset(id: string, env: Env): Promise<Response> {
     return json(hydrateAsset(row, env.ASSET_CDN_BASE));
 }
 async function handleGetAssetByUuid(uuid: string, env: Env): Promise<Response> {
+    // Fast path: query the indexed grudge_uuid column directly.
+    try {
+        const indexed = await env.DB.prepare(
+            "SELECT * FROM asset_registry WHERE grudge_uuid = ?1"
+        )
+            .bind(uuid)
+            .first<AssetRow>();
+        if (indexed) return json(hydrateAsset(indexed, env.ASSET_CDN_BASE));
+    } catch {
+        // Column not present yet (pre-migration DB) — fall through to JSON scan.
+    }
+
+    // Fallback: scan rows whose UUID still lives only in the JSON payload.
     const { results } = await env.DB.prepare("SELECT * FROM asset_registry").all<AssetRow>();
     const row = results.find((candidate) => parseAnimationPayload(candidate.animation_packs).grudgeUuid === uuid);
     if (!row) return err("Asset not found", 404);
@@ -181,9 +198,13 @@ async function handleGetAssetByUuid(uuid: string, env: Env): Promise<Response> {
 }
 
 async function handleUpsertAsset(request: Request, env: Env): Promise<Response> {
+    const rawBody = await request.text();
+    if (rawBody.length > MAX_UPSERT_BODY_BYTES) {
+        return err("Request body too large (max 128 KB)", 413);
+    }
     let body: Partial<AssetRow>;
     try {
-        body = await request.json();
+        body = JSON.parse(rawBody);
     } catch {
         return err("Invalid JSON body");
     }
@@ -201,6 +222,9 @@ async function handleUpsertAsset(request: Request, env: Env): Promise<Response> 
     if (!id || !name || !category || !r2Key || !grudgeUuid) {
         return err("id, name, category, r2Key, grudgeUuid are required");
     }
+    if (!ASSET_ID_RE.test(String(id))) {
+        return err("id must match ^[A-Za-z0-9_-]{6,64}$");
+    }
 
     const now = Date.now();
     const packedAnimationPayload = JSON.stringify({
@@ -209,14 +233,15 @@ async function handleUpsertAsset(request: Request, env: Env): Promise<Response> 
         metadata: metadata && typeof metadata === "object" ? metadata : undefined,
     });
     await env.DB.prepare(
-        `INSERT INTO asset_registry (id, name, category, r2_key, bone_map, animation_packs, file_size, updated_at, created_at)
-     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?8)
+        `INSERT INTO asset_registry (id, name, category, r2_key, bone_map, animation_packs, grudge_uuid, file_size, updated_at, created_at)
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?9)
      ON CONFLICT(id) DO UPDATE SET
        name = excluded.name,
        category = excluded.category,
        r2_key = excluded.r2_key,
        bone_map = excluded.bone_map,
        animation_packs = excluded.animation_packs,
+       grudge_uuid = excluded.grudge_uuid,
        file_size = excluded.file_size,
        updated_at = excluded.updated_at`
     )
@@ -227,6 +252,7 @@ async function handleUpsertAsset(request: Request, env: Env): Promise<Response> 
             r2Key,
             boneMap ?? null,
             packedAnimationPayload,
+            grudgeUuid,
             fileSize ?? null,
             now
         )
@@ -276,6 +302,7 @@ interface AssetRow {
     r2_key: string;
     bone_map: string | null;
     animation_packs: string | null;
+    grudge_uuid?: string | null;
     file_size: number | null;
     updated_at: number;
     created_at: number;
@@ -333,7 +360,7 @@ function hydrateAsset(row: AssetRow, cdnBase: string) {
     const metadata = payload.metadata;
     return {
         id: row.id,
-        grudgeUuid: payload.grudgeUuid,
+        grudgeUuid: row.grudge_uuid ?? payload.grudgeUuid,
         name: row.name,
         category: row.category,
         r2Key: row.r2_key,

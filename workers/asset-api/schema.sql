@@ -11,13 +11,17 @@ CREATE TABLE IF NOT EXISTS asset_registry (
   r2_key          TEXT    NOT NULL UNIQUE,         -- R2 object key: "models/characters/elf-male.glb"
   bone_map        TEXT,                            -- "mixamo" | "kaykit" | null
   animation_packs TEXT,                            -- JSON payload: { "animationPacks": [...], "grudgeUuid": "...", "metadata": { ... } }
+  grudge_uuid     TEXT,                            -- deterministic asset UUID, promoted from the JSON payload for indexed lookup
   file_size       INTEGER,                         -- bytes
   updated_at      INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
   created_at      INTEGER NOT NULL DEFAULT (unixepoch() * 1000)
 );
 
+-- NOTE: For tables created before grudge_uuid existed, scripts/seed-d1.ts runs
+-- an idempotent `ALTER TABLE asset_registry ADD COLUMN grudge_uuid TEXT` first.
 CREATE INDEX IF NOT EXISTS idx_asset_category ON asset_registry (category);
 CREATE INDEX IF NOT EXISTS idx_asset_updated  ON asset_registry (updated_at);
+CREATE INDEX IF NOT EXISTS idx_asset_uuid     ON asset_registry (grudge_uuid);
 
 -- ── Game Data Versions ────────────────────────────────────────────────────────
 -- Tracks the last sync of each JSON blob (weapons, skills, etc.) from R2 GAME_DATA bucket.

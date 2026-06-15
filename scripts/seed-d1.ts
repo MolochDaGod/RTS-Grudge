@@ -58,7 +58,7 @@ function buildInsert(entry: ManifestEntry): string {
     const now = Date.now();
     return (
         `INSERT OR REPLACE INTO asset_registry ` +
-        `(id, name, category, r2_key, bone_map, animation_packs, file_size, updated_at, created_at) ` +
+        `(id, name, category, r2_key, bone_map, animation_packs, grudge_uuid, file_size, updated_at, created_at) ` +
         `VALUES (` +
         [
             escape(entry.id),
@@ -67,12 +67,31 @@ function buildInsert(entry: ManifestEntry): string {
             escape(entry.r2Key),
             escape(entry.boneMap),
             escape(buildStoredAssetPayload(entry)),
+            escape(entry.grudgeUuid),
             entry.fileSize ?? "NULL",
             now,
             now,
         ].join(", ") +
         `);`
     );
+}
+
+function runMigrationSql(dbName: string, sql: string, label: string): void {
+    const tmpFile = path.join(
+        os.tmpdir(),
+        `grudge-d1-migrate-${Date.now()}-${Math.random().toString(36).slice(2)}.sql`,
+    );
+    fs.writeFileSync(tmpFile, sql);
+    try {
+        execSync(`npx wrangler@latest d1 execute ${dbName} --remote --file=${tmpFile} --yes`, {
+            stdio: "inherit",
+        });
+        console.log(`  \u2713 Migration: ${label}`);
+    } catch (e) {
+        console.warn(`  \u2022 Migration skipped (${label}) \u2014 likely already applied: ${(e as Error).message}`);
+    } finally {
+        fs.unlinkSync(tmpFile);
+    }
 }
 
 async function main() {
@@ -103,6 +122,12 @@ async function main() {
             console.warn("Schema apply warning (may already exist):", (e as Error).message);
         }
     }
+
+    // Migrate pre-existing tables that predate the grudge_uuid column. A plain
+    // CREATE TABLE IF NOT EXISTS won't add columns to an existing table, so run
+    // an idempotent ALTER and ignore the "duplicate column name" error.
+    runMigrationSql(DB_NAME, "ALTER TABLE asset_registry ADD COLUMN grudge_uuid TEXT;", "add grudge_uuid column");
+    runMigrationSql(DB_NAME, "CREATE INDEX IF NOT EXISTS idx_asset_uuid ON asset_registry (grudge_uuid);", "create grudge_uuid index");
 
     let inserted = 0;
     let errors = 0;
