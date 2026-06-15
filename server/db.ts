@@ -1,5 +1,6 @@
 import { drizzle } from "drizzle-orm/mysql2";
 import mysql from "mysql2/promise";
+import type { EventEmitter } from "node:events";
 import * as schema from "@shared/schema";
 
 const pool = mysql.createPool({
@@ -19,6 +20,16 @@ const pool = mysql.createPool({
     }
     return next();
   },
+});
+
+// mysql2 pools surface connection-level failures (DB unreachable, dropped
+// connections) as an 'error' event. Without a listener Node treats it as an
+// unhandled 'error' and crashes the process — which on Railway looks like a
+// silent boot-then-die loop. Log it and let the pool recover on next query.
+// (The promise wrapper's types omit the 'error' overload, so cast to the
+// underlying EventEmitter.)
+(pool as unknown as EventEmitter).on("error", (err: unknown) => {
+  console.error("[db] MySQL pool error:", (err as Error)?.message ?? err);
 });
 
 export const db = drizzle(pool, { schema, mode: "default" });

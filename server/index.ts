@@ -11,6 +11,18 @@ import compression from "compression";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
 
+// ── Global crash guards ──────────────────────────────────────────────────────
+// On Railway, a single unhandled promise rejection (e.g. a transient DB or
+// network failure) silently kills the container — it boots, serves one request,
+// then dies with no log line, and the deploy is marked failed. Logging instead
+// of crashing keeps the server alive and makes the real cause visible.
+process.on("unhandledRejection", (reason) => {
+  console.error("[fatal] Unhandled promise rejection:", reason);
+});
+process.on("uncaughtException", (err) => {
+  console.error("[fatal] Uncaught exception:", err);
+});
+
 const app = express();
 const httpServer = createServer(app);
 
