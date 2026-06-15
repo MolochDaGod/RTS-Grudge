@@ -17,9 +17,12 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 
-# Install deps first (layer cache)
+# Install deps first (layer cache). Pin npm 11 so the build consumes the
+# package-lock.json the same way it's generated locally (node 22 / npm 11).
+# node:20-alpine ships npm 10, which rejects npm-11 lockfiles (it demands
+# deduped nested esbuild@0.28.x entries that npm 11 omits) -> "npm ci" EUSAGE.
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm install -g npm@11 && npm ci
 
 # Copy source + all assets needed for the Vite build
 # client/public/ contains models, icons, fonts, sounds — Vite copies
@@ -37,9 +40,9 @@ RUN npm run build
 FROM node:20-alpine
 WORKDIR /app
 
-# Only production deps
+# Only production deps (same npm 11 pin as the build stage)
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+RUN npm install -g npm@11 && npm ci --omit=dev && npm cache clean --force
 
 # Built output: server bundle + client SPA (including all static assets)
 COPY --from=build /app/dist ./dist
