@@ -10,7 +10,8 @@
     "check": "tsc",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "grok": "tsx scripts/grok-orchestrate.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1051.0",
@@ -67,6 +68,9 @@
   },
   "devDependencies": {
     "@aws-sdk/lib-storage": "^3.1057.0",
+    "@gltf-transform/core": "^4.4.0",
+    "@gltf-transform/extensions": "^4.4.0",
+    "@gltf-transform/functions": "^4.4.0",
     "@tailwindcss/typography": "^0.5.19",
     "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.19",
@@ -78,9 +82,12 @@
     "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.5.0",
     "cross-env": "^10.1.0",
+    "draco3dgltf": "^1.5.7",
     "drizzle-kit": "^0.31.10",
     "esbuild": "^0.25.0",
+    "fbx2gltf": "^0.9.7",
     "gltf-pipeline": "^4.3.1",
+    "meshoptimizer": "^0.20.0",
     "postcss": "^8.4.47",
     "sharp": "^0.34.5",
     "tailwindcss": "^3.4.19",
