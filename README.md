@@ -22,10 +22,11 @@
 11. [Weapon Prefabs & Object Storage](#weapon-prefabs--object-storage)
 12. [Skill Icons & Hotbar](#skill-icons--hotbar)
 13. [API Reference](#api-reference)
-14. [Routes](#routes)
-15. [Deployment](#deployment)
-16. [Environment Variables](#environment-variables)
-17. [Grudge Fleet](#grudge-fleet)
+14. [Asset Registry (D1 + R2)](#asset-registry-d1--r2)
+15. [Routes](#routes)
+16. [Deployment](#deployment)
+17. [Environment Variables](#environment-variables)
+18. [Grudge Fleet](#grudge-fleet)
 
 ---
 
@@ -666,6 +667,10 @@ GET    /api/assets/armor         List all armor prefab metadata
 GET    /api/assets/icons/:type   Get icon CDN URLs for item type
 ```
 
+> These Express prefab-metadata routes are distinct from the D1-backed
+> [Asset Registry](#asset-registry-d1--r2) at `api.grudge-studio.com/assets*`,
+> which catalogues every raw model / texture / audio file stored in R2.
+
 ### WebSocket Events
 
 Connect to `wss://client.grudge-studio.com/ws`:
@@ -680,6 +685,139 @@ Connect to `wss://client.grudge-studio.com/ws`:
 { "type": "player_position",    "x": 0, "z": -5 }
 { "type": "enemy_kill",         "enemyId": "e_001", "position": [x, y, z] }
 ```
+
+---
+
+## Asset Registry (D1 + R2)
+
+The canonical catalogue of every 3D model, texture, animation, and audio file is a
+**Cloudflare D1** database (`grudge-assets-db`) served by the **`asset-api`** Worker.
+Binary files live in **R2** (`grudge-assets`) and are served by the **`r2-cdn`** Worker
+at `assets.grudge-studio.com`; game-data JSON lives in R2 (`grudge-gamedata`).
+
+> **Base URL:** `https://api.grudge-studio.com` · **Source:** `workers/asset-api/` · **Schema:** `workers/asset-api/schema.sql`
+
+### D1 Schema — `asset_registry`
+
+```sql
+CREATE TABLE asset_registry (
+  id              TEXT PRIMARY KEY,      -- derived from r2_key, e.g. "models_grudge6_races_BRB_Characters_fbx"
+  name            TEXT NOT NULL,         -- file stem, e.g. "BRB_Characters"
+  category        TEXT NOT NULL,         -- see Categories below
+  r2_key          TEXT NOT NULL UNIQUE,  -- R2 object key, e.g. "models/grudge6/races/BRB_Characters.fbx"
+  bone_map        TEXT,                  -- "mixamo" | "kaykit" | "bip001" | null
+  animation_packs TEXT,                  -- JSON: { animationPacks, grudgeUuid, metadata }
+  grudge_uuid     TEXT,                  -- deterministic UUID, promoted from JSON for indexed lookup
+  file_size       INTEGER,               -- bytes
+  updated_at      INTEGER NOT NULL,      -- epoch ms
+  created_at      INTEGER NOT NULL       -- epoch ms
+);
+
+CREATE INDEX idx_asset_category ON asset_registry (category);
+CREATE INDEX idx_asset_updated  ON asset_registry (updated_at);
+CREATE INDEX idx_asset_uuid     ON asset_registry (grudge_uuid);
+```
+
+- **`id`** and **`grudge_uuid`** are both deterministic, derived from `r2_key`, so re-uploading the same file never orphans references. `grudge_uuid` = `sha1("grudge-asset:" + r2_key)` formatted as a UUID.
+- **`grudge_uuid`** is a dedicated **indexed** column (also mirrored inside the `animation_packs` JSON for back-compat). `GET /assets/uuid/:uuid` uses the index for a direct lookup and falls back to a JSON scan on pre-migration rows. `scripts/seed-d1.ts` runs an idempotent `ALTER TABLE … ADD COLUMN grudge_uuid` so existing databases migrate automatically.
+- A second table, **`gamedata_versions`** (`key`, `r2_key`, `checksum`, `synced_at`), tracks the last sync of each game-data JSON blob.
+
+### Categories
+
+`category` is derived from the asset's top-level folder (`detectSourceSet` in `scripts/lib/assetManifest.ts`). Valid values:
+
+`character` · `monster` · `weapon` · `animation` · `spell` · `item` · `terrain` · `building` · `environment` · `texture` · `audio` · `font` · `asset`
+
+| Source folder(s) | Category |
+|---|---|
+| `models/characters`, `models/grudge6/races`, `models/grudge6/*_Characters` | `character` |
+| `models/monsters`, `models/enemies`, `models/wildlife`, `models/farm_animals` | `monster` |
+| `models/weapons`, `models/grudge6/**/equipment` | `weapon` |
+| `models/animations`, `models/grudge6/animations` | `animation` |
+| `models/structures`, `models/battle_towers`, `models/orc_settlement`, `models/grudge6/siege` | `building` |
+| `models/spells` | `spell` |
+| `models/items`, `models/rpg_items` | `item` |
+| `models/modular_terrain`, `models/pirate_islands`, `models/tutorial_island` | `terrain` |
+| `textures/` → `texture`, `sounds/` → `audio`, `fonts/` → `font`, `icons/` & `images/` → `asset` | — |
+
+Unmatched `models/*` folders fall back to `environment`.
+
+### Endpoints
+
+```
+GET    /                       Health — { service, status, totalAssets, endpoints }
+GET    /assets?limit&offset    List assets       (limit default 100, max 500)
+GET    /assets/:id             Get asset by id
+GET    /assets/uuid/:uuid      Get asset by grudge_uuid (indexed)
+GET    /assets/category/:cat   List assets in a category (limit default 200, max 500)
+GET    /gamedata/:key          Game-data JSON — key ∈ weapons|skills|materials|equipment|armor|consumables
+POST   /assets                 Upsert an asset    (admin)
+DELETE /assets/:id             Delete an asset    (admin)
+```
+
+#### Example — `GET /assets/uuid/:uuid`
+
+```json
+{
+  "id": "models_grudge6_races_BRB_Characters_fbx",
+  "grudgeUuid": "a1b2c3d4-...",
+  "name": "BRB_Characters",
+  "category": "character",
+  "r2Key": "models/grudge6/races/BRB_Characters.fbx",
+  "cdnUrl": "https://assets.grudge-studio.com/models/grudge6/races/BRB_Characters.fbx",
+  "boneMap": "bip001",
+  "animationPacks": ["glocomotion", "glocomotion_combat", "gestures_basic"],
+  "fileSize": 1042704,
+  "sourceSet": "grudge6",
+  "format": "fbx",
+  "mimeType": "application/octet-stream",
+  "scaleProfile": "humanoid_relative_to_2m",
+  "supportedSkeletons": ["bip001"],
+  "weaponType": null,
+  "updatedAt": 1781475937869,
+  "createdAt": 1781475937869
+}
+```
+
+### Write authentication
+
+`POST` and `DELETE` require an admin token (bypassed when `ENVIRONMENT !== "production"`):
+
+```
+X-Admin-Token: <GRUDGE_ADMIN_TOKEN>
+# or
+Authorization: Bearer <GRUDGE_ADMIN_TOKEN>
+```
+
+On upsert, `id` must match `^[A-Za-z0-9_-]{6,64}$` and the request body is capped at **128 KB**.
+
+### Asset CDN — `assets.grudge-studio.com`
+
+The `r2-cdn` Worker (`workers/r2-cdn/`) serves raw R2 objects with permissive CORS, correct MIME types, `ETag`, and `HEAD` support. Cache policy:
+
+- Honors each object's stored `Cache-Control` (set at upload time).
+- Otherwise: `public, max-age=31536000, immutable` for version-pinned `/v1/` paths, and `public, max-age=86400` for everything else.
+
+### Asset Pipeline (upload → seed → deploy)
+
+```bash
+# 1. Upload binaries to R2 (idempotent — skips unchanged files via md5/ETag)
+npx tsx scripts/upload-to-r2.ts [--dry-run] [--category <name>]
+
+# 2. Seed D1 from dist/asset-manifest.json (auto-migrates + upserts in batches of 100)
+npx tsx scripts/seed-d1.ts [--dry-run]
+
+# 3. Ship the asset-api Worker
+npx wrangler deploy
+```
+
+| Resource | Name | Purpose |
+|---|---|---|
+| D1 database | `grudge-assets-db` | `asset_registry` + `gamedata_versions` |
+| R2 bucket | `grudge-assets` | Binary assets (GLB/GLTF/FBX, textures, audio, fonts) |
+| R2 bucket | `grudge-gamedata` | Game-data JSON (weapons, skills, …) |
+| Worker | `asset-api` | `api.grudge-studio.com/assets*`, `/gamedata*` |
+| Worker | `r2-cdn` | `assets.grudge-studio.com/*` |
 
 ---
 
