@@ -66,7 +66,8 @@ export async function getOrCreateWallet(
     chain: CROSSMINT_CHAIN,
     custodialId,
     provider: "crossmint",
-  }).onDuplicateKeyUpdate({
+  }).onConflictDoUpdate({
+    target: playerWallets.playerId,
     set: { address, custodialId },
   });
 

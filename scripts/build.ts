@@ -12,7 +12,6 @@ const allowlist = [
   "express",
   "express-rate-limit",
   "helmet",
-  "mysql2",
   "nanoid",
   "socket.io-client",
   "zod",

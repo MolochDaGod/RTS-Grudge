@@ -47,7 +47,8 @@ async function upsertInventory(
     playerId,
     items: items as any,
     version: 1,
-  }).onDuplicateKeyUpdate({
+  }).onConflictDoUpdate({
+    target: playerInventory.playerId,
     set: {
       items: items as any,
       version: sql`${playerInventory.version} + 1`,

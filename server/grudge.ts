@@ -75,7 +75,8 @@ export async function syncObjectStore() {
             stats: item.stats || {}, abilities: item.abilities || [],
             passive: item.passives || [], lore: item.lore || null,
             spritePath: item.spritePath || null, grudgeType: item.grudgeType || "item",
-          }).onDuplicateKeyUpdate({
+          }).onConflictDoUpdate({
+            target: weaponData.id,
             set: {
               name: item.name, stats: item.stats || {},
               abilities: item.abilities || [], passive: item.passives || [],
@@ -98,7 +99,8 @@ export async function syncObjectStore() {
             id: skill.id, name: skill.name, weaponType: wType,
             cooldown: skill.cooldown || "0s", manaCost: skill.mana || 0,
             description: skill.desc || null, grudgeType: skill.grudgeType || "ability",
-          }).onDuplicateKeyUpdate({
+          }).onConflictDoUpdate({
+            target: skillData.id,
             set: {
               name: skill.name, cooldown: skill.cooldown || "0s",
               manaCost: skill.mana || 0, description: skill.desc || null,
@@ -120,7 +122,8 @@ export async function syncObjectStore() {
             id: mat.id, name: mat.name, category: catKey,
             tier: mat.tier || 0, gatheredBy: mat.gatheredBy || null,
             grudgeType: mat.grudgeType || "material",
-          }).onDuplicateKeyUpdate({
+          }).onConflictDoUpdate({
+            target: materialData.id,
             set: { name: mat.name, tier: mat.tier || 0, gatheredBy: mat.gatheredBy || null },
           });
           results.materials++;
@@ -140,7 +143,7 @@ export async function syncObjectStore() {
       ];
       for (const e of entries) {
         await db.insert(equipmentConfig).values({ key: e.key, value: e.value })
-          .onDuplicateKeyUpdate({ set: { value: e.value } });
+          .onConflictDoUpdate({ target: equipmentConfig.key, set: { value: e.value } });
       }
       results.equipment = true;
     }
@@ -165,7 +168,8 @@ export async function syncObjectStore() {
             proc: item.proc || null, setBonus: item.setBonus || null,
             lore: item.lore || null, spritePath: item.spritePath || null,
             grudgeType: item.grudgeType || "equipment",
-          }).onDuplicateKeyUpdate({
+          }).onConflictDoUpdate({
+            target: armorData.id,
             set: {
               name: item.name, armorSet: derivedSet, type: item.type || null,
               material: item.material || matKey, attribute: item.attribute || null,
@@ -193,7 +197,8 @@ export async function syncObjectStore() {
             lvl: item.lvl || 1, icon: item.icon || null,
             mats: item.mats || {}, stats: item.stats || {},
             description: item.desc || null, grudgeType: item.grudgeType || "consumable",
-          }).onDuplicateKeyUpdate({
+          }).onConflictDoUpdate({
+            target: consumableData.id,
             set: {
               name: item.name, lvl: item.lvl || 1, icon: item.icon || null,
               mats: item.mats || {}, stats: item.stats || {},
@@ -224,7 +229,8 @@ export async function registerAsset(asset: {
       localPath: asset.localPath || null, cdnUrl: asset.cdnUrl || null,
       format: asset.format || "glb", metadata: asset.metadata || {},
       boneMap: asset.boneMap || {}, animationPack: asset.animationPack || null,
-    }).onDuplicateKeyUpdate({
+    }).onConflictDoUpdate({
+      target: assetRegistry.id,
       set: {
         name: asset.name, localPath: asset.localPath || null,
         cdnUrl: asset.cdnUrl || null, format: asset.format || "glb",

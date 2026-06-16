@@ -134,8 +134,9 @@ export async function deleteCharacter(
     .where(and(
       eq(playerCharacters.playerId, playerId),
       eq(playerCharacters.characterId, characterId),
-    ));
-  return (result[0] as any)?.affectedRows > 0;
+    ))
+    .returning({ characterId: playerCharacters.characterId });
+  return result.length > 0;
 }
 
 // ── Activate ─────────────────────────────────────────────────────────────────

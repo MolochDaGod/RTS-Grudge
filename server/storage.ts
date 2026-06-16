@@ -31,7 +31,7 @@ export class DbStorage implements IStorage {
 
   async setItem(key: string, value: string): Promise<void> {
     await db.insert(kvStore).values({ key, value })
-      .onDuplicateKeyUpdate({ set: { value } });
+      .onConflictDoUpdate({ target: kvStore.key, set: { value } });
   }
 
   async getItem(key: string): Promise<string | null> {

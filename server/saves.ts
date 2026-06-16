@@ -63,7 +63,8 @@ export async function upsertSave(
     playSeconds: input.playSeconds ?? 0,
     saveData: input.saveData,
     version: 1,
-  }).onDuplicateKeyUpdate({
+  }).onConflictDoUpdate({
+    target: [gameSaves.playerId, gameSaves.slot],
     set: {
       characterId: input.characterId ?? null,
       characterName: input.characterName ?? null,
@@ -83,6 +84,7 @@ export async function upsertSave(
 
 export async function deleteSave(playerId: string, slot: number): Promise<boolean> {
   const result = await db.delete(gameSaves)
-    .where(and(eq(gameSaves.playerId, playerId), eq(gameSaves.slot, slot)));
-  return (result[0] as any)?.affectedRows > 0;
+    .where(and(eq(gameSaves.playerId, playerId), eq(gameSaves.slot, slot)))
+    .returning({ slot: gameSaves.slot });
+  return result.length > 0;
 }

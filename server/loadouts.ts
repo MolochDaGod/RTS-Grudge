@@ -36,7 +36,8 @@ export async function upsertLoadout(
     characterId,
     loadoutData: input.loadoutData,
     version: 1,
-  }).onDuplicateKeyUpdate({
+  }).onConflictDoUpdate({
+    target: [playerLoadouts.playerId, playerLoadouts.characterId],
     set: {
       loadoutData: input.loadoutData,
       version: sql`${playerLoadouts.version} + 1`,
@@ -53,6 +54,7 @@ export async function deleteLoadout(
   characterId: string,
 ): Promise<boolean> {
   const result = await db.delete(playerLoadouts)
-    .where(and(eq(playerLoadouts.playerId, playerId), eq(playerLoadouts.characterId, characterId)));
-  return (result[0] as any)?.affectedRows > 0;
+    .where(and(eq(playerLoadouts.playerId, playerId), eq(playerLoadouts.characterId, characterId)))
+    .returning({ characterId: playerLoadouts.characterId });
+  return result.length > 0;
 }
