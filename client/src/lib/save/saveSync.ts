@@ -8,6 +8,7 @@ import { usePets } from "@/lib/stores/usePets";
 import { useBuildingStorage } from "@/lib/stores/useBuildingStorage";
 import { useGame } from "@/lib/stores/useGame";
 import { getPlayerId } from "./playerId";
+import { deriveSaveIdentity } from "./saveIdentity";
 
 /**
  * Pulls plain-data fields out of every store we care about and bundles them
@@ -55,6 +56,16 @@ export interface GameSnapshot {
     inTutorialIsland: boolean;
     spawnX?: number;
     spawnZ?: number;
+  };
+  /**
+   * Active grudge6 character identity (cross-game UUID + display name + race).
+   * Added with the grudge6 UUID integration so a save record ties back to its
+   * /api/characters entry. Optional — absent in pre-integration / legacy saves.
+   */
+  character?: {
+    serverCharacterId: string | null;
+    name: string | null;
+    race: string | null;
   };
 }
 
@@ -108,6 +119,17 @@ export function snapshotGame(): GameSnapshot {
         inTutorialIsland: !!gm.inTutorialIsland,
         spawnX: (gm as any).playerPosition?.x,
         spawnZ: (gm as any).playerPosition?.z,
+      };
+    })(),
+    // Active grudge6 character identity — lets the save record map back to the
+    // /api/characters UUID (and show the real hero name) instead of the local
+    // "hero" stats key. Sourced from the launched CharacterConfig.
+    character: (() => {
+      const cfg = useGame.getState().selectedCharacter;
+      return {
+        serverCharacterId: cfg.serverCharacterId ?? null,
+        name: cfg.name ?? null,
+        race: cfg.race ?? null,
       };
     })(),
   };
@@ -198,17 +220,16 @@ export interface SaveRecord extends SaveSummary {
   save_data: GameSnapshot;
 }
 
-function activeHeroSummary(snap: GameSnapshot) {
-  const sv = snap.survival;
-  const heroes = snap.characterStats.heroes as Record<string, any>;
-  const id = sv.activeCharacterId || Object.keys(heroes)[0] || null;
-  const hero = id ? heroes[id] : null;
-  return {
-    characterId: id,
-    characterName: id ?? null,
-    characterClass: hero?.heroClass ?? null,
-    level: hero?.level ?? 1,
-  };
+// Derives the save-record metadata (character_id / name / class / race / level)
+// from a snapshot. Prefers the grudge6 cross-game UUID so each save maps back
+// to its /api/characters entry; the heavy lifting lives in the dependency-free
+// `saveIdentity` module so it can be unit-tested without the store graph.
+export function activeHeroSummary(snap: GameSnapshot) {
+  return deriveSaveIdentity({
+    activeCharacterId: snap.survival.activeCharacterId,
+    heroes: snap.characterStats.heroes as Record<string, any>,
+    identity: snap.character ?? null,
+  });
 }
 
 export async function listSavesRemote(): Promise<SaveSummary[]> {

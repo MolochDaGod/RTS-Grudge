@@ -63,6 +63,17 @@ export interface MaterialColors {
 
 export interface CharacterConfig {
   characterId: string;
+  /**
+   * grudge6 / grudge-studio cross-game character UUID (the `character_id`
+   * returned by /api/characters). Distinct from `characterId`, which stays the
+   * local stats/model key ("hero") that keys `useCharacterStats.heroes`,
+   * `addXP`, and weapon-offset persistence. Carried into the session so saves
+   * and other game modes can tie back to the chosen grudge6 character. Null for
+   * guests / the default character.
+   */
+  serverCharacterId?: string | null;
+  /** grudge6 race id (human, barbarian, elf, dwarf, orc, undead, worge…). */
+  race?: string | null;
   modelPath: string;
   name: string;
   scale: number;

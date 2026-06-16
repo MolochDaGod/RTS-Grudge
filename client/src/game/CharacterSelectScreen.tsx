@@ -1760,6 +1760,11 @@ export default function CharacterSelectScreen() {
       arrowModelId: arrowModelId || undefined,
       backAccessoryId: backAccessoryId || undefined,
       faction: getFactionForModel(currentModelPath),
+      // grudge6 cross-game identity: carry the active character's UUID + race
+      // into the session so saves tie back to /api/characters (not the local
+      // "hero" stats key). Null for guests / unsaved heroes.
+      serverCharacterId: activeServerCharId.current ?? charAPI.active?.character_id ?? null,
+      race: charAPI.active?.race ?? null,
       worgeFormModelPath,
     };
     // Build the active hero from the selected grudge-studio character's race +
