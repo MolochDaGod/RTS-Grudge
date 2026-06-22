@@ -538,6 +538,20 @@ export const ITEM_MODELS: Record<string, { path: string; defaultScale: number }>
   potion_small_red:    { path: `${S}/potionSmall_red.glb`,         defaultScale: 0.35 },
   potion_small_blue:   { path: `${S}/potionSmall_blue.glb`,        defaultScale: 0.35 },
   potion_small_green:  { path: `${S}/potionSmall_green.glb`,       defaultScale: 0.35 },
+  // Grudge skill-tree pack — tools, recipes, props, skill emblems
+  tool_axe:                  { path: `${ST}/Axe.glb`,                  defaultScale: 0.9 },
+  tool_builder_hammer:         { path: `${ST}/Builder_Hammer.glb`,       defaultScale: 0.8 },
+  tool_repair_hammer:        { path: `${ST}/Repair_Hammer.glb`,        defaultScale: 0.8 },
+  tool_shovel:                 { path: `${ST}/Shovel_Land_Editor.glb`,   defaultScale: 1.0 },
+  tool_torch:                  { path: `${ST}/Torch.glb`,                defaultScale: 0.7 },
+  tool_torch_burnt:            { path: `${ST}/Torch_Burnt.glb`,          defaultScale: 0.7 },
+  tool_wand:                   { path: `${ST}/Wand.glb`,                 defaultScale: 0.5 },
+  recipe_scroll:               { path: `${ST}/Recipe.glb`,               defaultScale: 0.3 },
+  recipe_rolled:               { path: `${ST}/Recipe_Rolled.glb`,        defaultScale: 0.3 },
+  rope_bundle:                 { path: `${ST}/Rope_Bundle_A.glb`,        defaultScale: 0.4 },
+  skill_emblem_cooking:        { path: `${ST}/Cooking.glb`,              defaultScale: 0.6 },
+  skill_emblem_engineering:    { path: `${ST}/Engineering.glb`,          defaultScale: 0.6 },
+  skill_emblem_mining:         { path: `${ST}/Mining.glb`,               defaultScale: 0.6 },
 };
 
 /** Reward chest models by tier, with separate lid pieces for open state. */
