@@ -245,7 +245,7 @@ async function main() {
       totalIn += inBytes;
       totalOut += outBytes;
       okCount++;
-      cache[rel] = inHash;
+      cache[rel] = IN_PLACE ? md5(outFile) : inHash;
       report.push({ file: rel, codec, inBytes, outBytes, savingsPct, stats, lods: lods.length ? lods : undefined, status: "ok" });
       console.log(
         `  ✓ ${rel}  ${codec}  ${fmtKB(inBytes)} → ${fmtKB(outBytes)}  (${savingsPct.toFixed(1)}% smaller)${lods.length ? `  +${lods.length} LOD` : ""}`,
