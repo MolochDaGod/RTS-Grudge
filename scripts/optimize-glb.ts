@@ -230,6 +230,7 @@ async function main() {
               prune(),
               simplify({ simplifier: MeshoptSimplifier, ratio, error: 0.001 }),
               join(),
+              texFn,
               draco({ method: "edgebreaker" }),
             );
             const lodOut = path.join(path.dirname(outFile), `${tag}-${path.basename(outFile)}`);
