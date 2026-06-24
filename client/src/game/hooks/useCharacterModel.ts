@@ -3,7 +3,7 @@ import * as THREE from "three";
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils.js";
 import { useAsset } from "./useAsset";
 import { getSharedLoader } from "../systems/AssetLoader";
-import { RIGHT_HAND_ALIASES, LEFT_HAND_ALIASES, HEAD_ALIASES, findBoneByAlias, retargetClips, captureRestPose, type RestPoseEntry } from "../systems/BoneAliases";
+import { RIGHT_HAND_ALIASES, LEFT_HAND_ALIASES, HEAD_ALIASES, findBoneByAlias, ensureBackSlotBone, retargetClips, captureRestPose, type RestPoseEntry } from "../systems/BoneAliases";
 import { normalizeCharacterHeight } from "../systems/BoundsUtils";
 import { ANIMATION_PACKS, type AnimationPackEntry } from "../systems/ModelRegistry";
 import type { WeaponType } from "@/lib/stores/useGame";
@@ -112,6 +112,7 @@ export type AnimationState =
   | "shuffle_back"
   | "shuffle_left"
   | "shuffle_right"
+  | "run_backward"
   // Reactive dodge played when the dodge/evasion stat avoids an incoming
   // hit. Triggered from useSurvival.takeDamage via emitDodgeProc().
   | "dodge_proc"
@@ -286,6 +287,10 @@ const CLIP_PATTERNS: Record<AnimationState, string[]> = {
   shuffle_back: ["shuffle_back", "ShuffleBack", "Standing_Dodge_Backward", "DodgeBackward", "step_back"],
   shuffle_left: ["shuffle_left", "ShuffleLeft", "Standing_Dodge_Left", "DodgeLeft", "step_left"],
   shuffle_right: ["shuffle_right", "ShuffleRight", "Standing_Dodge_Right", "DodgeRight", "step_right"],
+  run_backward: [
+    "run_backward", "Run_Backward", "run_back", "Run_Back", "Jog_Bwd_Loop",
+    "walking_backward", "Walk_Backward", "backpedal", "Swagger Walk", "Walk", "walking",
+  ],
   // Dodge proc — uses the Mixamo "Dodging_Back" clip we ship as
   // dodge_proc.glb; degrades to roll/jump if a character has neither.
   dodge_proc: ["dodge_proc", "DodgeProc", "Dodging_Back", "Dodge", "roll", "Roll"],
@@ -396,10 +401,12 @@ const SPEED_OVERRIDES: Partial<Record<AnimationState, number>> = {
   wheelbarrow_walk_back: 0.85,
   box_walk_arc: 0.9,
   holding_walk: 0.95,
+  run_backward: 1.35,
 };
 
 const FALLBACK_CHAIN: Partial<Record<AnimationState, AnimationState[]>> = {
   sprint: ["run", "walk"], walk: ["run", "idle"], run: ["walk", "sprint"],
+  run_backward: ["walk", "run", "sprint"],
   combo2: ["attack", "attack2"], combo3: ["attack", "combo2"], attack2: ["combo2", "attack"],
   fall: ["jump", "idle"], land: ["idle"], sneak: ["walk", "idle"],
   crouch_start: ["idle"], crouch_end: ["idle"],
@@ -583,7 +590,8 @@ const PACK_NAME_TO_STATE: Record<string, AnimationState> = {
   Melee_Hook: "attack", Yes: "victory",
   walk_crouch_forward: "sneak", walk_crouch_left: "sneak",
   walk_crouch_right: "sneak", walk_crouch_backward: "sneak",
-  run_backward: "run", sprint_left: "sprint", sprint_right: "sprint",
+  run_backward: "run_backward", sprint_backward: "run_backward", walking_backward: "run_backward",
+  sprint_left: "sprint", sprint_right: "sprint",
   jump_loop: "fall", jump_down: "land",
 
   // GLocomotion (Mixamo locomotion pack — flat clip names)
@@ -961,6 +969,8 @@ export function useCharacterModel({
     });
 
     normalizeCharacterHeight(cloned, targetHeight);
+
+    ensureBackSlotBone(cloned);
 
     rightHandRef.current = findBoneByAlias(cloned, RIGHT_HAND_ALIASES);
     leftHandRef.current = findBoneByAlias(cloned, LEFT_HAND_ALIASES);

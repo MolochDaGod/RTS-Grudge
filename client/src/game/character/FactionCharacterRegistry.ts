@@ -49,6 +49,8 @@ export const BONE_CONTAINERS = {
   rightHand:  "R_hand_container",
   leftHand:   "L_hand_container",
   leftShield: "L_shield_container",
+  /** Sheathed weapons / generic back-slot items (NOT bag/wood/quiver). */
+  backSlot:   "Back_slot_container",
   bag:        "Bone_bag",
   wood:       "Bone_wood",
   quiver:     "Quiver_container",

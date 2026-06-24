@@ -20,9 +20,10 @@ import {
   UPPER_ARM_R_ALIASES, UPPER_ARM_L_ALIASES,
   FOREARM_R_ALIASES, FOREARM_L_ALIASES,
   SHOULDER_R_ALIASES, SHOULDER_L_ALIASES,
-  HEAD_ALIASES, SPINE2_ALIASES,
+  HEAD_ALIASES,
   RIGHT_FOOT_ALIASES, LEFT_FOOT_ALIASES,
   findBoneByAlias, findBoneByAliasFromList, findBoneNameByAlias,
+  resolveAttachmentBone, ensureBackSlotBone,
   retargetClips,
 } from "./systems/BoneAliases";
 import { useSurvival } from "@/lib/stores/useSurvival";
@@ -925,7 +926,9 @@ function CharacterPreview({
   // bone-search + load + cleanup pattern as `Player.tsx`.
   useEffect(() => {
     if (!cloned) return;
-    const backBone = findBoneByAlias(cloned, SPINE2_ALIASES);
+    ensureBackSlotBone(cloned);
+    const isQuiver = !!backAccessoryId && (backAccessoryId.includes("arrow") || backAccessoryId.includes("quiver"));
+    const backBone = resolveAttachmentBone(cloned, isQuiver ? "quiver" : "backAccessory");
     if (!backBone) return;
 
     const ACCESSORY_NAME_PREFIX = "back_accessory_";

@@ -24,6 +24,7 @@
   "use strict";
 
   var ID_SERVICE    = "https://id.grudge-studio.com";
+  var AUTH_PAGE     = ID_SERVICE + "/api/auth/page";
   var TOKEN_KEY     = "grudge.token";
   var TOKEN_EXP_KEY = "grudge.token.exp";
   var PLAYER_ID_KEY = "grudge.playerId";
@@ -154,7 +155,7 @@
     if (token || puterUuid) return false; // authenticated
     // Not authenticated, redirect to Grudge ID
     var ret = encodeURIComponent(window.location.href);
-    window.location.href = ID_SERVICE + "/auth/login?redirect=" + ret + "&reason=protected_route";
+    window.location.href = AUTH_PAGE + "?redirect=" + ret + "&reason=protected_route";
     return true;
   }
 
@@ -177,7 +178,7 @@
     /** Redirect to id.grudge-studio.com login */
     redirectToLogin: function(returnUrl, reason) {
       var ret = returnUrl || window.location.href;
-      var url = ID_SERVICE + "/auth/login?redirect=" + encodeURIComponent(ret);
+      var url = AUTH_PAGE + "?redirect=" + encodeURIComponent(ret);
       if (reason) url += "&reason=" + encodeURIComponent(reason);
       window.location.href = url;
     },

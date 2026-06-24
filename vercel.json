@@ -9,10 +9,6 @@
       "dest": "https://api.grudge-studio.com/api/$1"
     },
     {
-      "src": "/auth/(.*)",
-      "dest": "https://id.grudge-studio.com/auth/$1"
-    },
-    {
       "src": "/socket.io/(.*)",
       "dest": "https://ws.grudge-studio.com/socket.io/$1"
     },

@@ -143,6 +143,8 @@ const BRB_BASE_PACK: AnimationPackEntry = {
     { name: "walk",                  file: "Swagger Walk.glb" },
     { name: "run",                   file: "Swagger Walk.glb" },        // TODO: proper run clip
     { name: "sprint",                file: "Swagger Walk.glb" },        // TODO: proper sprint clip
+    { name: "run_backward",          file: "Swagger Walk.glb" },        // backpedal — body faces camera
+    { name: "block",                 file: "Crouch Idle.glb" },       // guard pose until dedicated block clip
     // ── Jumping / airborne ──
     { name: "jump",                  file: "Kick.glb" },                // upward burst → kick serves as placeholder
     { name: "fall",                  file: "Disarmed.glb" },            // arms-out pose reads as falling
@@ -278,6 +280,8 @@ export const ANIMATION_PACKS: AnimationPackEntry[] = [
       { name: "walk",               file: "walking.glb" },
       { name: "run",                file: "running.glb" },
       { name: "sprint",             file: "running.glb" },
+      { name: "run_backward",       file: "walking.glb" },
+      { name: "block",              file: "idle.glb" },
       { name: "jump",               file: "jump.glb" },
       { name: "turn_left",          file: "left_turn.glb" },
       { name: "turn_right",         file: "right_turn.glb" },

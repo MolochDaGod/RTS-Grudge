@@ -3,7 +3,8 @@ import type { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { computeSkinnedBounds } from "./BoundsUtils";
 import {
   RIGHT_HAND_ALIASES, LEFT_HAND_ALIASES,
-  HEAD_ALIASES, SPINE2_ALIASES, CHEST_ALIASES,
+  HEAD_ALIASES, BACK_SLOT_ALIASES, CHEST_ALIASES,
+  resolveAttachmentBone, ensureBackSlotBone,
   RIGHT_FOOT_ALIASES, LEFT_FOOT_ALIASES,
   HIPS_ALIASES, SPINE_ALIASES,
   findBoneByAlias, findBoneNameByAlias,
@@ -85,7 +86,7 @@ const SOCKET_BONE_PRIORITY: Record<SocketName, string[]> = {
   rightHand: RIGHT_HAND_ALIASES,
   leftHand: LEFT_HAND_ALIASES,
   head: HEAD_ALIASES,
-  back: SPINE2_ALIASES,
+  back: BACK_SLOT_ALIASES,
   chest: CHEST_ALIASES,
   rightFoot: RIGHT_FOOT_ALIASES,
   leftFoot: LEFT_FOOT_ALIASES,
@@ -202,9 +203,12 @@ function enableShadows(scene: THREE.Object3D): void {
 
 function buildSockets(scene: THREE.Object3D): Map<SocketName, AttachmentSocket> {
   const sockets = new Map<SocketName, AttachmentSocket>();
+  ensureBackSlotBone(scene);
 
   for (const [socketName, aliases] of Object.entries(SOCKET_BONE_PRIORITY)) {
-    const bone = findBoneByAlias(scene, aliases);
+    const bone = socketName === "back"
+      ? resolveAttachmentBone(scene, "backWeapon")
+      : findBoneByAlias(scene, aliases);
     if (bone) {
       const offset = socketName === "back" ? BACK_SOCKET_OFFSET.clone() : new THREE.Vector3(0, 0, 0);
       const rotation = socketName === "back" ? BACK_SOCKET_ROTATION.clone() : new THREE.Euler(0, 0, 0);

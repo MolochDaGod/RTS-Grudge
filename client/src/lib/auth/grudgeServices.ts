@@ -72,6 +72,15 @@ export const ASSETS_URL = trimTrailingSlash(
 export const ACCOUNT_URL = `${GRUDGE_ID_URL}/account`;
 
 /**
+ * Relative auth API prefix — Vercel rewrites `/api/auth/*` → api.grudge-studio.com.
+ * Use for session verify, refresh, and exchange (never hard-code id. host for these).
+ */
+export const AUTH_API = "/api/auth";
+
+/** Fleet-standard hosted sign-in page (popup + full redirect). */
+export const AUTH_PAGE_URL = `${GRUDGE_ID_URL}/api/auth/page`;
+
+/**
  * Bundle of every service URL, useful for diagnostics dumps and the
  * /admin debug panel.
  */

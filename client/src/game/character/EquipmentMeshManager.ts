@@ -25,6 +25,7 @@ import {
   type SlotDefinition,
   type BoneContainerKey,
 } from "./FactionCharacterRegistry";
+import { resolveAttachmentBone, ensureBackSlotBone } from "../systems/BoneAliases";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -93,9 +94,18 @@ export class EquipmentMeshManager {
     this.equipped.clear();
     this.allMeshes = [];
 
-    // Discover bone containers
+    // Synthesize Back_slot_container on rigs that only ship utility bones.
+    ensureBackSlotBone(root);
+
+    // Discover bone containers (Bip001 + Mixamo-safe fallbacks)
     for (const [key, boneName] of Object.entries(BONE_CONTAINERS)) {
-      const bone = root.getObjectByName(boneName) ?? null;
+      let bone = root.getObjectByName(boneName) ?? null;
+      if (!bone) {
+        if (key === "backSlot") bone = resolveAttachmentBone(root, "backWeapon");
+        else if (key === "quiver") bone = resolveAttachmentBone(root, "quiver");
+        else if (key === "bag") bone = resolveAttachmentBone(root, "bag");
+        else if (key === "wood") bone = resolveAttachmentBone(root, "wood");
+      }
       if (bone) this.bones[key as BoneContainerKey] = bone;
     }
 

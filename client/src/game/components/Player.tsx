@@ -72,9 +72,17 @@ import {
   detectSkeletonType,
   buildWeaponGripData, cleanWeaponsFromBone, applyWeaponTransformToBone, getWeaponBaseUserData,
   type GripTransform,
-  findBoneByAlias, SPINE2_ALIASES,
+  findBoneByAlias, resolveAttachmentBone,
   getWeaponReach,
 } from "@/game/systems/BoneAliases";
+
+/** Shortest-path Y rotation lerp — prevents snap spins on sprint backpedal. */
+function smoothFaceY(current: number, target: number, dt: number, rate = 14): number {
+  let delta = target - current;
+  while (delta > Math.PI) delta -= 2 * Math.PI;
+  while (delta < -Math.PI) delta += 2 * Math.PI;
+  return current + delta * Math.min(1, rate * dt);
+}
 import { getBackAccessoryModel } from "@/game/systems/ModelRegistry";
 import { loadAsset } from "@/game/systems/AssetLoader";
 import {
@@ -718,8 +726,8 @@ function PlayerModel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scene, rightHand, leftHand, selectedCharacter.weaponRight, selectedCharacter.weaponLeft, selectedCharacter.weaponModelRight, selectedCharacter.weaponModelLeft]);
 
-  // Attach back-strap accessories (e.g. quiver / arrow bag) to the spine bone
-  // looked up via `SPINE2_ALIASES`. Same lifecycle pattern as the hand-weapon
+  // Attach back accessories: quivers → Quiver_container, others → back slot.
+  // Never Bone_bag / Bone_wood (utility carry bones).
   // effect above: clear any existing accessory child, asynchronously load the
   // GLB, then add it to the bone — bailing out if either the character's
   // `backAccessoryId` changes mid-load (cancelled) or the bone vanishes
@@ -727,7 +735,8 @@ function PlayerModel({
   useEffect(() => {
     if (!scene) return;
     const accId = selectedCharacter.backAccessoryId;
-    const backBone = findBoneByAlias(scene, SPINE2_ALIASES);
+    const isQuiver = !!accId && (accId.includes("arrow") || accId.includes("quiver"));
+    const backBone = resolveAttachmentBone(scene, isQuiver ? "quiver" : "backAccessory");
     if (!backBone) return;
 
     const ACCESSORY_NAME_PREFIX = "back_accessory_";
@@ -2287,14 +2296,16 @@ function PlayerModel({
       ["gesture14", "gesture_no_shake"],
       ["gesture15", "gesture_weight_shift"],
     ];
+    const gestureAllowed =
+      isGrounded.current &&
+      !inWater &&
+      hitAnimTimer.current <= 0 &&
+      transitionLock.current <= 0 &&
+      !fidgetInFlight.current &&
+      (preInputState === "idle" || preInputState === "blocking");
+
     for (const [keyName, anim] of gestureMap) {
-      if (keys[keyName] && !prevKeys.current[keyName]
-          && hitAnimTimer.current <= 0
-          && transitionLock.current <= 0
-          && isGrounded.current
-          && !inWater
-          && preInputState === "idle"
-          && !fidgetInFlight.current) {
+      if (keys[keyName] && !prevKeys.current[keyName] && gestureAllowed) {
         fidgetInFlight.current = true;
         controller.triggerOverride(anim);
         // Reset the ambient idle-fidget timer so a manual emote doesn't
@@ -2960,8 +2971,15 @@ function PlayerModel({
         }
         setLinvel(desiredVx, liftVy, desiredVz);
 
-        const angle = Math.atan2(moveDir.x, moveDir.z);
-        modelRef.current.rotation.y = angle;
+        const backpedal = keys.backward && !keys.forward;
+        const velAngle = Math.atan2(moveDir.x, moveDir.z);
+        // Sprint and backpedal keep camera-facing so S+Shift never snaps 180°.
+        const faceAngle = (canSprint || backpedal) ? getCameraYaw() : velAngle;
+        modelRef.current.rotation.y = smoothFaceY(
+          modelRef.current.rotation.y,
+          faceAngle,
+          delta,
+        );
       } else if (currentCombatState === "idle" || currentCombatState === "blocking") {
         // Lighter explicit decel — friction now does most of the work
         // through real Rapier contacts. We still nudge horizontal velocity
@@ -2974,15 +2992,18 @@ function PlayerModel({
       if (hitAnimTimer.current <= 0 && transitionLock.current <= 0) {
         if (currentCombatState === "idle" || currentCombatState === "falling") {
           if (isGrounded.current) {
+            const backpedal = keys.backward && !keys.forward;
             if (canSprint) {
-              if (lastAnimPlayed.current !== "sprint") {
-                playAnimation("sprint");
-                lastAnimPlayed.current = "sprint";
+              const sprintAnim: AnimationState = backpedal ? "run_backward" : "sprint";
+              if (lastAnimPlayed.current !== sprintAnim) {
+                playAnimation(sprintAnim);
+                lastAnimPlayed.current = sprintAnim;
               }
             } else if (moving) {
-              if (lastAnimPlayed.current !== "run") {
-                playAnimation("run");
-                lastAnimPlayed.current = "run";
+              const moveAnim: AnimationState = backpedal ? "run_backward" : "run";
+              if (lastAnimPlayed.current !== moveAnim) {
+                playAnimation(moveAnim);
+                lastAnimPlayed.current = moveAnim;
               }
             } else {
               if (lastAnimPlayed.current !== "idle") {

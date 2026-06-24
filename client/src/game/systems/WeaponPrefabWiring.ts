@@ -71,13 +71,13 @@ export async function loadAndAttachPrefab(
   if (!prefab || !prefab.modelPath) return null;
 
   const boneKey = prefab.attach.bone;
-  const boneNames: Record<AttachBone, string> = {
-    rightHand: "R_hand_container",
-    leftHand: "L_hand_container",
-    leftShield: "L_shield_container",
-    back: "Bone_bag",
+  const boneKeys: Record<AttachBone, string> = {
+    rightHand: "rightHand",
+    leftHand: "leftHand",
+    leftShield: "leftShield",
+    back: "backSlot",
   };
-  const bone = bones[boneNames[boneKey]];
+  const bone = bones[boneKeys[boneKey]];
   if (!bone) {
     console.warn(`[WeaponPrefabWiring] Bone ${boneKey} not found for prefab ${prefabId}`);
     return null;

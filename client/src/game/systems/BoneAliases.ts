@@ -135,6 +135,101 @@ export const SPINE2_ALIASES = [
   "Bip01_Spine2", "Bip001_Spine2", "CC_Base_Spine02",
 ];
 
+/** Bip001 utility bones — bags only. Never attach weapons/quivers here. */
+export const BAG_ALIASES = ["Bone_bag", "bone_bag"];
+
+/** Bip001 lumber/wood carry bone. Never attach weapons here. */
+export const WOOD_ALIASES = ["Bone_wood", "bone_wood"];
+
+/** Bip001 arrow quiver bone. Never attach sheathed weapons here. */
+export const QUIVER_ALIASES = [
+  "Quiver_container", "quiver_container", "L_quiver_container",
+];
+
+/**
+ * Dedicated back-slot for sheathed 2H weapons and generic back items.
+ * Falls back to upper spine — never Bone_bag / Bone_wood / Quiver_container.
+ */
+export const BACK_SLOT_ALIASES = [
+  "Back_slot_container", "Back_container", "back_container",
+  "R_back_container", "weapon_back_container",
+  ...SPINE2_ALIASES,
+];
+
+export type AttachmentSlot = "backWeapon" | "backAccessory" | "quiver" | "bag" | "wood";
+
+const ATTACHMENT_SLOT_ALIASES: Record<AttachmentSlot, string[]> = {
+  backWeapon: BACK_SLOT_ALIASES,
+  backAccessory: BACK_SLOT_ALIASES,
+  quiver: QUIVER_ALIASES,
+  bag: BAG_ALIASES,
+  wood: WOOD_ALIASES,
+};
+
+function isUtilityBoneName(name: string): "bag" | "wood" | "quiver" | null {
+  const n = name.toLowerCase();
+  if (n.includes("bone_bag") || n === "bone_bag") return "bag";
+  if (n.includes("bone_wood") || n === "bone_wood") return "wood";
+  if (n.includes("quiver")) return "quiver";
+  return null;
+}
+
+/**
+ * Resolve the correct Bip001 attachment bone for a slot.
+ * Prevents bag/wood/quiver bones from being used for weapons or quivers.
+ */
+/** Local offset on upper spine when synthesizing `Back_slot_container`. */
+const BACK_SLOT_SYNTH_OFFSET = new THREE.Vector3(0, 0.1, -0.16);
+
+/**
+ * Ensure a dedicated back-slot attach point exists on Bip001 rigs.
+ * BRB race GLBs ship bag/wood/quiver bones but often omit `Back_slot_container`;
+ * we parent a named node to upper spine so sheathed weapons never land on utility bones.
+ */
+export function ensureBackSlotBone(root: THREE.Object3D): THREE.Object3D | null {
+  const dedicated = findBoneByAlias(root, [
+    "Back_slot_container", "Back_container", "back_container",
+    "R_back_container", "weapon_back_container",
+  ]);
+  if (dedicated) return dedicated;
+
+  const spine = findBoneByAlias(root, SPINE2_ALIASES);
+  if (!spine) return null;
+
+  const util = isUtilityBoneName(spine.name);
+  if (util) return null;
+
+  const slot = new THREE.Object3D();
+  slot.name = "Back_slot_container";
+  slot.position.copy(BACK_SLOT_SYNTH_OFFSET);
+  spine.add(slot);
+  slot.updateMatrixWorld(true);
+  return slot;
+}
+
+export function resolveAttachmentBone(
+  root: THREE.Object3D,
+  slot: AttachmentSlot,
+): THREE.Object3D | null {
+  if (slot === "backWeapon" || slot === "backAccessory") {
+    const back = ensureBackSlotBone(root)
+      ?? findBoneByAlias(root, BACK_SLOT_ALIASES.filter((a) => {
+        const lower = a.toLowerCase();
+        return !lower.includes("bag") && !lower.includes("wood") && !lower.includes("quiver");
+      }));
+    if (!back) return null;
+    return isUtilityBoneName(back.name) ? null : back;
+  }
+
+  const aliases = ATTACHMENT_SLOT_ALIASES[slot];
+  const found = findBoneByAlias(root, aliases);
+  if (!found) return null;
+
+  const util = isUtilityBoneName(found.name);
+  if (util && util !== slot) return null;
+  return found;
+}
+
 export const CHEST_ALIASES = [
   "Spine1", "mixamorigSpine1", "mixamorig:Spine1", "chest",
   "Spine2", "mixamorigSpine2", "mixamorig:Spine2",
