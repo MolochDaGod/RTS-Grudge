@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useSurvival } from "@/lib/stores/useSurvival";
 import { useInventory, CRAFT_RECIPES, SURVIVAL_BUILD_RECIPES, INVENTORY_EQUIP_MAP, type CraftCategory, type SurvivalBuildCategory, type SurvivalBuildRecipe } from "@/lib/stores/useInventory";
 import { useEquipment, SLOT_ORDER, TIER_INFO, CDN_BASE, type EquipSlot, type StatKey, type ActionSlot, type ItemTier } from "@/lib/stores/useEquipment";
@@ -27,6 +27,12 @@ import { useStorage } from "@/lib/stores/useStorage";
 import { useProfessions, PROFESSION_DEFS, type ProfessionId } from "@/lib/stores/useProfessions";
 import { getUnitIcon, getRacePortrait, getClassIcon, getProfessionIcon, type IconRace } from "@/lib/data/icons";
 import { FACTIONS_BY_ID } from "@/lib/data/factions";
+import {
+  buildWeaponSkillTiers,
+  resolveEquippedWeaponSkills,
+  TIER_COLORS as WEAPON_TIER_COLORS,
+  type WeaponSkillSource,
+} from "@/lib/data/weaponSkillTree";
 
 const AVAILABLE_ANIMATIONS = [
   { name: "skill1", label: "Skill 1", icon: "🔥", type: "skill" as const, cooldown: 3, key: "1" },
@@ -623,57 +629,161 @@ function ClassSkillsTabContent({ charId }: { charId: string | null }) {
   );
 }
 
-function WeaponSkillsTabContent({ charId }: { charId: string | null }) {
-  const hero = useCharacterStats(s => charId ? s.heroes[charId] : null);
-  const learnSkill = useCharacterStats(s => s.learnSkill);
-  const getSkillTree = useCharacterStats(s => s.getSkillTree);
+function WeaponSkillNodeCard({
+  name,
+  desc,
+  type,
+  locked,
+}: {
+  name: string;
+  desc: string;
+  type: "sig" | "ability" | "passive";
+  locked: boolean;
+}) {
+  const typeLabel = type === "sig" ? "SIGNATURE" : type === "passive" ? "PASSIVE" : "ABILITY";
+  const border =
+    type === "sig" ? "hsl(43 60% 35%)" : type === "passive" ? "hsla(140,50%,40%,0.35)" : "hsla(210,60%,45%,0.35)";
+  const nameColor = type === "sig" ? "#f0d890" : type === "passive" ? "#6ec96e" : "#f5e2c1";
+  const tagBg =
+    type === "sig" ? "rgba(212,168,75,0.15)" : type === "passive" ? "rgba(110,201,110,0.12)" : "rgba(74,158,255,0.12)";
+  const tagColor = type === "sig" ? "#d4a84b" : type === "passive" ? "#6ec96e" : "#4a9eff";
 
-  if (!charId || !hero) {
-    return <div style={{ color: "#9b7d52", textAlign: "center", padding: 40 }}>No character loaded</div>;
-  }
+  return (
+    <div style={{
+      minWidth: 150, flex: 1, maxWidth: 240, padding: "10px 12px", borderRadius: 8,
+      border: `1px solid ${border}`,
+      background: "linear-gradient(180deg, #221710, #1a120c)",
+      opacity: locked ? 0.45 : 1,
+    }}>
+      <span style={{
+        fontSize: 7, letterSpacing: "0.08em", padding: "2px 6px", borderRadius: 3,
+        display: "inline-block", marginBottom: 4, fontWeight: 700,
+        background: tagBg, color: tagColor,
+      }}>{typeLabel}</span>
+      <div style={{ fontSize: 11, fontWeight: 700, color: nameColor }}>{name}</div>
+      {desc ? <div style={{ fontSize: 9, color: "#9b7d52", marginTop: 3, lineHeight: 1.35 }}>{desc}</div> : null}
+    </div>
+  );
+}
 
-  const tree = getSkillTree(charId).filter(n => n.category === "weapon");
+function EquippedWeaponSkillTree({ weapon }: { weapon: WeaponSkillSource }) {
+  const tiers = buildWeaponSkillTiers(weapon);
+  const tierColor = WEAPON_TIER_COLORS[weapon.tier || 1] || "#d4a84b";
+  const iconUrl = weapon.iconUrl
+    ? (weapon.iconUrl.startsWith("http") ? weapon.iconUrl : `${GRUDGE_CDN}${weapon.iconUrl}`)
+    : null;
 
   return (
     <div>
-      <div style={{ fontSize: 11, color: "#9b7d52", marginBottom: 12 }}>
-        Skill Points: <span style={{ color: hero.skillPoints > 0 ? "#6ec96e" : "#9b7d52", fontFamily: f.mono, fontWeight: 700 }}>{hero.skillPoints}</span>
-      </div>
-      <SectionTitle>Weapon Mastery</SectionTitle>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 8 }}>
-        {tree.map(node => {
-          const rank = hero.skills[node.id] || 0;
-          const unlocked = rank > 0;
-          const canLearn = hero.skillPoints > 0 && rank < node.maxRank;
-          return (
-            <div key={node.id} onClick={() => canLearn && learnSkill(charId, node.id)}
-              style={{
-                display: "flex", gap: 8, padding: 10, cursor: canLearn ? "pointer" : "default",
-                background: unlocked ? "linear-gradient(135deg, #1a2810, #142008)" : "linear-gradient(135deg, #1e1710, #160f08)",
-                border: `1px solid ${unlocked ? "#4a7a30" : "#3a2a1a"}`, borderRadius: 10,
-                opacity: (!unlocked && !canLearn) ? 0.5 : 1, transition: ".15s",
-              }}>
-              <div style={{
-                width: 36, height: 36, borderRadius: 8, flexShrink: 0,
-                background: "radial-gradient(circle, rgba(212,164,0,.12), transparent)",
-                border: "1px solid #3a2a1a",
-                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18,
-              }}>{node.icon}</div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "#f5e2c1" }}>
-                  {node.name} <span style={{ fontFamily: f.mono, fontSize: 9, color: "#9b7d52" }}>{rank}/{node.maxRank}</span>
-                </div>
-                <div style={{ fontSize: 10, color: "#9b7d52", lineHeight: 1.3, marginTop: 2 }}>{node.description}</div>
-                <div style={{ display: "flex", gap: 4, marginTop: 5, flexWrap: "wrap" }}>
-                  <Chip type="buff" label="buff" />
-                </div>
-              </div>
+      <div style={{
+        display: "flex", gap: 14, alignItems: "center", marginBottom: 16, padding: 14,
+        background: "linear-gradient(180deg, rgba(212,175,55,0.06), transparent)",
+        border: "1px solid rgba(212,175,55,0.2)", borderRadius: 8,
+      }}>
+        {iconUrl ? (
+          <img src={iconUrl} alt="" style={{
+            width: 56, height: 56, objectFit: "contain", border: "2px solid #7a5c1e",
+            borderRadius: 6, background: "#221710", padding: 4,
+          }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+        ) : (
+          <div style={{
+            width: 56, height: 56, borderRadius: 6, border: "2px solid #3a2a1a",
+            display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28,
+          }}>⚔️</div>
+        )}
+        <div>
+          <div style={{ fontFamily: f.display, fontSize: 15, color: "#f0d890", fontWeight: 700 }}>{weapon.name}</div>
+          {(weapon.lore || weapon.description) ? (
+            <div style={{ fontSize: 10, color: "#9b7d52", marginTop: 4, lineHeight: 1.4 }}>
+              {weapon.lore || weapon.description}
             </div>
-          );
-        })}
+          ) : null}
+          <div style={{ fontSize: 9, color: "#7a6a4a", marginTop: 4 }}>
+            <span style={{ color: tierColor }}>{weapon.tierLabel || `T${weapon.tier || 1}`}</span>
+            {weapon.craftedBy ? ` · 🔨 ${weapon.craftedBy}` : ""}
+            {weapon.category ? ` · ${weapon.category}` : ""}
+          </div>
+        </div>
       </div>
 
-      <SectionTitle>Action Bar</SectionTitle>
+      <SectionTitle>{weapon.name} — Skill Tree</SectionTitle>
+      {tiers.map((t) => (
+        <div key={t.tier} style={{ display: "flex", gap: 14, marginBottom: 12, alignItems: "flex-start" }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: 42, flexShrink: 0 }}>
+            <div style={{
+              width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
+              fontFamily: f.display, fontSize: 9, fontWeight: 700,
+              border: `2px solid ${t.tier <= 1 ? "#d4a84b" : t.tier <= 3 ? "#4a9eff" : "#3a2a1a"}`,
+              background: t.tier <= 1 ? "linear-gradient(180deg, #d4a84b, #a88430)" : "#221710",
+              color: t.tier <= 1 ? "#1a100a" : t.tier <= 3 ? "#4a9eff" : "#9b7d52",
+            }}>{t.label}</div>
+            <div style={{ width: 2, flex: 1, minHeight: 20, background: "linear-gradient(180deg, #7a5c1e, transparent)", marginTop: 4 }} />
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, flex: 1 }}>
+            {t.nodes.map((node) => (
+              <WeaponSkillNodeCard
+                key={`${t.tier}-${node.name}`}
+                name={node.name}
+                desc={node.desc}
+                type={node.type}
+                locked={t.tier > 3}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function WeaponSkillsTabContent({ charId }: { charId: string | null }) {
+  const mainHand = useEquipment(s => s.equipped.mainHand);
+  const [weaponData, setWeaponData] = useState<WeaponSkillSource | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    resolveEquippedWeaponSkills(mainHand).then((w) => {
+      if (!cancelled) {
+        setWeaponData(w);
+        setLoading(false);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [mainHand?.id, mainHand?.name, mainHand?.weaponType, mainHand?.tier]);
+
+  if (!charId) {
+    return <div style={{ color: "#9b7d52", textAlign: "center", padding: 40 }}>No character loaded</div>;
+  }
+
+  if (!mainHand) {
+    return (
+      <div style={{ color: "#9b7d52", textAlign: "center", padding: 40, lineHeight: 1.6 }}>
+        Equip a weapon in <strong style={{ color: "#f5e2c1" }}>Mainhand</strong> to view its unique skill tree
+        (signature, abilities, and passives).
+      </div>
+    );
+  }
+
+  if (loading) {
+    return <div style={{ color: "#9b7d52", textAlign: "center", padding: 40 }}>Loading weapon skills…</div>;
+  }
+
+  if (!weaponData) {
+    return (
+      <div style={{ color: "#9b7d52", textAlign: "center", padding: 40, lineHeight: 1.6 }}>
+        No skill tree found for <strong style={{ color: "#f5e2c1" }}>{mainHand.name}</strong>.
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <EquippedWeaponSkillTree weapon={weaponData} />
+      <div style={{ marginTop: 20 }}>
+        <SectionTitle>Action Bar</SectionTitle>
+      </div>
       <ActionBarEditor />
     </div>
   );
