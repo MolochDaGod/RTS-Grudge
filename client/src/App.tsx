@@ -26,6 +26,7 @@ const ControllerPage = lazy(() => import("./game/controller/ControllerPage"));
 const HomePage = lazy(() => import("./pages/HomePage"));
 const Combat2DPage = lazy(() => import("./pages/Combat2DPage"));
 const IslandV2Page = lazy(() => import("./pages/IslandV2Page"));
+const HomeIslandRedirect = lazy(() => import("./pages/HomeIslandRedirect"));
 const WalletPage = lazy(() => import("./pages/WalletPage"));
 
 // ── URL ↔ Phase map ──────────────────────────────────────────────────────────
@@ -67,8 +68,8 @@ function App() {
       "/controller": goToController,
       "/combat":     goToCombat2d,
       "/combat2d":   goToCombat2d,    // alias
-      "/island":     goToIslandV2,    // intuitive alias
       "/island-v2":  goToIslandV2,
+      "/survival":   goToIslandV2,
       "/wallet":     goToWallet,
       "/play":       () => restart(),  // direct /play → start game
     };
@@ -143,6 +144,17 @@ function App() {
   const fadeOpacity = useGameFlow((s) => s.fadeOpacity);
   const fadeColor = useGameFlow((s) => s.fadeColor);
   const fadePhase = useGameFlow((s) => s.fadePhase);
+
+  const homeIslandRoute =
+    location === "/island" || location === "/home-island";
+
+  if (homeIslandRoute) {
+    return (
+      <div style={{ width: "100vw", height: "100vh", position: "relative", overflow: "hidden" }}>
+        <Suspense fallback={null}><HomeIslandRedirect /></Suspense>
+      </div>
+    );
+  }
 
   return (
     <div style={{ width: "100vw", height: "100vh", position: "relative", overflow: "hidden" }}>
