@@ -13,6 +13,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { getPlayerId } from "@/lib/save/playerId";
+import { fetchFleetCharactersAsServer } from "@/lib/characters/fleetCharacterBridge";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -160,7 +161,24 @@ export function useCharacterAPI(playerIdOverride?: string): UseCharacterAPIResul
     setError(null);
     try {
       const data = await apiGet(playerId);
-      setCharacters(data.characters ?? []);
+      const native = data.characters ?? [];
+      if (native.length > 0) {
+        setCharacters(native);
+        setStatus("ready");
+        return;
+      }
+    } catch {
+      /* native RTS registry unavailable on Vercel — try fleet bridge */
+    }
+
+    try {
+      const fleet = await fetchFleetCharactersAsServer(playerId);
+      if (fleet.length > 0) {
+        setCharacters(fleet);
+        setStatus("ready");
+        return;
+      }
+      setCharacters([]);
       setStatus("ready");
     } catch (e: any) {
       setError(e.message);

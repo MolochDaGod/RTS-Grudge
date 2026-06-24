@@ -21,6 +21,14 @@ function randomId(): string {
 // the colon-free prefix form below (we use `puter_<uuid>` instead of
 // `puter:<uuid>` to stay in that allowlist without a server change).
 export function getPlayerId(): string {
+  // Grudge ID session (id.grudge-studio.com / fleet SSO) — highest priority
+  try {
+    const grudgePlayer = localStorage.getItem(KEY);
+    if (grudgePlayer?.startsWith('grudge_') && /^grudge_[A-Za-z0-9_\-]{6,64}$/.test(grudgePlayer)) {
+      return grudgePlayer;
+    }
+  } catch { /* ignore */ }
+
   const puterUuid = getPuterUuidSync();
   if (puterUuid) return `puter_${puterUuid}`;
   try {
