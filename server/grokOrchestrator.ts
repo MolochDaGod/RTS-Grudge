@@ -146,6 +146,7 @@ async function chat(messages: ChatMessage[], cfg: OrchestratorConfig): Promise<s
 
 /** List models from xAI so callers can confirm the exact "new Grok build" id. */
 export async function listModels(cfg: OrchestratorConfig = loadConfig()): Promise<string[]> {
+  assertEnabled(cfg);
   if (cfg.provider !== "xai") {
     // The gateway has no model-list route; model discovery is an xAI-direct concern.
     return [cfg.model];
