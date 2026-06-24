@@ -788,6 +788,7 @@ X-Admin-Token: <GRUDGE_ADMIN_TOKEN>
 # or
 Authorization: Bearer <GRUDGE_ADMIN_TOKEN>
 ```
+> Note: `workers/asset-api/index.ts` currently only includes `X-Admin-Token` in `Access-Control-Allow-Headers`, so browser requests using `Authorization` may fail CORS preflight unless that header is added.
 
 On upsert, `id` must match `^[A-Za-z0-9_-]{6,64}$` and the request body is capped at **128 KB**.
 
