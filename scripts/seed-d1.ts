@@ -56,8 +56,10 @@ function buildStoredAssetPayload(entry: ManifestEntry): string | null {
 }
 function buildInsert(entry: ManifestEntry): string {
     const now = Date.now();
+    // ON CONFLICT(id) DO UPDATE preserves the original created_at on re-seed;
+    // INSERT OR REPLACE used to reset it to now() every run.
     return (
-        `INSERT OR REPLACE INTO asset_registry ` +
+        `INSERT INTO asset_registry ` +
         `(id, name, category, r2_key, bone_map, animation_packs, grudge_uuid, file_size, updated_at, created_at) ` +
         `VALUES (` +
         [
@@ -72,7 +74,10 @@ function buildInsert(entry: ManifestEntry): string {
             now,
             now,
         ].join(", ") +
-        `);`
+        `) ON CONFLICT(id) DO UPDATE SET ` +
+        `name=excluded.name, category=excluded.category, r2_key=excluded.r2_key, ` +
+        `bone_map=excluded.bone_map, animation_packs=excluded.animation_packs, ` +
+        `grudge_uuid=excluded.grudge_uuid, file_size=excluded.file_size, updated_at=excluded.updated_at;`
     );
 }
 
