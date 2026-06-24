@@ -15,6 +15,8 @@ import DeathScreen from "./game/DeathScreen";
 import PauseMenu from "./game/PauseMenu";
 import AdminPanel from "./admin/AdminPanel";
 import { AutoSaveController } from "./lib/save/useAutoSave";
+import { loadHomeIslandSession } from "./lib/homeIslandSession";
+import { useIslandWorld } from "./lib/stores/useIslandWorld";
 import WeaponOffsetTuner from "./game/WeaponOffsetTuner";
 import CheatsHUD from "./game/cheats/CheatsHUD";
 import { TerrainDebugHUD } from "./game/cheats/TerrainDebugHUD";
@@ -26,7 +28,8 @@ const ControllerPage = lazy(() => import("./game/controller/ControllerPage"));
 const HomePage = lazy(() => import("./pages/HomePage"));
 const Combat2DPage = lazy(() => import("./pages/Combat2DPage"));
 const IslandV2Page = lazy(() => import("./pages/IslandV2Page"));
-const HomeIslandRedirect = lazy(() => import("./pages/HomeIslandRedirect"));
+const HomeIslandCreatePage = lazy(() => import("./pages/HomeIslandCreatePage"));
+const HomeIslandHostRedirect = lazy(() => import("./pages/HomeIslandHostRedirect"));
 const WalletPage = lazy(() => import("./pages/WalletPage"));
 
 // ── URL ↔ Phase map ──────────────────────────────────────────────────────────
@@ -54,6 +57,18 @@ function App() {
     goToHome, goToController, goToCharacterSelect, goToAdmin, goToForge,
     goToCombat2d, goToIslandV2, goToWallet,
   } = useGame();
+
+  useEffect(() => {
+    const session = loadHomeIslandSession();
+    if (session) {
+      useIslandWorld.getState().registerFleetHomeIsland({
+        id: session.id,
+        name: session.name,
+        seed: session.seed,
+        biome: 'temperate',
+      });
+    }
+  }, []);
 
   // ── URL → Phase (on first mount) ─────────────────────────────────────────
   // Handles direct visits, bookmarks, and auth-redirects (e.g. id.grudge-studio.com
@@ -145,13 +160,18 @@ function App() {
   const fadeColor = useGameFlow((s) => s.fadeColor);
   const fadePhase = useGameFlow((s) => s.fadePhase);
 
-  const homeIslandRoute =
-    location === "/island" || location === "/home-island";
-
-  if (homeIslandRoute) {
+  if (location === "/island") {
     return (
       <div style={{ width: "100vw", height: "100vh", position: "relative", overflow: "hidden" }}>
-        <Suspense fallback={null}><HomeIslandRedirect /></Suspense>
+        <Suspense fallback={null}><HomeIslandCreatePage /></Suspense>
+      </div>
+    );
+  }
+
+  if (location === "/home-island") {
+    return (
+      <div style={{ width: "100vw", height: "100vh", position: "relative", overflow: "hidden" }}>
+        <Suspense fallback={null}><HomeIslandHostRedirect /></Suspense>
       </div>
     );
   }
