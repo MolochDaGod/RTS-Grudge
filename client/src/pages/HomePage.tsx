@@ -10,7 +10,7 @@ const FONTS = {
 
 // Fleet game links — external Grudge Studio deployments
 const FLEET_GAMES = [
-  { name: "Grudge Warlords", desc: "Main RPG — crafting, shop, codex", url: "https://grudgewarlords.com", color: "#f6c945" },
+  { name: "Grudge Warlords", desc: "Main RPG — home island, crafting, codex", url: "https://grudgewarlords.com/home-island", color: "#f6c945" },
   { name: "Dungeon Crawler Quest", desc: "Voxel dungeon crawling", url: "https://dcq.grudge-studio.com", color: "#66bb6a" },
   { name: "Grudge Crafting", desc: "Crafting & item management", url: "https://grudge-crafting.puter.site", color: "#ce93d8" },
 ];

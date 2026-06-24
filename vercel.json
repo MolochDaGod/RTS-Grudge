@@ -5,6 +5,22 @@
   "framework": null,
   "routes": [
     {
+      "src": "/api/island/(.*)",
+      "dest": "https://api.grudge-studio.com/island/$1"
+    },
+    {
+      "src": "/api/island",
+      "dest": "https://api.grudge-studio.com/island"
+    },
+    {
+      "src": "/api/island-nfts/(.*)",
+      "dest": "https://api.grudge-studio.com/island-nfts/$1"
+    },
+    {
+      "src": "/api/island-nfts",
+      "dest": "https://api.grudge-studio.com/island-nfts"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "https://api.grudge-studio.com/api/$1"
     },
