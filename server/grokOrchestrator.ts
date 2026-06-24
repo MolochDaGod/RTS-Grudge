@@ -263,6 +263,9 @@ export async function executeApproved(
   }
 
   // legion → queue a task on the gateway. Only with explicit confirm.
+  if (!proposal.agent) {
+    return { id: proposal.id, status: "skipped", detail: "Legion proposal missing agent." };
+  }
   if (!opts.confirm) {
     return {
       id: proposal.id,
@@ -270,8 +273,12 @@ export async function executeApproved(
       detail: `Would dispatch to legion agent "${proposal.agent}" (re-run with --confirm).`,
     };
   }
-  if (!proposal.agent) {
-    return { id: proposal.id, status: "skipped", detail: "Legion proposal missing agent." };
+  if (!cfg.gatewayToken) {
+    return {
+      id: proposal.id,
+      status: "error",
+      detail: "GRUDACHAIN_API_TOKEN (or ADMIN_API_KEY) is not set (required for /legion/dispatch).",
+    };
   }
 
   try {
