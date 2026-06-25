@@ -15,6 +15,7 @@
  *   --upload      Upload missing files to R2
  *   --seed        Run seed-d1.ts after upload manifest is written
  *   --purge       Delete local file after CDN HEAD returns 200 + matching size
+ *   --purge-only  Purge CDN-verified copies only (no uploads)
  *   --min-mb N    Skip files smaller than N MB (default 0)
  *   --max-mb N    Skip files larger than N MB (default 200)
  *   --limit N     Process at most N files (for batch runs)
@@ -46,7 +47,8 @@ const args = process.argv.slice(2);
 const DRY_RUN = args.includes("--dry-run");
 const DO_UPLOAD = args.includes("--upload");
 const DO_SEED = args.includes("--seed");
-const DO_PURGE = args.includes("--purge");
+const PURGE_ONLY = args.includes("--purge-only");
+const DO_PURGE = args.includes("--purge") || PURGE_ONLY;
 const scanIdx = args.indexOf("--scan");
 const jsonIdx = args.indexOf("--from-json");
 const minMbIdx = args.indexOf("--min-mb");
@@ -346,7 +348,7 @@ async function main() {
       purged: false,
     };
 
-    const shouldUpload = DO_UPLOAD && !DRY_RUN && !cdn.ok && row.gameReady && ACCOUNT_ID && ACCESS_KEY && SECRET_KEY;
+    const shouldUpload = DO_UPLOAD && !PURGE_ONLY && !DRY_RUN && !cdn.ok && row.gameReady && ACCOUNT_ID && ACCESS_KEY && SECRET_KEY;
     if (shouldUpload) {
       try {
         await uploadFile(asset.fullPath, r2Key, mimeTypeForExt(ext));
@@ -365,7 +367,11 @@ async function main() {
       console.log(`  [dry] would upload ${r2Key} (${(asset.size / 1e6).toFixed(1)} MB) — ${useCase}`);
     }
 
-    if (DO_PURGE && !DRY_RUN && (row.uploaded || (cdn.ok && cdn.size === asset.size))) {
+    const cdnVerified =
+      row.uploaded ||
+      (cdn.ok && cdn.size === asset.size) ||
+      (PURGE_ONLY && cdn.ok && row.gameReady);
+    if (DO_PURGE && !DRY_RUN && cdnVerified) {
       const copies = hashGroups.get(hash) ?? [asset];
       for (const copy of copies) {
         if (!copy.fullPath.startsWith("C:\\Users\\nugye\\Documents")) continue;
