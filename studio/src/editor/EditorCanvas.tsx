@@ -17,6 +17,7 @@ import { Rain } from '../runtime/Rain';
 import { GrassField } from '../runtime/GrassField';
 import { HdrEnvironment } from '../runtime/HdrEnvironment';
 import { PlayModeRoot } from '../runtime/PlayMode';
+import { ForgePhysics } from '../runtime/ForgePhysics';
 import { getAssetById } from '../library/LandscapeAssets';
 import type { Vec3 } from '../types';
 
@@ -171,14 +172,10 @@ function EnvLayer() {
   );
 }
 
-export function EditorCanvas() {
-  return (
-    <Canvas
-      shadows
-      camera={{ position: [80, 60, 80], fov: 50, near: 0.1, far: 2000 }}
-      gl={{ antialias: true, powerPreference: 'high-performance' }}
-      dpr={[1, 2]}
-    >
+function EditorScene() {
+  const playMode = useEditor((s) => s.playMode);
+  const scene = (
+    <>
       <color attach="background" args={['#0d1117']} />
       <fogExp2 attach="fog" args={['#0d1117', 0.0035]} />
       <Sky sunPosition={[80, 40, -60]} turbidity={4} rayleigh={1.5} />
@@ -207,6 +204,21 @@ export function EditorCanvas() {
       <CameraController />
       <PlayGizmoToggle />
       <PostFX />
+    </>
+  );
+
+  return playMode ? <ForgePhysics>{scene}</ForgePhysics> : scene;
+}
+
+export function EditorCanvas() {
+  return (
+    <Canvas
+      shadows
+      camera={{ position: [80, 60, 80], fov: 50, near: 0.1, far: 2000 }}
+      gl={{ antialias: true, powerPreference: 'high-performance' }}
+      dpr={[1, 2]}
+    >
+      <EditorScene />
     </Canvas>
   );
 }

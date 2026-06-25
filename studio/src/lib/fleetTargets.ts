@@ -1,8 +1,9 @@
 /**
  * Fleet games that publish scenes from Grudge Studio Forge.
- * Used for deploy labels, API context, and cross-links back to live clients.
  */
-export type FleetGameId = "warlords" | "rts-grudge" | "dcq";
+import { FLEET_STACKS, FORGE_TOOLCHAIN, type GameStack } from "./forgeStack";
+
+export type FleetGameId = keyof typeof FLEET_STACKS;
 
 export interface FleetGameTarget {
   id: FleetGameId;
@@ -12,8 +13,12 @@ export interface FleetGameTarget {
   apiBase: string;
   assetsCdn: string;
   objectStore: string;
-  engine: string;
+  stack: GameStack;
 }
+
+const API = "https://api.grudge-studio.com";
+const CDN = "https://assets.grudge-studio.com";
+const OS = "https://objectstore.grudge-studio.com";
 
 export const FLEET_GAMES: FleetGameTarget[] = [
   {
@@ -21,32 +26,34 @@ export const FLEET_GAMES: FleetGameTarget[] = [
     label: "Grudge Warlords",
     shortLabel: "Warlords",
     liveUrl: "https://grudgewarlords.com",
-    apiBase: "https://api.grudge-studio.com",
-    assetsCdn: "https://assets.grudge-studio.com",
-    objectStore: "https://objectstore.grudge-studio.com",
-    engine: "R3F + Phaser + Node",
+    apiBase: API,
+    assetsCdn: CDN,
+    objectStore: OS,
+    stack: FLEET_STACKS.warlords,
   },
   {
     id: "rts-grudge",
     label: "RTS Grudge",
     shortLabel: "RTS",
     liveUrl: "https://rts-grudge.vercel.app",
-    apiBase: "https://api.grudge-studio.com",
-    assetsCdn: "https://assets.grudge-studio.com",
-    objectStore: "https://objectstore.grudge-studio.com",
-    engine: "R3F + Rapier + Node",
+    apiBase: API,
+    assetsCdn: CDN,
+    objectStore: OS,
+    stack: FLEET_STACKS["rts-grudge"],
   },
   {
     id: "dcq",
     label: "Dungeon Crawler Quest",
     shortLabel: "DCQ",
     liveUrl: "https://dcq.grudge-studio.com",
-    apiBase: "https://api.grudge-studio.com",
-    assetsCdn: "https://assets.grudge-studio.com",
-    objectStore: "https://objectstore.grudge-studio.com",
-    engine: "Three.js + Babylon/Havok",
+    apiBase: API,
+    assetsCdn: CDN,
+    objectStore: OS,
+    stack: FLEET_STACKS.dcq,
   },
 ];
+
+export { FORGE_TOOLCHAIN };
 
 const STORAGE_KEY = "grudge-forge-target";
 

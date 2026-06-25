@@ -5,6 +5,7 @@ import { EditorPage } from './editor/EditorPage';
 import { ModelConverter } from './converter/ModelConverter';
 import {
   FLEET_GAMES,
+  FORGE_TOOLCHAIN,
   getActiveFleetTarget,
   setActiveFleetTarget,
   type FleetGameId,
@@ -58,10 +59,16 @@ function NavBar() {
       >
         {FLEET_GAMES.map((g) => (
           <option key={g.id} value={g.id}>
-            {g.shortLabel} — {g.engine}
+            {g.shortLabel} — {g.stack.render}
           </option>
         ))}
       </select>
+      <span
+        className="hidden lg:inline text-[10px] text-muted-foreground font-mono truncate max-w-[280px]"
+        title={`${FORGE_TOOLCHAIN.render} · ${FORGE_TOOLCHAIN.physics}`}
+      >
+        {target.stack.physics}
+      </span>
       {link('/', 'Library')}
       {link('/editor', 'Map Editor')}
       {link('/play', '▶ Play')}

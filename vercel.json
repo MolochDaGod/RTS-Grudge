@@ -1,8 +1,16 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "npm install --legacy-peer-deps",
   "buildCommand": "npm run build",
   "outputDirectory": "dist/public",
   "framework": null,
+  "rewrites": [
+    {
+      "source": "/:path((?!forge|api|socket\\.io|Models|assets).*)",
+      "destination": "/forge/:path*",
+      "has": [{ "type": "host", "value": "forge.grudge-studio.com" }]
+    }
+  ],
   "routes": [
     {
       "src": "/api/island/(.*)",
@@ -68,7 +76,12 @@
     },
     { "src": "/forge", "status": 308, "headers": { "Location": "/forge/" } },
     { "handle": "filesystem" },
-    { "src": "/forge/(.*)", "dest": "/forge/$1" },
+    {
+      "src": "/forge/assets/(.*)",
+      "headers": { "Cache-Control": "public, max-age=31536000, immutable" },
+      "continue": true
+    },
+    { "src": "/forge/(.*)", "dest": "/forge/index.html" },
     { "src": "/(.*)", "dest": "/index.html" }
   ],
   "headers": [
@@ -80,6 +93,18 @@
           "key": "Content-Security-Policy",
           "value": "frame-ancestors 'self' https://id.grudge-studio.com https://*.grudge-studio.com https://ws.grudge-studio.com"
         }
+      ]
+    },
+    {
+      "source": "/forge/index.html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache" }
+      ]
+    },
+    {
+      "source": "/forge/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     }
   ]

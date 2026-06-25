@@ -13,6 +13,9 @@ import * as THREE from 'three';
 import { useEditor } from './store';
 import { sampleHeight } from './terrain-utils';
 import { BiomeTerrainMaterial } from './BiomeTerrainMaterial';
+import { ensureBvhRaycast } from '../lib/bvh';
+
+ensureBvhRaycast();
 
 const BIOME_COLORS: [number, number, number][] = [
   [0.42, 0.65, 0.30], // grass
@@ -39,6 +42,8 @@ export function TerrainMesh({ onPointerEvent }: Props) {
     // Pre-allocate vertex color attribute
     const colors = new Float32Array(resolution * resolution * 3);
     g.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    const withBvh = g as THREE.BufferGeometry & { computeBoundsTree?: () => void };
+    withBvh.computeBoundsTree?.();
     return g;
     // We deliberately rebuild only when resolution/size change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -59,6 +64,12 @@ export function TerrainMesh({ onPointerEvent }: Props) {
     col.needsUpdate = true;
     geometry.computeVertexNormals();
     geometry.computeBoundingSphere();
+    const withBvh = geometry as THREE.BufferGeometry & {
+      computeBoundsTree?: () => void;
+      disposeBoundsTree?: () => void;
+    };
+    withBvh.disposeBoundsTree?.();
+    withBvh.computeBoundsTree?.();
   }, [terrain, terrainRev, geometry]);
 
   useFrame(() => { /* no-op — just keeps animation loop alive for sculpt */ });

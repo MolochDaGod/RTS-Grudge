@@ -15,6 +15,7 @@ import {
 const libraryBg = `${import.meta.env.BASE_URL}library/library-bg.png`;
 import { STARTER_MAPS, buildStarterProject, type StarterMap } from './starterMaps';
 import { MapThumbnail } from './MapThumbnail';
+import { FLEET_GAMES, FORGE_TOOLCHAIN } from '../lib/fleetTargets';
 
 export function LibraryPage() {
   const [items, setItems] = useState(() => listSavedProjects());
@@ -34,11 +35,38 @@ export function LibraryPage() {
     >
     <div className="max-w-6xl mx-auto p-8">
       <header className="mb-8">
-        <h1 className="text-3xl font-semibold tracking-tight">Grudge Studio</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">Grudge Studio Forge</h1>
         <p className="text-muted-foreground mt-2">
-          Map editor · model converter · ECS runtime · save your worlds.
+          Fleet map editor for Warlords, RTS, and DCQ — R3F, Rapier, ObjectStore, GLB export.
         </p>
+        <dl className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono text-muted-foreground">
+          <div><dt className="inline text-primary">Render </dt><dd className="inline">{FORGE_TOOLCHAIN.render}</dd></div>
+          <div><dt className="inline text-primary">Physics </dt><dd className="inline">{FORGE_TOOLCHAIN.physics}</dd></div>
+          <div><dt className="inline text-primary">API </dt><dd className="inline">{FORGE_TOOLCHAIN.backend}</dd></div>
+          <div><dt className="inline text-primary">Assets </dt><dd className="inline">{FORGE_TOOLCHAIN.assets}</dd></div>
+        </dl>
       </header>
+
+      <section className="mb-8">
+        <h2 className="text-lg font-semibold mb-3">Deploy targets</h2>
+        <ul className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {FLEET_GAMES.map((g) => (
+            <li key={g.id} className="rounded-lg border border-border bg-card/80 p-4">
+              <div className="font-medium">{g.label}</div>
+              <div className="text-xs text-muted-foreground mt-1">{g.stack.render}</div>
+              <div className="text-xs text-muted-foreground">{g.stack.physics}</div>
+              <a
+                href={g.liveUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-primary hover:underline mt-2 inline-block"
+              >
+                {g.liveUrl.replace('https://', '')} ↗
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <div className="grid grid-cols-2 gap-4 mb-8">
         <Tool to="/editor" icon="🌊" title="Map Editor"

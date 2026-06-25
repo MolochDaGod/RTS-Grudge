@@ -965,7 +965,7 @@ RTS-Grudge is one game in the **Grudge Warlords** fleet. All games share the sam
 |---|---|---|---|
 | **Grudge Warlords** (hub) | Grudge-Builder | grudgewarlords.com | React + Three.js + Phaser |
 | **RTS Grudge** (this repo) | RTS-Grudge | rts-grudge.vercel.app | React-Three-Fiber + Rapier |
-| **Dungeon Crawler Quest** | Dungeon-Crawler-Quest | dcq.grudge-studio.com | BabylonJS + Havok |
+| **Dungeon Crawler Quest** | Dungeon-Crawler-Quest | dcq.grudge-studio.com | Three.js + Voxel + Rapier |
 
 All games connect to the same backend services:
 - `api.grudge-studio.com` — Game API (characters, saves, inventory)

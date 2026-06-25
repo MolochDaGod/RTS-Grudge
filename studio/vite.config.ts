@@ -35,6 +35,7 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules/three/')) return 'three';
+          if (id.includes('@dimforge/rapier') || id.includes('@react-three/rapier')) return 'rapier';
           if (id.includes('@react-three/')) return 'react-three';
           if (id.includes('@radix-ui/')) return 'radix-ui';
           if (id.includes('node_modules/react/') ||
@@ -51,6 +52,12 @@ export default defineConfig({
     port,
     host: "0.0.0.0",
     allowedHosts: true,
+    proxy: {
+      "/api": { target: "https://api.grudge-studio.com", changeOrigin: true, secure: true },
+      "/auth": { target: "https://id.grudge-studio.com", changeOrigin: true, secure: true },
+      "/objectstore": { target: "https://objectstore.grudge-studio.com", changeOrigin: true, secure: true, rewrite: (p) => p.replace(/^\/objectstore/, "") },
+      "/assets-cdn": { target: "https://assets.grudge-studio.com", changeOrigin: true, secure: true, rewrite: (p) => p.replace(/^\/assets-cdn/, "") },
+    },
     fs: {
       strict: true,
       allow: [path.resolve(import.meta.dirname)],

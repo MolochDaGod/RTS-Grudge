@@ -27,10 +27,29 @@ function run(cmd: string, args: string[], opts: { cwd?: string; env?: NodeJS.Pro
 
 async function buildForgeEditor() {
   console.log("building Grudge Studio Forge editor (studio/)...");
-  await run("npm", ["install", "--legacy-peer-deps"], { cwd: STUDIO_DIR });
+  // Vercel sets NODE_ENV=production during build, which would omit vite/tsc
+  // (devDependencies) and break the studio bundle. Force a full install.
+  const studioInstallEnv = {
+    NODE_ENV: "development",
+    npm_config_production: "false",
+  };
+  const lockfile = path.join(STUDIO_DIR, "package-lock.json");
+  try {
+    await readFile(lockfile);
+    await run("npm", ["ci", "--include=dev", "--legacy-peer-deps"], {
+      cwd: STUDIO_DIR,
+      env: studioInstallEnv,
+    });
+  } catch {
+    await run("npm", ["install", "--include=dev", "--legacy-peer-deps"], {
+      cwd: STUDIO_DIR,
+      env: studioInstallEnv,
+    });
+  }
   await run("npm", ["run", "build"], {
     cwd: STUDIO_DIR,
     env: {
+      ...studioInstallEnv,
       BASE_PATH: "/forge/",
       STUDIO_OUT_DIR: FORGE_OUT,
     },

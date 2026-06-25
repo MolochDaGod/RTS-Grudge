@@ -18,6 +18,8 @@ import {
   isPackAsset, type AssetCategory, type AssetSpec,
 } from '../library/LandscapeAssets';
 import { inspectPack, type PackMeshEntry } from '../library/PackInspector';
+import { getAssetById } from '../library/LandscapeAssets';
+import { ObjectStorePalette } from './ObjectStorePalette';
 
 /** Per-kind emoji shown on each tile */
 const KIND_ICON: Record<string, string> = {
@@ -75,10 +77,11 @@ export function AssetPalette() {
   const [showCustom, setShowCustom] = useState(false);
 
   const tiles = ASSET_LIBRARY.filter((a) => a.category === active);
-  const catCount = (cat: AssetCategory) => ASSET_LIBRARY.filter(a => a.category === cat).length;
+  const catCount = (cat: AssetCategory) =>
+    cat === 'ObjectStore' ? 'CDN' : ASSET_LIBRARY.filter(a => a.category === cat).length;
 
   /** Determine if current armed asset is a tree kind (shows season presets) */
-  const armedSpec = ASSET_LIBRARY.find(a => a.id === armedAssetId);
+  const armedSpec = armedAssetId ? getAssetById(armedAssetId) : undefined;
   const showTintControls = !!armedAssetId;
 
   return (
@@ -121,7 +124,12 @@ export function AssetPalette() {
             })}
           </nav>
 
-          {/* ── Asset tiles ── */}
+          {/* ── ObjectStore CDN browser ── */}
+          {active === 'ObjectStore' ? (
+            <div className="p-2">
+              <ObjectStorePalette />
+            </div>
+          ) : (
           <ul className="grid grid-cols-2 gap-1.5 p-2">
             {tiles.length === 0 && (
               <li className="col-span-2 text-muted-foreground italic px-1 py-2 text-center">
@@ -176,6 +184,7 @@ export function AssetPalette() {
               );
             })}
           </ul>
+          )}
 
           {/* ── Placement options (shown when any asset is armed) ── */}
           {showTintControls && (
