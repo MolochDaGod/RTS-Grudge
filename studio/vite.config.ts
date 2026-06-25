@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import tailwindcss from "@tailwindcss/vite";
+
+
 import path from "path";
 
 const port = Number(process.env.PORT ?? 5174);
@@ -10,12 +11,14 @@ if (Number.isNaN(port) || port <= 0) {
 }
 
 const basePath = process.env.BASE_PATH ?? "/";
+const outDir = process.env.STUDIO_OUT_DIR
+  ? path.resolve(process.env.STUDIO_OUT_DIR)
+  : path.resolve(import.meta.dirname, "dist/public");
 
 export default defineConfig({
   base: basePath,
   plugins: [
     react(),
-    tailwindcss(),
   ],
   resolve: {
     alias: {
@@ -25,7 +28,7 @@ export default defineConfig({
   },
   root: path.resolve(import.meta.dirname),
   build: {
-    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    outDir,
     emptyOutDir: true,
     chunkSizeWarningLimit: 2500,
     rollupOptions: {
@@ -50,6 +53,7 @@ export default defineConfig({
     allowedHosts: true,
     fs: {
       strict: true,
+      allow: [path.resolve(import.meta.dirname)],
       deny: ["**/.*"],
     },
   },

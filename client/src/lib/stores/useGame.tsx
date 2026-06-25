@@ -417,7 +417,9 @@ export const useGame = create<GameState>()(
     goToCharacterSelect: () => set({ phase: "characterSelect" }),
     goToAdmin: () => set({ phase: "admin" }),
     goToGGE: () => set({ phase: "gge" }),
-    goToForge: () => set({ phase: "forge" }),
+    goToForge: () => {
+      window.location.href = "/forge/";
+    },
     goToController: () => set({ phase: "controller" }),
     goToCombat2d: () => set({ phase: "combat2d" }),
     goToIslandV2: () => set({ phase: "islandV2" }),

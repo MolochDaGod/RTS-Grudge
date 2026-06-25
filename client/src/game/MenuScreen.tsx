@@ -270,7 +270,7 @@ export default function MenuScreen() {
             type="button"
             className="flex items-center justify-center gap-2 py-2 px-3 bg-zinc-900 text-purple-300 border-2 border-purple-900/60 rounded-md hover:bg-zinc-800 hover:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
             aria-label="Open Grudge Studio Forge"
-            title="Three.js scene editor, AI game builder, 96+ models"
+            title="Grudge Studio Forge — map editor, model converter, fleet deploy (Warlords / RTS / DCQ)"
           >
             <Settings className="w-4 h-4" />
             <span

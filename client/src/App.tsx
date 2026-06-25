@@ -23,7 +23,6 @@ import { TerrainDebugHUD } from "./game/cheats/TerrainDebugHUD";
 import { StreamedColliderStatsHUD } from "./game/cheats/StreamedColliderDebugOverlay";
 import "@fontsource/inter";
 
-const ForgeEmbed = lazy(() => import("./game/editor/ForgeEmbed"));
 const ControllerPage = lazy(() => import("./game/controller/ControllerPage"));
 const HomePage = lazy(() => import("./pages/HomePage"));
 const Combat2DPage = lazy(() => import("./pages/Combat2DPage"));
@@ -42,7 +41,6 @@ const PHASE_TO_PATH: Partial<Record<GamePhase, string>> = {
   characterSelect: "/character",
   playing:         "/play",
   admin:           "/admin",
-  forge:           "/forge",
   controller:      "/controller",
   combat2d:        "/combat",
   islandV2:        "/island-v2",
@@ -54,7 +52,7 @@ function App() {
   const {
     phase, togglePanel, closePanel, pause, resume,
     inDungeon, inHousing, inTutorialIsland, restart,
-    goToHome, goToController, goToCharacterSelect, goToAdmin, goToForge,
+    goToHome, goToController, goToCharacterSelect, goToAdmin,
     goToCombat2d, goToIslandV2, goToWallet,
   } = useGame();
 
@@ -79,7 +77,6 @@ function App() {
       "/home":       goToHome,
       "/character":  goToCharacterSelect,
       "/admin":      goToAdmin,
-      "/forge":      goToForge,
       "/controller": goToController,
       "/combat":     goToCombat2d,
       "/combat2d":   goToCombat2d,    // alias
@@ -212,19 +209,6 @@ function App() {
         <Suspense fallback={null}><IslandV2Page /></Suspense>
       )}
       {phase === "admin" && <AdminPanel onClose={restart} />}
-      {phase === "forge" && (
-        <Suspense fallback={
-          <div style={{
-            position: "fixed", inset: 0, background: "#0d1117",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            color: "#8b949e", fontSize: 14, fontFamily: "Inter, sans-serif",
-          }}>
-            Loading Grudge Studio Forge...
-          </div>
-        }>
-          <ForgeEmbed />
-        </Suspense>
-      )}
       {phase === "wallet" && (
         <Suspense fallback={null}><WalletPage /></Suspense>
       )}

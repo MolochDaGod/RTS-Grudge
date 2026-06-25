@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npx vite build",
+  "buildCommand": "npm run build",
   "outputDirectory": "dist/public",
   "framework": null,
   "routes": [
@@ -66,7 +66,9 @@
       "headers": { "Cache-Control": "public, max-age=86400" },
       "continue": true
     },
+    { "src": "/forge", "status": 308, "headers": { "Location": "/forge/" } },
     { "handle": "filesystem" },
+    { "src": "/forge/(.*)", "dest": "/forge/$1" },
     { "src": "/(.*)", "dest": "/index.html" }
   ],
   "headers": [
