@@ -9,6 +9,8 @@
  */
 
 import { getStoredToken, hasValidToken } from "@/lib/auth/GrudgeSession";
+import { generateIslandTerrain } from "@/game/world/IslandGenerator";
+import { buildRtsHeightmapPayload } from "@/lib/island/rtsTerrainBridge";
 import type { IslandBiome, IslandData } from "@/lib/stores/useIslandWorld";
 
 export const WARLORDS_HOME_ISLAND_URL = "https://grudgewarlords.com/home-island";
@@ -188,6 +190,15 @@ export async function exportRtsIslandToHome(island: IslandData): Promise<ExportH
       };
     }
 
+    const terrain = generateIslandTerrain(island.seed, island.biome);
+    const heightmap = buildRtsHeightmapPayload(
+      terrain.heightData,
+      terrain.resolution,
+      terrain.worldSize,
+      terrain.maxHeight,
+      island.biome,
+    );
+
     const exportRes = await fetch("/api/island/export-from-rts", {
       method: "POST",
       headers: { "Content-Type": "application/json", ...authHeaders() },
@@ -197,6 +208,7 @@ export async function exportRtsIslandToHome(island: IslandData): Promise<ExportH
         seed: island.seed,
         biome: island.biome,
         appUrl: typeof window !== "undefined" ? window.location.origin : "https://rts-grudge.vercel.app",
+        heightmap,
       }),
     });
 
