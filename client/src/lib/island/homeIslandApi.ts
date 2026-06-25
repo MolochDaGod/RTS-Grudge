@@ -1,12 +1,11 @@
 /**
  * Home Island API — bridges RTS-Grudge procedural islands to Grudge Warlords
- * persisted home islands (UUID + account storage via api.grudge-studio.com).
+ * persisted home islands (UUID + Railway Postgres SSOT).
  *
  * Flow:
  *   1. GET  /api/island/status  — account linkage + UUID
- *   2. GET  /api/island          — fetch or create home_islands row
- *   3. PATCH /api/island/state   — push RTS terrain/export payload
- *   4. POST  /api/island/initialize — mark cutscene complete + mint cNFT
+ *   2. POST /api/island/export-from-rts — server generates all zones + mountain triad
+ *   3. POST /api/island/initialize — mark cutscene complete + mint cNFT
  */
 
 import { getStoredToken, hasValidToken } from "@/lib/auth/GrudgeSession";
@@ -189,36 +188,34 @@ export async function exportRtsIslandToHome(island: IslandData): Promise<ExportH
       };
     }
 
-    const record = await fetchHomeIsland();
-    if (!record) {
+    const exportRes = await fetch("/api/island/export-from-rts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders() },
+      body: JSON.stringify({
+        gridX: island.gridX,
+        gridZ: island.gridZ,
+        seed: island.seed,
+        biome: island.biome,
+        appUrl: typeof window !== "undefined" ? window.location.origin : "https://rts-grudge.vercel.app",
+      }),
+    });
+
+    if (!exportRes.ok) {
+      const err = await exportRes.json().catch(() => ({})) as { error?: string };
       return {
         ok: false,
         homeIslandId: status.homeIslandId,
         islandSeed: null,
         initialized: status.homeIsland,
-        error: "Failed to load or create your home island record.",
+        error: err.error ?? "Server rejected RTS island export.",
         warlordsUrl,
       };
     }
 
-    const islandUuid = record.seed || record.id;
-    const exportState = buildExportStateFromRtsIsland(
-      island,
-      islandUuid,
-      record.state as Partial<HomeIslandExportState>,
-    );
-
-    const saved = await patchHomeIslandState(exportState);
-    if (!saved) {
-      return {
-        ok: false,
-        homeIslandId: record.id,
-        islandSeed: record.seed,
-        initialized: status.homeIsland,
-        error: "Server rejected the island state update.",
-        warlordsUrl,
-      };
-    }
+    const exported = await exportRes.json() as {
+      homeIslandId?: string;
+      island?: { seed?: string };
+    };
 
     let initialized = status.homeIsland;
     if (!initialized) {
@@ -230,8 +227,8 @@ export async function exportRtsIslandToHome(island: IslandData): Promise<ExportH
 
     return {
       ok: true,
-      homeIslandId: record.id,
-      islandSeed: record.seed,
+      homeIslandId: exported.homeIslandId ?? status.homeIslandId,
+      islandSeed: exported.island?.seed ?? null,
       initialized,
       warlordsUrl,
     };

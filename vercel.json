@@ -6,19 +6,43 @@
   "routes": [
     {
       "src": "/api/island/(.*)",
-      "dest": "https://api.grudge-studio.com/island/$1"
+      "dest": "https://grudge-builder-production.up.railway.app/api/island/$1"
     },
     {
       "src": "/api/island",
-      "dest": "https://api.grudge-studio.com/island"
+      "dest": "https://grudge-builder-production.up.railway.app/api/island"
+    },
+    {
+      "src": "/api/islands/(.*)",
+      "dest": "https://grudge-builder-production.up.railway.app/api/islands/$1"
+    },
+    {
+      "src": "/api/account/(.*)",
+      "dest": "https://grudge-builder-production.up.railway.app/api/account/$1"
+    },
+    {
+      "src": "/api/account",
+      "dest": "https://grudge-builder-production.up.railway.app/api/account"
+    },
+    {
+      "src": "/api/characters/(.*)",
+      "dest": "https://grudge-builder-production.up.railway.app/api/characters/$1"
+    },
+    {
+      "src": "/api/characters",
+      "dest": "https://grudge-builder-production.up.railway.app/api/characters"
     },
     {
       "src": "/api/island-nfts/(.*)",
-      "dest": "https://api.grudge-studio.com/island-nfts/$1"
+      "dest": "https://grudge-builder-production.up.railway.app/api/island-nfts/$1"
     },
     {
       "src": "/api/island-nfts",
-      "dest": "https://api.grudge-studio.com/island-nfts"
+      "dest": "https://grudge-builder-production.up.railway.app/api/island-nfts"
+    },
+    {
+      "src": "/api/auth/(.*)",
+      "dest": "https://id.grudge-studio.com/auth/$1"
     },
     {
       "src": "/api/(.*)",
