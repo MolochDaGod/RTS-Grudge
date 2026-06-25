@@ -20,6 +20,7 @@
  *   --max-mb N    Skip files larger than N MB (default 200)
  *   --limit N     Process at most N files (for batch runs)
  *   --priority    Process environments/characters/weapons before other categories
+ *   --include-small  Upload/purge arrow & projectile GLBs under 10 KB
  */
 
 import dotenv from "dotenv";
@@ -55,6 +56,8 @@ const minMbIdx = args.indexOf("--min-mb");
 const maxMbIdx = args.indexOf("--max-mb");
 const limitIdx = args.indexOf("--limit");
 const PRIORITY = args.includes("--priority");
+const INCLUDE_SMALL = args.includes("--include-small");
+const MIN_GAME_BYTES = INCLUDE_SMALL ? 1_000 : 10_000;
 const LIMIT = limitIdx >= 0 ? Number(args[limitIdx + 1]) : 0;
 const MIN_BYTES = minMbIdx >= 0 ? Number(args[minMbIdx + 1]) * 1024 * 1024 : 0;
 const MAX_BYTES = maxMbIdx >= 0 ? Number(args[maxMbIdx + 1]) * 1024 * 1024 : 200 * 1024 * 1024;
@@ -341,8 +344,8 @@ async function main() {
       useCase,
       boneMap: entry.boneMap,
       animationPacks: entry.animationPacks,
-      gameReady: entry.category !== "asset" && asset.size > 10_000,
-      skipReason: asset.size <= 10_000 ? "too_small_corrupt_guess" : null,
+      gameReady: entry.category !== "asset" && asset.size > MIN_GAME_BYTES,
+      skipReason: asset.size <= MIN_GAME_BYTES ? "too_small_corrupt_guess" : null,
       grudgeUuid: entry.grudgeUuid,
       uploaded: false,
       purged: false,
