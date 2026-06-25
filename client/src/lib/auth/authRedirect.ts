@@ -17,6 +17,7 @@ import {
 
 /** Re-export so existing callers keep working without importing grudgeServices. */
 export const GRUDGE_ID_URL = _GRUDGE_ID_URL;
+export const PLAYER_ID_KEY = _PLAYER_ID_KEY;
 
 // ---------------------------------------------------------------------------
 // URL builders

@@ -16,6 +16,8 @@ export interface WeaponSkillTier {
 }
 
 export interface WeaponSkillSource {
+  uuid?: string;
+  id?: string;
   name: string;
   baseName?: string;
   iconUrl?: string;
@@ -163,7 +165,7 @@ export async function resolveEquippedWeaponSkills(
   const catalog = await fetchWeaponCatalog();
 
   if (equip.id.startsWith("ITEM-")) {
-    const hit = catalog.find((w) => w.uuid === equip.id || (w as { id?: string }).id === equip.id);
+    const hit = catalog.find((w) => w.uuid === equip.id || w.id === equip.id);
     if (hit) return hit;
   }
 
