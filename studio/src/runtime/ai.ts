@@ -22,6 +22,7 @@
  */
 import * as THREE from 'three';
 import type { PlacedEntity, Vec3 } from '../types';
+import { pickNavTarget, type NavWaypoint } from './islandNavGraph';
 
 export type CreatureState = 'idle' | 'wander' | 'flee' | 'pursue' | 'circle' | 'swim';
 
@@ -144,6 +145,7 @@ interface TickCtx {
   threat:   THREE.Vector3 | null;
   groundAt: (x: number, z: number) => number;
   creatures: CreatureRuntime[]; // full array for predator→prey targeting
+  navGraph?: NavWaypoint[];
 }
 
 export function tickCreatures(
@@ -176,7 +178,7 @@ export function tickCreatures(
     } else {
       c.stuckTimer += dt;
       if (c.stuckTimer > 4.0) {
-        pickWanderTarget(c);
+        pickWanderTarget(c, full.navGraph);
         c.state      = 'wander';
         c.timer      = 0;
         c.stuckTimer = 0;
@@ -247,7 +249,7 @@ function tickPrey(c: CreatureRuntime, dt: number, ctx: TickCtx): void {
     case 'idle': {
       c.debugState = `idle ${c.timer.toFixed(1)}s`;
       if (c.timer > 1.5 + Math.random() * 3) {
-        pickWanderTarget(c); c.state = 'wander'; c.timer = 0;
+        pickWanderTarget(c, ctx.navGraph); c.state = 'wander'; c.timer = 0;
       }
       break;
     }
@@ -272,7 +274,7 @@ function tickWander(c: CreatureRuntime, dt: number, ctx: TickCtx): void {
   switch (c.state) {
     case 'idle':
       c.debugState = `idle ${c.timer.toFixed(1)}s`;
-      if (c.timer > 1.5 + Math.random() * 3) { pickWanderTarget(c); c.state = 'wander'; c.timer = 0; }
+      if (c.timer > 1.5 + Math.random() * 3) { pickWanderTarget(c, ctx.navGraph); c.state = 'wander'; c.timer = 0; }
       break;
     case 'wander':
     case 'pursue':
@@ -335,10 +337,12 @@ function tickSwim(c: CreatureRuntime, dt: number, _ctx: TickCtx): void {
   const cx = c.centerX ?? 0, cz = c.centerZ ?? 0;
   const r = c.radius ?? 20;
 
-  // Depth oscillation: predators dip below surface, fish hover near it
-  const depthOsc = c.isPredator
-    ? -0.8 - Math.abs(Math.sin(c.altPhase * 0.25)) * 1.5   // sharks go 0.8–2.3 m deep
-    : 0.15 + Math.sin(c.altPhase * 0.3) * 0.1;             // fish hover at surface ±0.1
+  // Depth oscillation: deep-water spawns use their stamped altitude
+  const depthOsc = c.baseAlt < -0.5
+    ? c.baseAlt + Math.sin(c.altPhase * 0.25) * 1.2
+    : c.isPredator
+      ? -0.8 - Math.abs(Math.sin(c.altPhase * 0.25)) * 1.5
+      : 0.15 + Math.sin(c.altPhase * 0.3) * 0.1;
 
   const x = cx + Math.cos(c.phase) * r;
   const z = cz + Math.sin(c.phase) * r;
@@ -350,7 +354,14 @@ function tickSwim(c: CreatureRuntime, dt: number, _ctx: TickCtx): void {
 }
 
 // ── Shared movement helpers ─────────────────────────────────────────
-function pickWanderTarget(c: CreatureRuntime): void {
+function pickWanderTarget(c: CreatureRuntime, navGraph?: NavWaypoint[]): void {
+  const nav = navGraph?.length
+    ? pickNavTarget(navGraph, c.homeX, c.homeZ, Math.random)
+    : null;
+  if (nav) {
+    c.target.set(nav.x, nav.y, nav.z);
+    return;
+  }
   const a = Math.random() * Math.PI * 2;
   const r = 0.3 + Math.random() * c.homeRadius;
   c.target.set(

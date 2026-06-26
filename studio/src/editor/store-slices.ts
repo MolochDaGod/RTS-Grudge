@@ -249,10 +249,10 @@ export const DEFAULT_ENV: EnvSettings = {
   weather: 'forest',
   grass: {
     enabled: true,
-    density: 12,
-    height: 0.45,
-    noiseScale: 0.04,
-    windStrength: 1,
+    density: 20,
+    height: 1.1,
+    noiseScale: 0.035,
+    windStrength: 1.2,
   },
 };
 

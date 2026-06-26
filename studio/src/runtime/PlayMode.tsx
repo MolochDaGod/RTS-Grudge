@@ -25,6 +25,7 @@ import { useEditor } from '../editor/store';
 import { sampleHeight } from '../editor/terrain-utils';
 import { CreatureBySpecies } from '../editor/CreatureModels';
 import { fromEntity, tickCreatures, type CreatureRuntime } from './ai';
+import { buildNavGraph } from './islandNavGraph';
 import { Player } from './Player';
 
 /**
@@ -53,6 +54,9 @@ function GLBCreature({ url }: { url: string }) {
 export let showDebugOverlay = false;
 export function setDebugOverlay(v: boolean) { showDebugOverlay = v; }
 
+/** Live creature world positions — updated each frame for grass bending. */
+export const liveCreaturePositions: THREE.Vector3[] = [];
+
 export function PlayModeCreatures() {
   const playMode  = useEditor((s) => s.playMode);
   const entities  = useEditor((s) => s.project.entities);
@@ -68,6 +72,11 @@ export function PlayModeCreatures() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playMode, entityRev]);
 
+  const navGraph = useMemo(
+    () => (playMode ? buildNavGraph(entities) : []),
+    [playMode, entities, entityRev],
+  );
+
   const groupRefs = useRef<Map<string, THREE.Group>>(new Map());
   const threatRef = useRef(new THREE.Vector3());
 
@@ -82,12 +91,15 @@ export function PlayModeCreatures() {
       threat: threatRef.current,
       groundAt: (x, z) => sampleHeight(x, z, terrain),
       creatures,
+      navGraph,
     });
+    liveCreaturePositions.length = 0;
     for (const c of creatures) {
       const g = groupRefs.current.get(c.id);
       if (!g) continue;
       g.position.set(c.pos.x, c.pos.y, c.pos.z);
       g.rotation.y = c.yaw;
+      if (c.pos.y > -0.5) liveCreaturePositions.push(c.pos.clone());
     }
   });
 

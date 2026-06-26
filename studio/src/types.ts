@@ -23,7 +23,9 @@ export type EntityKind =
   | 'flower'
   | 'creature'
   | 'resource_node'
-  | 'dock';
+  | 'dock'
+  | 'nav_waypoint'
+  | 'dungeon_entrance';
 
 export interface PlacedEntity {
   id: string;

@@ -5,8 +5,9 @@
  */
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, GizmoHelper, GizmoViewport, Sky, Grid } from '@react-three/drei';
+import { Suspense, useMemo, useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { Suspense } from 'react';
 import { useEditor } from './store';
 import { SculptController } from './SculptController';
 import { EntityLayer } from './EntityLayer';
@@ -15,8 +16,9 @@ import { sampleHeight } from './terrain-utils';
 import { Water, ShoreFoam, AmbientSparkles, PostFX } from '../runtime/Effects';
 import { Rain } from '../runtime/Rain';
 import { GrassField } from '../runtime/GrassField';
+import { InstancedForest } from '../runtime/InstancedForest';
 import { HdrEnvironment } from '../runtime/HdrEnvironment';
-import { PlayModeRoot } from '../runtime/PlayMode';
+import { PlayModeRoot, liveCreaturePositions } from '../runtime/PlayMode';
 import { ForgePhysics } from '../runtime/ForgePhysics';
 import { getAssetById } from '../library/LandscapeAssets';
 import type { Vec3 } from '../types';
@@ -150,24 +152,71 @@ function CameraController() {
  * each behind its own toggle means turning a feature off actually
  * unmounts it — no GPU cost when disabled.
  */
-function EnvLayer() {
+function GrassWithInteraction() {
   const env = useEditor((s) => s.env);
   const terrain = useEditor((s) => s.project.terrain);
+  const playMode = useEditor((s) => s.playMode);
+  const playerPos = useEditor((s) => s.player.position);
+  const interactRef = useRef<THREE.Vector3[]>([
+    new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(),
+    new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3(),
+    new THREE.Vector3(), new THREE.Vector3(),
+  ]);
+
+  useFrame(() => {
+    if (!playMode) return;
+    let n = 0;
+    interactRef.current[n]?.set(playerPos[0], playerPos[1], playerPos[2]);
+    n++;
+    for (const p of liveCreaturePositions) {
+      if (n >= interactRef.current.length) break;
+      interactRef.current[n]?.copy(p);
+      n++;
+    }
+  });
+
+  if (!env.grass.enabled) return null;
+  return (
+    <GrassField
+      terrain={terrain}
+      density={env.grass.density}
+      height={env.grass.height}
+      noiseScale={env.grass.noiseScale}
+      windStrength={env.grass.windStrength}
+      interactionPositions={playMode ? interactRef.current : undefined}
+    />
+  );
+}
+
+function ForestLayer() {
+  const terrain = useEditor((s) => s.project.terrain);
+  const entities = useEditor((s) => s.project.entities);
+  const entityRev = useEditor((s) => s.entityRev);
+
+  const zones = useMemo(() => entities
+    .filter((e) => e.data.forestZone === true)
+    .map((e) => ({
+      cx: Number(e.data.cx ?? e.position[0]),
+      cz: Number(e.data.cz ?? e.position[2]),
+      radius: Number(e.data.radius ?? 16),
+      count: Number(e.data.count ?? 40),
+      seed: Number(e.data.seed ?? 1),
+    })), [entities, entityRev]);
+
+  if (zones.length === 0) return null;
+  return <InstancedForest terrain={terrain} zones={zones} />;
+}
+
+function EnvLayer() {
+  const env = useEditor((s) => s.env);
   return (
     <>
       {env.shoreFoam && <ShoreFoam radius={102} />}
       {env.sparkles && <AmbientSparkles />}
       {env.rain && <Rain />}
       {env.hdr && <HdrEnvironment />}
-      {env.grass.enabled && (
-        <GrassField
-          terrain={terrain}
-          density={env.grass.density}
-          height={env.grass.height}
-          noiseScale={env.grass.noiseScale}
-          windStrength={env.grass.windStrength}
-        />
-      )}
+      <ForestLayer />
+      <GrassWithInteraction />
     </>
   );
 }

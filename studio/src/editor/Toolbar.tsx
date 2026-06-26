@@ -87,6 +87,7 @@ export function Toolbar() {
   const applyGeneratedIsland = useEditor((s) => s.applyGeneratedIsland);
   const weather    = useEditor((s) => s.env.weather);
   const setWeather = useEditor((s) => s.setWeather);
+  const setGrass = useEditor((s) => s.setGrass);
 
   const toastMsg = useToast();
   const [showLoad, setShowLoad] = useState(false);
@@ -97,6 +98,7 @@ export function Toolbar() {
     const seed = seedInput.trim() ? Number(seedInput) || hashString(seedInput) : Math.floor(Math.random() * 1e9);
     const result = generateIsland(project, { seed, weather });
     applyGeneratedIsland(result.entities, result.seed);
+    setGrass({ enabled: true, density: 22, height: 1.15, windStrength: 1.3 });
     setSeedInput(String(result.seed));
     toast(`🌊 Island generated — seed ${result.seed}`);
   };
