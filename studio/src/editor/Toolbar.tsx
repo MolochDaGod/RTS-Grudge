@@ -13,10 +13,7 @@ import {
 import type { EditorTool } from '../types';
 import { useState, useRef, useEffect } from 'react';
 import { generateIsland } from './IslandGenerator';
-import {
-  PLAYER_CHARACTERS,
-  PLAYER_CHARACTER_IDS,
-} from '../library/PlayerCharacterRegistry';
+
 
 const WEATHER_OPTS: { id: WeatherBiome; icon: string; label: string }[] = [
   { id: 'forest',  icon: '🌲', label: 'Forest'  },
@@ -82,12 +79,9 @@ export function Toolbar() {
   const exportJSON = useEditor((s) => s.exportJSON);
   const playMode  = useEditor((s) => s.playMode);
   const togglePlay = useEditor((s) => s.togglePlay);
-  const playerCharacterId = useEditor((s) => s.playerCharacterId);
-  const setPlayerCharacter = useEditor((s) => s.setPlayerCharacter);
   const applyGeneratedIsland = useEditor((s) => s.applyGeneratedIsland);
   const weather    = useEditor((s) => s.env.weather);
   const setWeather = useEditor((s) => s.setWeather);
-  const setGrass = useEditor((s) => s.setGrass);
 
   const toastMsg = useToast();
   const [showLoad, setShowLoad] = useState(false);
@@ -98,7 +92,6 @@ export function Toolbar() {
     const seed = seedInput.trim() ? Number(seedInput) || hashString(seedInput) : Math.floor(Math.random() * 1e9);
     const result = generateIsland(project, { seed, weather });
     applyGeneratedIsland(result.entities, result.seed);
-    setGrass({ enabled: true, density: 22, height: 1.15, windStrength: 1.3 });
     setSeedInput(String(result.seed));
     toast(`🌊 Island generated — seed ${result.seed}`);
   };
@@ -206,27 +199,16 @@ export function Toolbar() {
       </span>
 
       <div className="flex items-center gap-1 border-r border-border pr-2 mr-1">
-        <span className="text-muted-foreground uppercase tracking-wider mr-1">Play</span>
-        <select
-          value={playerCharacterId}
-          onChange={(e) => setPlayerCharacter(e.target.value)}
-          className="bg-input border border-border rounded px-2 py-1 font-mono"
-          title="Character used in third-person play"
-        >
-          {PLAYER_CHARACTER_IDS.map((id) => (
-            <option key={id} value={id}>{PLAYER_CHARACTERS[id].label}</option>
-          ))}
-        </select>
         <button
           onClick={togglePlay}
-          title={playMode ? 'Stop creature preview' : 'Preview creatures in-editor'}
-          className={`px-2 py-1 rounded border font-semibold ${
+          title={playMode ? 'Return to lightweight edit mode' : 'Walk the island as an unarmed race character'}
+          className={`px-3 py-1 rounded border font-semibold ${
             playMode
-              ? 'bg-emerald-500 text-black border-emerald-600 hover:bg-emerald-400'
-              : 'bg-secondary text-secondary-foreground border-border hover:bg-secondary/80'
+              ? 'bg-amber-600 text-white border-amber-500 hover:bg-amber-500'
+              : 'bg-emerald-600 text-white border-emerald-500 hover:bg-emerald-500'
           }`}
         >
-          {playMode ? '■ Stop' : '👁️ Preview'}
+          {playMode ? '■ Edit' : '▶ Play'}
         </button>
       </div>
 

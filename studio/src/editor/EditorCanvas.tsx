@@ -13,7 +13,7 @@ import { SculptController } from './SculptController';
 import { EntityLayer } from './EntityLayer';
 import { newEntityId } from './project';
 import { sampleHeight } from './terrain-utils';
-import { Water, ShoreFoam, AmbientSparkles, PostFX } from '../runtime/Effects';
+import { StillWater, ShoreFoam, AmbientSparkles, PostFX } from '../runtime/Effects';
 import { Rain } from '../runtime/Rain';
 import { GrassField } from '../runtime/GrassField';
 import { InstancedForest } from '../runtime/InstancedForest';
@@ -175,7 +175,7 @@ function GrassWithInteraction() {
     }
   });
 
-  if (!env.grass.enabled) return null;
+  if (!playMode || !env.grass.enabled) return null;
   return (
     <GrassField
       terrain={terrain}
@@ -189,9 +189,12 @@ function GrassWithInteraction() {
 }
 
 function ForestLayer() {
+  const playMode = useEditor((s) => s.playMode);
   const terrain = useEditor((s) => s.project.terrain);
   const entities = useEditor((s) => s.project.entities);
   const entityRev = useEditor((s) => s.entityRev);
+
+  if (!playMode) return null;
 
   const zones = useMemo(() => entities
     .filter((e) => e.data.forestZone === true)
@@ -209,6 +212,8 @@ function ForestLayer() {
 
 function EnvLayer() {
   const env = useEditor((s) => s.env);
+  const playMode = useEditor((s) => s.playMode);
+  if (!playMode) return null;
   return (
     <>
       {env.shoreFoam && <ShoreFoam radius={102} />}
@@ -221,24 +226,34 @@ function EnvLayer() {
   );
 }
 
+function SceneLighting() {
+  const playMode = useEditor((s) => s.playMode);
+  return (
+    <>
+      <ambientLight intensity={playMode ? 0.45 : 0.55} />
+      <directionalLight
+        position={[60, 80, 30]}
+        intensity={playMode ? 1.4 : 1.0}
+        castShadow={playMode}
+        shadow-mapSize={playMode ? [2048, 2048] : [512, 512]}
+      >
+        {playMode && (
+          <orthographicCamera attach="shadow-camera" args={[-150, 150, 150, -150, 0.1, 400]} />
+        )}
+      </directionalLight>
+    </>
+  );
+}
+
 function EditorScene() {
   const playMode = useEditor((s) => s.playMode);
   const scene = (
     <>
       <color attach="background" args={['#0d1117']} />
-      <fogExp2 attach="fog" args={['#0d1117', 0.0035]} />
-      <Sky sunPosition={[80, 40, -60]} turbidity={4} rayleigh={1.5} />
+      <fogExp2 attach="fog" args={['#0d1117', playMode ? 0.0035 : 0.0028]} />
+      <Sky sunPosition={[80, 40, -60]} turbidity={playMode ? 4 : 2} rayleigh={1.5} />
 
-      <ambientLight intensity={0.45} />
-      <directionalLight
-        position={[60, 80, 30]}
-        intensity={1.4}
-        castShadow
-        shadow-mapSize={[2048, 2048]}
-      >
-        <orthographicCamera attach="shadow-camera" args={[-150, 150, 150, -150, 0.1, 400]} />
-      </directionalLight>
-
+      <SceneLighting />
       <EditorGrid />
 
       <Suspense fallback={null}>
@@ -246,13 +261,13 @@ function EditorScene() {
         <EntityLayer />
         <PlayModeRoot />
         <PlacementHandler />
-        <Water size={600} />
+        <StillWater size={600} />
         <EnvLayer />
       </Suspense>
 
       <CameraController />
       <PlayGizmoToggle />
-      <PostFX />
+      {playMode && <PostFX />}
     </>
   );
 
@@ -260,12 +275,14 @@ function EditorScene() {
 }
 
 export function EditorCanvas() {
+  const playMode = useEditor((s) => s.playMode);
   return (
     <Canvas
-      shadows
+      shadows={playMode}
       camera={{ position: [80, 60, 80], fov: 50, near: 0.1, far: 2000 }}
       gl={{ antialias: true, powerPreference: 'high-performance' }}
-      dpr={[1, 2]}
+      dpr={playMode ? [1, 2] : [1, 1.25]}
+      className="absolute inset-0 w-full h-full"
     >
       <EditorScene />
     </Canvas>

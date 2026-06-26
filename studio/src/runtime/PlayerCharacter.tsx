@@ -25,6 +25,7 @@ import {
   type PlayerCharacterSpec,
 } from '../library/PlayerCharacterRegistry';
 import type { LocomotionState } from '../editor/store';
+import { stripUnarmedEquipment } from '../lib/raceEquipment';
 
 interface Bundle {
   scene: THREE.Group;
@@ -129,7 +130,9 @@ export function PlayerCharacter({
 
   const cloned = useMemo(() => {
     if (!bundle || !spec) return null;
-    return SkeletonUtils.clone(bundle.scene);
+    const inst = SkeletonUtils.clone(bundle.scene);
+    if (spec.unarmed) stripUnarmedEquipment(inst);
+    return inst;
   }, [bundle, spec]);
 
   const mixer = useMemo(

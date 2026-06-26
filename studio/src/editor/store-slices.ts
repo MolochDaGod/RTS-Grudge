@@ -243,12 +243,12 @@ export interface EnvSettings {
 
 export const DEFAULT_ENV: EnvSettings = {
   shoreFoam: false,
-  sparkles: true,
+  sparkles: false,
   rain: false,
   hdr: false,
   weather: 'forest',
   grass: {
-    enabled: true,
+    enabled: false,
     density: 20,
     height: 1.1,
     noiseScale: 0.035,
@@ -306,17 +306,12 @@ export interface PlaySlice {
 }
 
 function readPersistedCharacter(): string {
-  // 'hero' is the best-formed default — Meshy2 rig + Mixamo standard
-  // locomotion clips (see PlayerCharacterRegistry). We migrate any user
-  // who was persisted on the old 'soldier' default UNLESS they explicitly
-  // re-picked it during the legacy build (we can't tell, so this is a soft
-  // migration: if they want soldier they re-pick from the dropdown).
   try {
     const v = localStorage.getItem(PLAYER_CHAR_LS);
-    if (!v || v === 'soldier') return 'hero';
+    if (!v || v === 'soldier' || v === 'hero') return 'wk';
     return v;
   } catch {
-    return 'hero';
+    return 'wk';
   }
 }
 
@@ -324,7 +319,20 @@ export const createPlaySlice: StateCreator<
   Combined, [], [], PlaySlice
 > = (set) => ({
   playMode: false,
-  togglePlay: () => set((s) => ({ playMode: !s.playMode })),
+  togglePlay: () =>
+    set((s) => {
+      const entering = !s.playMode;
+      return {
+        playMode: entering,
+        env: {
+          ...s.env,
+          grass: {
+            ...s.env.grass,
+            enabled: entering,
+          },
+        },
+      };
+    }),
   playerCharacterId: readPersistedCharacter(),
   setPlayerCharacter: (id) => {
     try { localStorage.setItem(PLAYER_CHAR_LS, id); } catch { /* ignore */ }

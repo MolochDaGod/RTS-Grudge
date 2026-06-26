@@ -1,43 +1,52 @@
 /**
- * PlayHud — minimal heads-up display shown only while in play mode.
- *
- * Lives in the editor DOM (not the Canvas) so it doesn't have to be a
- * Three.js sprite. It surfaces:
- *   - A "Stop" pill that toggles play off (mirrors the toolbar button so
- *     the user doesn't have to scroll back up if the toolbar is offscreen).
- *   - The current control hints — these match the actual bindings in
- *     `runtime/Player.tsx` so they stay accurate.
- *   - Live locomotion + character readout so we can see at a glance whether
- *     the player slice is updating.
+ * PlayHud — overlay while walking the island in third-person.
  */
 import { usePlay, useEditor } from './store';
+import { PLAYER_CHARACTERS, PLAY_RACE_IDS } from '../library/PlayerCharacterRegistry';
 
 export function PlayHud() {
   const { playMode, playerCharacterId, player } = usePlay();
   const togglePlay = useEditor((s) => s.togglePlay);
+  const setPlayerCharacter = useEditor((s) => s.setPlayerCharacter);
+
   if (!playMode) return null;
 
+  const spec = PLAYER_CHARACTERS[playerCharacterId as keyof typeof PLAYER_CHARACTERS];
+
   return (
-    <div className="absolute left-2 top-2 z-20 flex flex-col gap-1 text-xs">
-      <div className="flex items-center gap-2 bg-card/85 border border-border rounded-md px-3 py-1.5 backdrop-blur">
+    <div className="absolute left-2 top-2 z-20 flex flex-col gap-1.5 text-xs max-w-[min(100%,28rem)]">
+      <div className="flex flex-wrap items-center gap-2 bg-card/90 border border-border rounded-lg px-3 py-2 backdrop-blur shadow-lg">
         <button
+          type="button"
           onClick={togglePlay}
-          className="px-2 py-0.5 rounded bg-destructive text-destructive-foreground border border-destructive font-semibold"
+          className="px-2.5 py-1 rounded bg-destructive text-destructive-foreground border border-destructive font-semibold shrink-0"
         >
-          ■ Stop
+          ■ Exit Play
         </button>
-        <span className="text-muted-foreground">
+        <label className="flex items-center gap-1.5 text-muted-foreground shrink-0">
+          Race
+          <select
+            value={playerCharacterId}
+            onChange={(e) => setPlayerCharacter(e.target.value)}
+            className="bg-input border border-border rounded px-2 py-1 text-foreground font-medium"
+          >
+            {PLAY_RACE_IDS.map((id) => (
+              <option key={id} value={id}>{PLAYER_CHARACTERS[id].label}</option>
+            ))}
+          </select>
+        </label>
+        <span className="text-muted-foreground hidden sm:inline">
           <kbd className="font-mono">WASD</kbd> move ·{' '}
           <kbd className="font-mono">Shift</kbd> sprint ·{' '}
-          <kbd className="font-mono">RMB drag</kbd> camera ·{' '}
-          <kbd className="font-mono">Wheel</kbd> zoom
+          <kbd className="font-mono">RMB</kbd> camera
         </span>
       </div>
-      <div className="bg-card/70 border border-border rounded-md px-3 py-1 backdrop-blur text-muted-foreground">
-        playing as <span className="text-foreground font-semibold">{playerCharacterId}</span>
+      <div className="bg-card/75 border border-border rounded-md px-3 py-1.5 backdrop-blur text-muted-foreground">
+        <span className="text-foreground font-semibold">{spec?.label ?? playerCharacterId}</span>
         {' · '}
         <span className="font-mono">{player.locomotion}</span>
-        {player.sprinting && <span className="text-amber-400"> [sprint]</span>}
+        {player.sprinting && <span className="text-amber-400"> sprint</span>}
+        <span className="opacity-60"> · grass & creatures active</span>
       </div>
     </div>
   );

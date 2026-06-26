@@ -15,6 +15,12 @@
  */
 
 export type PlayerCharacterId =
+  | 'wk'
+  | 'brb'
+  | 'elf'
+  | 'dwf'
+  | 'orc'
+  | 'ud'
   | 'hero'
   | 'soldier'
   | 'male'
@@ -65,13 +71,49 @@ export interface PlayerCharacterSpec {
   /** Optional jump impulse magnitude (m/s) \u2014 future use; controller stays
    *  grounded for now. */
   jumpVelocity: number;
+  /** Strip swords/shields/bows for basic unarmed roam. */
+  unarmed?: boolean;
 }
 
 const C = 'characters/models';
 const G = 'models/characters';
 const MX = 'models/animations/melee-axe';
+const RACE = 'models/grudge6/races';
+const LOCO = 'models/animations/melee-axe';
+
+/** Grudge6 Bip001 race — unarmed body, Mixamo locomotion stitched on. */
+function raceSpec(
+  label: string,
+  fbx: string,
+  scale = 0.01,
+): PlayerCharacterSpec {
+  return {
+    label,
+    layout: 'split',
+    baseKey: `${RACE}/${fbx}`,
+    splitClips: {
+      idle: `${LOCO}/standing idle.fbx`,
+      walk: `${LOCO}/standing walk forward.fbx`,
+      run:  `${LOCO}/standing run forward.fbx`,
+    },
+    defaultScale: scale,
+    yOffset: 0,
+    eyeHeight: 1.65,
+    walkSpeed: 2.4,
+    runSpeed: 5.0,
+    jumpVelocity: 4.5,
+    unarmed: true,
+  };
+}
 
 export const PLAYER_CHARACTERS: Record<PlayerCharacterId, PlayerCharacterSpec> = {
+  // ── Default play avatar: unarmed Grudge6 race (Human / WK) ─────────
+  wk:  raceSpec('Human (unarmed)', 'WK_Characters.fbx'),
+  brb: raceSpec('Barbarian (unarmed)', 'BRB_Characters.fbx'),
+  elf: raceSpec('Elf (unarmed)', 'ELF_Characters.fbx'),
+  dwf: raceSpec('Dwarf (unarmed)', 'DWF_Characters.fbx'),
+  orc: raceSpec('Orc (unarmed)', 'ORC_Characters.fbx'),
+  ud:  raceSpec('Undead (unarmed)', 'UD_Characters.fbx'),
   // ── Default basic character: Meshy2 rig + Mixamo locomotion ──────
   // The cleanest, best-formed avatar in ObjectStore. Uses the Meshy2
   // auto-rigged FBX as the skeleton and stitches in Mixamo's standard
@@ -217,6 +259,10 @@ export const PLAYER_CHARACTERS: Record<PlayerCharacterId, PlayerCharacterSpec> =
     jumpVelocity: 4.5,
   },
 };
+
+/** Races shown in play-mode HUD (unarmed roam). */
+export const PLAY_RACE_IDS: PlayerCharacterId[] =
+  ['wk', 'brb', 'elf', 'dwf', 'orc', 'ud'];
 
 export const PLAYER_CHARACTER_IDS: PlayerCharacterId[] =
   Object.keys(PLAYER_CHARACTERS) as PlayerCharacterId[];

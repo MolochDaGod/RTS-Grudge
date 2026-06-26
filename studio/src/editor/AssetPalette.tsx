@@ -85,7 +85,7 @@ export function AssetPalette() {
   const showTintControls = !!armedAssetId;
 
   return (
-    <div className="absolute left-2 top-2 z-20 flex flex-col gap-0
+    <div className="absolute left-14 top-2 z-20 flex flex-col gap-0
                     bg-card/92 backdrop-blur-sm border border-border rounded-lg
                     shadow-2xl text-xs max-w-[290px]" style={{ maxHeight: '94vh', overflowY: 'auto' }}>
 

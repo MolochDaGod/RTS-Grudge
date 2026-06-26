@@ -394,7 +394,10 @@ export function EntityLayer() {
         e.kind !== 'creature'
         && e.kind !== 'nav_waypoint'
         && !e.data.forestZone)
-    : allEntities.filter((e) => !e.data.forestZone);
+    : allEntities.filter((e) =>
+        e.kind !== 'creature'
+        && e.kind !== 'nav_waypoint'
+        && !e.data.forestZone);
 
   // We re-read the entity list on each render; using entityRev as a key
   // hint avoids React reusing stale group children when arrays mutate.
