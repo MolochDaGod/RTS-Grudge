@@ -831,7 +831,7 @@ for every path; the React app dispatches to the correct phase on mount.
 |---|---|---|---|
 | `/` | menu | MenuScreen | Main menu — play, shipwreck, editor, controller |
 | `/home` | home | HomePage | Game hub — all modes + fleet game links |
-| `/character` | characterSelect | CharacterSelectScreen | Hero Forge — race, class, weapons, body morph |
+| `/character` | characterSelect | CharacterSelectScreen | Hero Forge — edit existing GLB presets (race, class, weapons, body morph). **+ GCS** launches [character.grudge-studio.com](https://character.grudge-studio.com) for new account characters. |
 | `/play` | playing | GameScene | 3D open world — combat, harvest, build, sail |
 | `/combat` | combat2d | Combat2DPage | Gruda Wars 2D combat entry |
 | `/island-v2` | islandV2 | IslandV2Page | Shipwreck Island survival launcher |
@@ -844,6 +844,17 @@ for every path; the React app dispatches to the correct phase on mount.
 Elf, Human, Dwarf, Orc, Barbarian (battle_mage model), Undead.
 Worge is a **class** (not a race) — selectable via class presets.
 Goblin is an **enemy NPC** — removed from player selection.
+
+### Hero Forge vs GCS (character creation)
+
+| Surface | URL | Role |
+|---------|-----|------|
+| **GCS** | [character.grudge-studio.com](https://character.grudge-studio.com) | Canonical new-character creation — HYDRA VRM + grudge6, saves to Railway with `era=warlords` roster |
+| **Hero Forge** | `/character` on RTS-Grudge | In-game 3D GLB preset editor for existing heroes |
+
+**+ GCS** on Hero Forge calls `client/src/lib/gcsRedirect.ts` with `returnTo` pointing back to `/character`. After save, GCS redirects with `?from=gcs&characterId={uuid}`; `CharacterSelectScreen` consumes the handoff on mount.
+
+**2D picker art** (race portraits, class backgrounds, race tiles) is unified in `client/src/lib/data/artAssets.ts` — sourced from the Warlords `class-selector.html` imgur URLs. `icons.ts` delegates `getRacePortrait()` to `artAssets`.
 
 ---
 
