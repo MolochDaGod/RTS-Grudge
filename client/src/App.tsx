@@ -22,6 +22,7 @@ import CheatsHUD from "./game/cheats/CheatsHUD";
 import { TerrainDebugHUD } from "./game/cheats/TerrainDebugHUD";
 import { StreamedColliderStatsHUD } from "./game/cheats/StreamedColliderDebugOverlay";
 import "@fontsource/inter";
+import { fetchUiArt } from "./lib/data/uiArt";
 
 const ControllerPage = lazy(() => import("./game/controller/ControllerPage"));
 const HomePage = lazy(() => import("./pages/HomePage"));
@@ -55,6 +56,10 @@ function App() {
     goToHome, goToController, goToCharacterSelect, goToAdmin,
     goToCombat2d, goToIslandV2, goToWallet,
   } = useGame();
+
+  useEffect(() => {
+    void fetchUiArt();
+  }, []);
 
   useEffect(() => {
     const session = loadHomeIslandSession();

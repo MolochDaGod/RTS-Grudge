@@ -59,6 +59,8 @@ import {
 } from "./systems/ModelRegistry";
 import { loadAsset } from "./systems/AssetLoader";
 import { COMBAT_CLASS_BACKGROUNDS, RACE_PICKER_TILES } from "@/lib/data/artAssets";
+import { CHARACTER_VIEWER_TOKENS } from "@/lib/data/uiArt";
+import { CharacterViewerShell } from "./components/CharacterViewerShell";
 import { navigateToGcsCreate } from "@/lib/gcsRedirect";
 
 interface CharacterDef {
@@ -597,7 +599,7 @@ function WeaponGizmo({
       ref={transformRef}
       object={grpObj}
       mode={gizmoMode}
-      size={0.4}
+      size={CHARACTER_VIEWER_TOKENS.gizmo.size}
       onObjectChange={() => {
         if (!grpObj) return;
         const p = grpObj.position;
@@ -1169,8 +1171,11 @@ function PreviewCanvas({
   backAccessoryId?: string | null;
   onEquipmentSlots?: (mgr: EquipmentMeshManager | null) => void;
 }) {
+  const viewer = CHARACTER_VIEWER_TOKENS.canvas;
+  const [cx, cy, cz] = viewer.cameraPosition;
+  const [tx, ty, tz] = viewer.target;
   return (
-    <Canvas camera={{ position: [0, 1.2, 3], fov: 45 }} dpr={[1, 1.5]} style={{ width: "100%", height: "100%" }} gl={{ antialias: false, alpha: true, powerPreference: "high-performance", failIfMajorPerformanceCaveat: false, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.0, outputColorSpace: THREE.SRGBColorSpace }} onCreated={({ gl }) => { const c = gl.domElement; c.addEventListener("webglcontextlost", (e) => { e.preventDefault(); }); c.addEventListener("webglcontextrestored", () => {}); }}>
+    <Canvas camera={{ position: [cx, cy, cz], fov: viewer.fov }} dpr={viewer.dpr} style={{ width: "100%", height: "100%", display: "block" }} gl={{ antialias: false, alpha: true, powerPreference: "high-performance", failIfMajorPerformanceCaveat: false, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.0, outputColorSpace: THREE.SRGBColorSpace }} onCreated={({ gl }) => { const c = gl.domElement; c.addEventListener("webglcontextlost", (e) => { e.preventDefault(); }); c.addEventListener("webglcontextrestored", () => {}); }}>
       <AssetLoaderInit />
       <ambientLight intensity={0.6} />
       <directionalLight position={[3, 5, 3]} intensity={1.2} castShadow />
@@ -1232,9 +1237,9 @@ function PreviewCanvas({
       <OrbitControls
         makeDefault
         enableZoom={true} enablePan={true} enableRotate={true}
-        minDistance={0.5} maxDistance={10}
+        minDistance={viewer.minDistance} maxDistance={viewer.maxDistance}
         minPolarAngle={0.05} maxPolarAngle={Math.PI - 0.05}
-        target={[0, 0.9, 0]}
+        target={[tx, ty, tz]}
       />
     </Canvas>
   );
@@ -2087,8 +2092,9 @@ export default function CharacterSelectScreen() {
         </div>
       </div>
 
-      <div style={{ position: "relative", zIndex: 1, flex: 1, display: "flex", flexDirection: "column" }}>
-        <div style={{ flex: 1, position: "relative", minHeight: 0 }}>
+      <div style={{ position: "relative", zIndex: 1, flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+        <div style={{ position: "relative", flex: 1, minHeight: 0 }}>
+        <CharacterViewerShell variant="forge">
           <PreviewCanvas
             modelPath={currentModelPath} scale={scale} materialColors={matColors}
             materialMap={currentChar.materialMap} previewAnim={previewAnim}
@@ -2105,8 +2111,9 @@ export default function CharacterSelectScreen() {
             backAccessoryId={backAccessoryId}
             onEquipmentSlots={handleEquipmentSlots}
           />
+        </CharacterViewerShell>
           <div style={{
-            position: "absolute", top: 8, left: 8,
+            position: "absolute", top: 8, left: 8, pointerEvents: "auto", zIndex: 2,
             background: "linear-gradient(135deg,rgba(6,8,16,.85),rgba(4,5,12,.9))",
             padding: "8px 12px", borderRadius: 10,
             border: `1px solid ${classPalette.border}`,

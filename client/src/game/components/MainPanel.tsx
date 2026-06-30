@@ -25,7 +25,9 @@ import { useBuildSystem, BUILDING_REGISTRY, type BuildingCategory } from "@/lib/
 import { useAllies, type AllyType } from "@/lib/stores/useAllies";
 import { useStorage } from "@/lib/stores/useStorage";
 import { useProfessions, PROFESSION_DEFS, type ProfessionId } from "@/lib/stores/useProfessions";
-import { getUnitIcon, getRacePortrait, getClassIcon, getProfessionIcon, type IconRace } from "@/lib/data/icons";
+import { getRacePortrait, getClassHeroImage } from "@/lib/data/artAssets";
+import { getClassIcon, getProfessionIcon, type IconRace } from "@/lib/data/icons";
+import { CHARACTER_VIEWER_TOKENS } from "@/lib/data/uiArt";
 import { FACTIONS_BY_ID } from "@/lib/data/factions";
 import {
   buildWeaponSkillTiers,
@@ -175,11 +177,13 @@ const TABS: { id: PanelTab; label: string }[] = [
   { id: "storage",     label: "Storage" },
 ];
 
-/** Resolve character portrait URL from race + heroClass. */
+/** Resolve hero portrait from fleet ui-art (class-selector art). */
 function resolvePortrait(race: string | undefined, heroClass: HeroClass | null): string {
-  const r = (race ?? "human") as IconRace;
-  const arch = heroClass === "ranger" ? "archer" : heroClass === "mage" ? "mage" : "warrior";
-  return getUnitIcon(r, arch);
+  if (heroClass === "ranger") return getClassHeroImage("ranger");
+  if (heroClass === "mage") return getClassHeroImage("mage");
+  if (heroClass === "worge") return getClassHeroImage("worge");
+  if (heroClass === "warrior") return getClassHeroImage("warrior");
+  return getRacePortrait((race ?? "human") as IconRace);
 }
 
 /** Faction color for a given faction ID string. */
@@ -315,19 +319,20 @@ function EquipmentTabContent() {
           const heroClass2 = charId2 ? useCharacterStats.getState().getHeroClass(charId2) : null;
           const heroDef2   = charId2 ? HERO_DEFINITIONS.find(h => h.characterId === charId2) : null;
           const race2      = (heroDef2?.race ?? "human") as IconRace;
-          const arch2      = heroClass2 === "ranger" ? "archer" : heroClass2 === "mage" ? "mage" : "warrior";
-          const portraitEq = getUnitIcon(race2, arch2);
+          const portraitEq = resolvePortrait(race2, heroClass2);
           const fColor2    = factionColor(useGame.getState().selectedCharacter.faction);
+          const eqPortrait = CHARACTER_VIEWER_TOKENS.equipmentPortrait;
           return (
             <div style={{
-              width: 110, height: 180, border: `2px solid ${fColor2}`, borderRadius: 10,
+              width: eqPortrait.width, height: eqPortrait.height, aspectRatio: eqPortrait.aspectRatio,
+              border: `2px solid ${fColor2}`, borderRadius: 10,
               alignSelf: "center", overflow: "hidden", position: "relative", flexShrink: 0,
               background: `radial-gradient(ellipse at 50% 40%, ${fColor2}12, transparent 60%), linear-gradient(135deg, #2e1f14, #1a0f08)`,
             }}>
               <img
                 src={portraitEq}
                 alt="Character"
-                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center" }}
+                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: eqPortrait.objectPosition }}
                 onError={(e) => {
                   (e.currentTarget as HTMLImageElement).style.opacity = "0";
                 }}
