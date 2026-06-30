@@ -1,0 +1,27 @@
+{
+  "version": "1.0.0",
+  "synced": "2026-06-25T06:25:43.223Z",
+  "source": "ObjectStore/api/v1",
+  "sourceUrl": "https://molochdagod.github.io/ObjectStore/api/v1",
+  "files": [
+    "game-data-manifest.json",
+    "master-attributes.json",
+    "master-classRelics.json",
+    "master-skillTrees.json",
+    "master-weaponSkills.json",
+    "master-professions.json",
+    "master-items.json",
+    "master-weapons.json",
+    "master-armor.json",
+    "master-consumables.json",
+    "master-recipes.json",
+    "master-materials.json",
+    "master-artifacts.json",
+    "master-registry.json",
+    "classes.json",
+    "bench-mesh-catalog.json",
+    "attributes.json"
+  ],
+  "totalBytes": 6880053,
+  "note": "Offline mirror — regenerate with npm run sync:fleet in ObjectStore"
+}

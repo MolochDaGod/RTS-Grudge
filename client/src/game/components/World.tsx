@@ -221,31 +221,6 @@ function TorchFBX({ position }: { position: [number, number, number] }) {
   );
 }
 
-function Campfire({ position }: { position: [number, number, number] }) {
-  return (
-    <group position={position}>
-      {[0, 1, 2, 3, 4, 5].map((i) => {
-        const angle = (i / 6) * Math.PI * 2;
-        return (
-          <mesh key={i} position={[Math.cos(angle) * 0.4, 0.1, Math.sin(angle) * 0.4]} rotation={[0.3, angle, 0.2]}>
-            <boxGeometry args={[0.15, 0.4, 0.1]} />
-            <meshStandardMaterial color="#5C4033" />
-          </mesh>
-        );
-      })}
-      <pointLight position={[0, 0.8, 0]} color="#ff6600" intensity={4} distance={12} />
-      <mesh position={[0, 0.5, 0]}>
-        <coneGeometry args={[0.2, 0.6, 8]} />
-        <meshStandardMaterial color="#ff4400" emissive="#ff4400" emissiveIntensity={2} transparent opacity={0.8} />
-      </mesh>
-      <mesh position={[0.1, 0.7, 0.05]}>
-        <coneGeometry args={[0.1, 0.4, 6]} />
-        <meshStandardMaterial color="#ffaa00" emissive="#ffaa00" emissiveIntensity={2} transparent opacity={0.6} />
-      </mesh>
-    </group>
-  );
-}
-
 function Bush({ position }: { position: [number, number, number] }) {
   return (
     <mesh castShadow position={position}>
@@ -282,7 +257,7 @@ export default function World() {
     const trees: { pos: [number, number, number]; scale: number }[] = [];
     const rocks: { pos: [number, number, number]; scale: number }[] = [];
     const bushes: [number, number, number][] = [];
-    const campfires: [number, number, number][] = [];
+
     const chests: [number, number, number][] = [];
     const elfBuildings: { pos: [number, number, number]; rot: [number, number, number]; index: number }[] = [];
     const lanterns: [number, number, number][] = [];
@@ -323,9 +298,6 @@ export default function World() {
       if (inSpawnZone(x, z)) continue;
       bushes.push([x, th(x, z) + 0.3, z]);
     }
-
-    const cfCoords: [number,number][] = [[18,-18],[-15,18],[25,-25],[-40,-40],[70,-30]];
-    cfCoords.forEach(([x,z]) => campfires.push([x, th(x, z), z]));
 
     const chCoords: [number,number][] = [[12,6],[-18,-12],[30,25],[-35,35],[55,-20]];
     chCoords.forEach(([x,z]) => chests.push([x, th(x, z), z]));
@@ -419,7 +391,7 @@ export default function World() {
     });
 
     return {
-      trees, rocks, bushes, campfires, chests, elfBuildings, lanterns, boats, bridges,
+      trees, rocks, bushes, chests, elfBuildings, lanterns, boats, bridges,
       pillars, torches, statues, fountains, tents, signposts, counters,
       medievalBuildings, rtsBuildings, structureBuildings,
     };
@@ -435,9 +407,6 @@ export default function World() {
       ))}
       {worldObjects.bushes.map((b, i) => (
         <Bush key={`bush_${i}`} position={b} />
-      ))}
-      {worldObjects.campfires.map((c, i) => (
-        <Campfire key={`camp_${i}`} position={c} />
       ))}
       {worldObjects.chests.map((c, i) => (
         <ChestFBX key={`chest_${i}`} position={c} />

@@ -26,6 +26,8 @@
 import { create } from "zustand";
 import * as THREE from "three";
 import { ALL_HEROES, getHero } from "@/game/world/HeroRegistry";
+import { useClaimArea } from "@/lib/stores/useClaimArea";
+import { CLAIM_AREA_DEFAULTS } from "@/game/claims/claimAreaTypes";
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -247,6 +249,14 @@ export const useFactionHeroes = create<FactionHeroesState>()((set, get) => ({
       const updated = new Map(s.heroes);
       updated.set(heroId, { ...hero, hasCamp: true, campPosition: pos.clone() });
       return { heroes: updated };
+    });
+    useClaimArea.getState().upsertClaim({
+      id: `hero-claim-${heroId}`,
+      position: [pos.x, pos.y, pos.z],
+      radius: CLAIM_AREA_DEFAULTS.heroCampRadius,
+      ownerId: heroId,
+      ownerKind: "hero",
+      labels: ["camp", "claim", "flag", "outpost"],
     });
   },
 

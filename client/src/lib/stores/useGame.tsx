@@ -8,6 +8,7 @@ export type { HeroClass };
 import { onModeSwitch } from "@/game/controllers/ModeController";
 import { useCampaign } from "@/lib/stores/useCampaign";
 import { markIntroSeen } from "@/lib/save/introFlags";
+import { usePets } from "@/lib/stores/usePets";
 
 export type GamePhase = "menu" | "home" | "characterSelect" | "loading" | "intro" | "playing" | "dead" | "paused" | "admin" | "gge" | "forge" | "controller" | "combat2d" | "islandV2" | "wallet" | "playEntrypoint";
 export type InteractionMode = "combat" | "build" | "harvest";
@@ -515,6 +516,9 @@ export const useGame = create<GameState>()(
             xpToNext: updated.experienceToNext,
             critChance: Math.min(0.35, 0.05 + updated.level * 0.02),
           });
+          if (leveled) {
+            usePets.getState().checkLevelGate(updated.level);
+          }
           return leveled;
         }
       }
@@ -527,6 +531,7 @@ export const useGame = create<GameState>()(
           xpToNext: 100 * newLevel,
           critChance: Math.min(0.35, 0.05 + newLevel * 0.02),
         });
+        usePets.getState().checkLevelGate(newLevel);
         return true;
       }
       set({ xp: newXP });

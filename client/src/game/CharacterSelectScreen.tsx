@@ -892,6 +892,10 @@ function CharacterPreview({
       }
     });
 
+    if (equipMgr.prefix) {
+      equipMgr.syncFaceClip();
+    }
+
     return s;
   }, [gltf, scale, materialColors, dynamicMaterialMap]);
 
@@ -1175,7 +1179,7 @@ function PreviewCanvas({
   const [cx, cy, cz] = viewer.cameraPosition;
   const [tx, ty, tz] = viewer.target;
   return (
-    <Canvas camera={{ position: [cx, cy, cz], fov: viewer.fov }} dpr={viewer.dpr} style={{ width: "100%", height: "100%", display: "block" }} gl={{ antialias: false, alpha: true, powerPreference: "high-performance", failIfMajorPerformanceCaveat: false, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.0, outputColorSpace: THREE.SRGBColorSpace }} onCreated={({ gl }) => { const c = gl.domElement; c.addEventListener("webglcontextlost", (e) => { e.preventDefault(); }); c.addEventListener("webglcontextrestored", () => {}); }}>
+    <Canvas camera={{ position: [cx, cy, cz], fov: viewer.fov }} dpr={viewer.dpr} style={{ width: "100%", height: "100%", display: "block" }} gl={{ antialias: false, alpha: true, powerPreference: "high-performance", failIfMajorPerformanceCaveat: false, localClippingEnabled: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.0, outputColorSpace: THREE.SRGBColorSpace }} onCreated={({ gl }) => { const c = gl.domElement; c.addEventListener("webglcontextlost", (e) => { e.preventDefault(); }); c.addEventListener("webglcontextrestored", () => {}); }}>
       <AssetLoaderInit />
       <ambientLight intensity={0.6} />
       <directionalLight position={[3, 5, 3]} intensity={1.2} castShadow />

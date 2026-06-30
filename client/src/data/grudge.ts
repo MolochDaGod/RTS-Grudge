@@ -9,12 +9,12 @@
  * `loadGrudgeData()` and cached. Game systems should import the typed
  * helpers below — never duplicate this data inline.
  *
- * To refresh from the canonical source, re-fetch the files into
- * client/public/data/grudge/ and bump CANONICAL_DATA_VERSION below.
+ * To refresh: run `npm run sync:fleet` in ObjectStore (copies mirrors here).
+ * Stats: 8 primaries STR/VIT/END/INT/WIS/DEX/AGI/TAC — no LCK/CHA (see removedStats).
  */
 
 export const CANONICAL_DATA_BASE = "/data/grudge";
-export const CANONICAL_DATA_VERSION = "2026-04-22";
+export const CANONICAL_DATA_VERSION = "2026-06-25";
 
 // ============================================================
 // Types — shapes match the canonical JSON exactly. Any field

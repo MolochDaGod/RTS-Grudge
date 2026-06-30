@@ -93,7 +93,7 @@ const ENEMY_MODEL_PATHS: Record<EnemyType, string> = {
   orc: "/models/monsters/big/Orc.glb",
   demon: "/models/monsters/big/Demon.glb",
   blue_demon: "/models/monsters/big/BlueDemon.glb",
-  dragon: "/models/monsters/flying/Dragon_Evolved.glb",
+  dragon: "/models/pets/drakes/dragon_anim.glb",
   mushroom_king: "/models/monsters/big/MushroomKing.glb",
   yeti: "/models/monsters/blob/Yeti.glb",
   ghost: "/models/monsters/flying/Ghost.glb",

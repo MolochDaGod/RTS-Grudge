@@ -1,0 +1,374 @@
+{
+  "version": "2.0.0",
+  "updated": "2026-06-25",
+  "deprecated": true,
+  "redirect": "/api/v1/master-attributes.json",
+  "canonical": false,
+  "note": "Compatibility shim — use master-attributes.json for 37 derived stats, allocation rules, and combat caps",
+  "total": 8,
+  "totalDerivedStats": 37,
+  "allocation": {
+    "startingPoints": 20,
+    "pointsPerLevel": 7,
+    "maxLevel": 20,
+    "maxPoints": 160,
+    "diminishingReturns": {
+      "enabled": true,
+      "threshold": 25,
+      "tier1Efficiency": 0.5,
+      "tier2Efficiency": 0.25
+    }
+  },
+  "attributes": [
+    {
+      "id": "strength",
+      "name": "Strength",
+      "abbrev": "STR",
+      "role": "Tank / Melee DPS",
+      "icon": "strength",
+      "iconUrl": "game-assets/icons/sigils/strength.png",
+      "color": "#e74c3c",
+      "description": "High health, damage, and defense with strong combat modifiers",
+      "formula": "+26 Health, +0.8% Health; +3 Damage, +2% Damage",
+      "emoji": "💪",
+      "gains": {
+        "health": {
+          "label": "Health",
+          "flat": 26,
+          "percent": 0.8
+        },
+        "damage": {
+          "label": "Damage",
+          "flat": 3,
+          "percent": 2
+        },
+        "defense": {
+          "label": "Defense",
+          "flat": 12,
+          "percent": 1.5
+        },
+        "block": {
+          "label": "Block Chance",
+          "flat": 0.5,
+          "percent": 5
+        },
+        "criticalChance": {
+          "label": "Critical Chance",
+          "flat": 0.32,
+          "percent": 7
+        },
+        "blockEffect": {
+          "label": "Block Factor",
+          "flat": 0.85,
+          "percent": 26.3
+        },
+        "criticalDamage": {
+          "label": "Critical Factor",
+          "flat": 1.1,
+          "percent": 1.5
+        }
+      },
+      "uuid": "ATTR-20260624203742-000001--6906BEC"
+    },
+    {
+      "id": "vitality",
+      "name": "Vitality",
+      "abbrev": "VIT",
+      "role": "Tank / Survivability",
+      "icon": "vitality",
+      "iconUrl": "game-assets/icons/sigils/vitality.png",
+      "color": "#27ae60",
+      "description": "Maximum health, defense, and damage mitigation",
+      "formula": "+25 Health, +0.5% Health; +2 Mana, +0.2% Mana",
+      "emoji": "❤️",
+      "gains": {
+        "health": {
+          "label": "Health",
+          "flat": 25,
+          "percent": 0.5
+        },
+        "mana": {
+          "label": "Mana",
+          "flat": 2,
+          "percent": 0.2
+        },
+        "stamina": {
+          "label": "Stamina",
+          "flat": 5,
+          "percent": 0.1
+        },
+        "damage": {
+          "label": "Damage",
+          "flat": 2,
+          "percent": 0.1
+        },
+        "defense": {
+          "label": "Defense",
+          "flat": 12
+        },
+        "blockEffect": {
+          "label": "Block Factor",
+          "flat": 0.3,
+          "percent": 17
+        },
+        "resistance": {
+          "label": "Resistance",
+          "flat": 0.5
+        }
+      },
+      "uuid": "ATTR-20260624203742-000002--6EDB743"
+    },
+    {
+      "id": "endurance",
+      "name": "Endurance",
+      "abbrev": "END",
+      "role": "Defensive Specialist",
+      "icon": "endurance",
+      "iconUrl": "game-assets/icons/sigils/endurance.png",
+      "color": "#95a5a6",
+      "description": "Defense, block mechanics, and critical evasion",
+      "formula": "+10 Health, +0.1% Health; +1 Stamina, +0.3% Stamina",
+      "emoji": "🛡️",
+      "gains": {
+        "health": {
+          "label": "Health",
+          "flat": 10,
+          "percent": 0.1
+        },
+        "stamina": {
+          "label": "Stamina",
+          "flat": 1,
+          "percent": 0.3
+        },
+        "defense": {
+          "label": "Defense",
+          "flat": 12,
+          "percent": 12
+        },
+        "block": {
+          "label": "Block Chance",
+          "flat": 0.11,
+          "percent": 73.5
+        },
+        "blockEffect": {
+          "label": "Block Factor",
+          "flat": 0.27
+        },
+        "resistance": {
+          "label": "Resistance",
+          "flat": 0.46
+        }
+      },
+      "uuid": "ATTR-20260624203742-000003--612FEE3"
+    },
+    {
+      "id": "intellect",
+      "name": "Intellect",
+      "abbrev": "INT",
+      "role": "Mage / Caster",
+      "icon": "intellect",
+      "iconUrl": "game-assets/icons/sigils/intellect.png",
+      "color": "#3498db",
+      "description": "Mana, magic damage, and spell accuracy",
+      "formula": "+5 Mana, +5% Mana; +4 Damage, +2.5% Damage",
+      "emoji": "🧠",
+      "gains": {
+        "mana": {
+          "label": "Mana",
+          "flat": 5,
+          "percent": 5
+        },
+        "damage": {
+          "label": "Damage",
+          "flat": 4,
+          "percent": 2.5
+        },
+        "defense": {
+          "label": "Defense",
+          "flat": 2
+        },
+        "criticalChance": {
+          "label": "Critical Chance",
+          "flat": 0.23,
+          "percent": 0.1
+        },
+        "accuracy": {
+          "label": "Accuracy",
+          "flat": 0.12,
+          "percent": 33.8
+        },
+        "resistance": {
+          "label": "Resistance",
+          "flat": 0.38,
+          "percent": 17
+        }
+      },
+      "uuid": "ATTR-20260624203742-000004-55FF5892"
+    },
+    {
+      "id": "wisdom",
+      "name": "Wisdom",
+      "abbrev": "WIS",
+      "role": "Healer / Support",
+      "icon": "wisdom",
+      "iconUrl": "game-assets/icons/sigils/wisdom.png",
+      "color": "#9b59b6",
+      "description": "Mana efficiency, survivability, and spell effectiveness",
+      "formula": "+10 Health; +20 Mana, +3% Mana",
+      "emoji": "✨",
+      "gains": {
+        "health": {
+          "label": "Health",
+          "flat": 10
+        },
+        "mana": {
+          "label": "Mana",
+          "flat": 20,
+          "percent": 3
+        },
+        "damage": {
+          "label": "Damage",
+          "flat": 2,
+          "percent": 1.5
+        },
+        "defense": {
+          "label": "Defense",
+          "flat": 2
+        },
+        "criticalChance": {
+          "label": "Critical Chance",
+          "flat": 0.5,
+          "percent": 0.15
+        },
+        "resistance": {
+          "label": "Resistance",
+          "flat": 0.5
+        }
+      },
+      "uuid": "ATTR-20260624203742-000005--27F1B53"
+    },
+    {
+      "id": "dexterity",
+      "name": "Dexterity",
+      "abbrev": "DEX",
+      "role": "Rogue / Precision Fighter",
+      "icon": "dexterity",
+      "iconUrl": "game-assets/icons/sigils/dexterity.png",
+      "color": "#f39c12",
+      "description": "Critical strikes, accuracy, and evasion",
+      "formula": "+3 Damage, +1.8% Damage; +10 Defense, +1% Defense",
+      "emoji": "🎯",
+      "gains": {
+        "damage": {
+          "label": "Damage",
+          "flat": 3,
+          "percent": 1.8
+        },
+        "defense": {
+          "label": "Defense",
+          "flat": 10,
+          "percent": 1
+        },
+        "block": {
+          "label": "Block Chance",
+          "flat": 0.41,
+          "percent": 1
+        },
+        "criticalChance": {
+          "label": "Critical Chance",
+          "flat": 0.5,
+          "percent": 1.2
+        },
+        "accuracy": {
+          "label": "Accuracy",
+          "flat": 0.7,
+          "percent": 1.5
+        }
+      },
+      "uuid": "ATTR-20260624203742-000006--29C9572"
+    },
+    {
+      "id": "agility",
+      "name": "Agility",
+      "abbrev": "AGI",
+      "role": "Mobile DPS / Dodge Tank",
+      "icon": "agility",
+      "iconUrl": "game-assets/icons/sigils/agility.png",
+      "color": "#1abc9c",
+      "description": "Mobility, critical strikes, and defensive penetration",
+      "formula": "+2 Health, +0.6% Health; +5 Stamina, +0.5% Stamina",
+      "emoji": "⚡",
+      "gains": {
+        "health": {
+          "label": "Health",
+          "flat": 2,
+          "percent": 0.6
+        },
+        "stamina": {
+          "label": "Stamina",
+          "flat": 5,
+          "percent": 0.5
+        },
+        "damage": {
+          "label": "Damage",
+          "flat": 3,
+          "percent": 1.6
+        },
+        "defense": {
+          "label": "Defense",
+          "flat": 5,
+          "percent": 0.8
+        },
+        "criticalChance": {
+          "label": "Critical Chance",
+          "flat": 0.42,
+          "percent": 1
+        }
+      },
+      "uuid": "ATTR-20260624203742-000007--2C78C6E"
+    },
+    {
+      "id": "tactics",
+      "name": "Tactics",
+      "abbrev": "TAC",
+      "role": "Strategic Fighter / Commander",
+      "icon": "tactics",
+      "iconUrl": "game-assets/icons/sigils/tactics.png",
+      "color": "#34495e",
+      "description": "Balanced combat stats with penetration abilities",
+      "formula": "+10 Health, +8.4% Health; +8.2% Mana",
+      "emoji": "📜",
+      "gains": {
+        "health": {
+          "label": "Health",
+          "flat": 10,
+          "percent": 8.4
+        },
+        "mana": {
+          "label": "Mana",
+          "percent": 8.2
+        },
+        "stamina": {
+          "label": "Stamina",
+          "flat": 1
+        },
+        "damage": {
+          "label": "Damage",
+          "flat": 3,
+          "percent": 0.2
+        },
+        "defense": {
+          "label": "Defense",
+          "flat": 5,
+          "percent": 0.5
+        },
+        "block": {
+          "label": "Block Chance",
+          "flat": 0.27,
+          "percent": 0.8
+        }
+      },
+      "uuid": "ATTR-20260624203742-000008-36B09C18"
+    }
+  ]
+}

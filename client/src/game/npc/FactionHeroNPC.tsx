@@ -13,7 +13,7 @@
  * The AI pattern deliberately mirrors AllyNPC.tsx for consistency;
  * combat steering, stuck detection, and steer helpers are copied from there.
  *
- * Camp: a tiny campfire mesh placed once on arrival. Used as patrol centre.
+ * Camp / claim / flag: one anchor registered in useClaimArea on arrival.
  * Health: shown as an in-world bar and driven by useFactionHeroes.damageHero.
  * Projectile: mages and rangers fire a coloured sphere; worges and warriors
  *   use melee damage calls.
@@ -531,13 +531,7 @@ function HeroModel({ heroId }: { heroId: string }) {
           </mesh>
         )}
 
-        {/* Camp fire indicator */}
-        {campPos.current && (
-          <mesh position={[campPos.current.x - localPos.current.x, 0.2, campPos.current.z - localPos.current.z]}>
-            <coneGeometry args={[0.3, 0.5, 5]} />
-            <meshBasicMaterial color="#ff6600" transparent opacity={0.7} />
-          </mesh>
-        )}
+        {/* Camp / claim anchor rendered by ClaimAreaVisuals + CampfireFireSystem */}
       </group>
     </>
   );

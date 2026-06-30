@@ -1,0 +1,120 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-06-24",
+  "canonical": true,
+  "description": "Class signature relics — the weapon/off-hand identity item each hero class is built around",
+  "classRelics": {
+    "warrior": {
+      "id": "dual_wield",
+      "name": "Dual Wield",
+      "classId": "warrior",
+      "className": "Warrior",
+      "type": "weapon_mastery",
+      "slot": "mainhand",
+      "weaponTypes": ["swords", "axes1h", "hammers1h", "daggers"],
+      "description": "Warriors fight with a blade in each hand. Unlocks paired 1H weapon loadouts and attack-speed multi-hit chains.",
+      "effect": "Equip two one-handed weapons; +30% attack speed; skills chain across both weapons",
+      "icon": "game-assets/icons/skills_rpg/skill_dual_wield.png",
+      "iconPath": "/icons/skills_rpg/skill_dual_wield.png",
+      "skillTreeRef": {
+        "system": "master-skillTrees",
+        "skillId": "w_dual_wield",
+        "tier": 10
+      },
+      "weaponSkillRef": null,
+      "mechanics": {
+        "allowsDualWield": true,
+        "offhandAllowed": true,
+        "shieldWhileDualWield": false,
+        "attackSpeedBonus": 0.3
+      },
+      "uuid": "RELIC-20260624000001-000001-WARRIOR01"
+    },
+    "mage": {
+      "id": "wand",
+      "name": "Wand",
+      "classId": "mage",
+      "className": "Mage Priest",
+      "type": "weapon_mastery",
+      "slot": "mainhand",
+      "weaponTypes": ["wands"],
+      "description": "Mage Priests channel arcane power through a wand. Fast-cast 1H spells pair with a tome in the off-hand.",
+      "effect": "Wand mainhand with tome off-hand; rapid spell slots 1–4; arcane missile chains",
+      "icon": "game-assets/icons/pack/weapons/staff_31.png",
+      "iconPath": "/icons/pack/weapons/staff_31.png",
+      "skillTreeRef": {
+        "system": "classSkillTrees",
+        "tier": 0,
+        "note": "Innate — Mage starts with wand proficiency"
+      },
+      "weaponSkillRef": {
+        "system": "master-weaponSkills",
+        "weaponTypeId": "WAND",
+        "pairsWith": "TOME"
+      },
+      "mechanics": {
+        "allowsDualWield": false,
+        "offhandRelic": "TOME",
+        "castSpeedBonus": 0.15,
+        "manaEfficiency": 0.1
+      },
+      "uuid": "RELIC-20260624000002-000002-MAGE00001"
+    },
+    "ranger": {
+      "id": "nimble_fingers",
+      "name": "Nimble Fingers",
+      "classId": "ranger",
+      "className": "Ranger Scout",
+      "type": "passive_mastery",
+      "slot": "innate",
+      "weaponTypes": ["bows", "crossbows", "guns", "daggers", "greatswords", "spears"],
+      "description": "Ranger Scouts rely on lightning reflexes. Nimble Fingers enables trap-setting, quick reloads, and perfect-parry counter windows.",
+      "effect": "+15% attack speed; trap deploy speed; perfect parry grants 0.5s enemy stun and dash counter",
+      "icon": "game-assets/icons/skills_rpg/skill_quick_strike.png",
+      "iconPath": "/icons/skills_rpg/skill_quick_strike.png",
+      "skillTreeRef": {
+        "system": "classSkillTrees",
+        "suggestedSkillId": "ranger_1_stealth_strike",
+        "tier": 1
+      },
+      "weaponSkillRef": null,
+      "mechanics": {
+        "attackSpeedBonus": 0.15,
+        "trapDeploySpeed": 0.25,
+        "perfectParryStun": 0.5,
+        "dashCounterWindow": 2.0
+      },
+      "uuid": "RELIC-20260624000003-000003-RANGER01"
+    },
+    "worge": {
+      "id": "grimoire",
+      "name": "Grimoire",
+      "classId": "worge",
+      "className": "Worge Shapeshifter",
+      "type": "offhand_relic",
+      "slot": "offhand",
+      "weaponTypes": ["staves", "spears", "daggers", "bows", "hammers1h", "hammers2h", "scythes"],
+      "description": "Worge Shapeshifters bind primal spirits in a grimoire. The tome couples with 1H weapons to transform spell slots 1–4.",
+      "effect": "Grimoire (tome) off-hand; nature/primal spell coupling; form-shift buffs scale with tome tier",
+      "icon": "game-assets/icons/pack/weapons/book_01.png",
+      "iconPath": "/icons/pack/weapons/book_01.png",
+      "skillTreeRef": {
+        "system": "classSkillTrees",
+        "suggestedSkillId": "worge_5_alpha_call",
+        "tier": 5
+      },
+      "weaponSkillRef": {
+        "system": "master-weaponSkills",
+        "weaponTypeId": "TOME",
+        "pairsWith": "any_1h"
+      },
+      "mechanics": {
+        "offhandRelic": "TOME",
+        "transformsSlots": [1, 2, 3, 4],
+        "formShiftBonus": 0.2,
+        "natureDamageBonus": 0.15
+      },
+      "uuid": "RELIC-20260624000004-000004-WORGE001"
+    }
+  }
+}

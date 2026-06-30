@@ -1,6 +1,8 @@
 import { useSurvival, getHungerStatus, type HungerStatus } from "@/lib/stores/useSurvival";
 import { useStaminaFlash } from "@/lib/stores/useStaminaFlash";
 import { useClimbPrompt } from "@/lib/stores/useClimbPrompt";
+import { usePets, DRAGON_ADULT_LEVEL } from "@/lib/stores/usePets";
+import { DRAGON_STAGES, getDragonVariantLabel } from "@/game/systems/DragonPetRegistry";
 import { useDamageFlash } from "@/lib/stores/useDamageFlash";
 import { useParryFlash } from "@/lib/stores/useParryFlash";
 import { useSettings } from "@/lib/stores/useSettings";
@@ -110,6 +112,72 @@ function ClimbPrompt() {
       Press <span style={{ color: "#e8c868", fontWeight: 700 }}>[Space]</span> to climb
     </div>
   );
+}
+
+const DRAGON_PROMPT_STYLE: React.CSSProperties = {
+  position: "fixed",
+  left: "50%",
+  bottom: 220,
+  transform: "translateX(-50%)",
+  zIndex: 9050,
+  pointerEvents: "none",
+  background: "rgba(12,8,5,0.88)",
+  border: "1px solid rgba(255,120,40,0.55)",
+  borderRadius: 8,
+  padding: "8px 14px",
+  color: "#f3eada",
+  fontFamily: "'JetBrains Mono', monospace",
+  fontSize: 12,
+  letterSpacing: 0.6,
+  boxShadow: "0 6px 18px rgba(0,0,0,0.5)",
+  textAlign: "center",
+  lineHeight: 1.5,
+};
+
+function KeyHint({ children }: { children: React.ReactNode }) {
+  return <span style={{ color: "#ffb060", fontWeight: 700 }}>{children}</span>;
+}
+
+/** Mount / flight hints for stage-4+ drakes (any race/class). */
+function DragonMountPrompt() {
+  const phase = useGame((s) => s.phase);
+  const level = useGame((s) => s.level);
+  const activePet = usePets((s) => s.getActivePet());
+  const mountedPet = usePets((s) => s.getMountedPet());
+
+  if (phase !== "playing") return null;
+
+  if (mountedPet) {
+    const variant = getDragonVariantLabel(mountedPet.color);
+    return (
+      <div style={DRAGON_PROMPT_STYLE}>
+        <div style={{ color: "#ff9944", fontSize: 10, letterSpacing: 1.2, marginBottom: 4 }}>
+          🐲 {variant} Drake — Flying
+        </div>
+        <KeyHint>WASD</KeyHint> move · <KeyHint>Space</KeyHint> up · <KeyHint>Ctrl</KeyHint> down ·{" "}
+        <KeyHint>Shift</KeyHint> sprint · <KeyHint>M</KeyHint> dismount
+      </div>
+    );
+  }
+
+  if (activePet && DRAGON_STAGES[activePet.stage].mountable) {
+    const variant = getDragonVariantLabel(activePet.color);
+    return (
+      <div style={DRAGON_PROMPT_STYLE}>
+        Press <KeyHint>[M]</KeyHint> to mount {variant} Drake
+      </div>
+    );
+  }
+
+  if (activePet?.stage === 3 && level < DRAGON_ADULT_LEVEL) {
+    return (
+      <div style={DRAGON_PROMPT_STYLE}>
+        Young drake — reach <KeyHint>Lv {DRAGON_ADULT_LEVEL}</KeyHint> to unlock flight mount
+      </div>
+    );
+  }
+
+  return null;
 }
 
 function NpcDialogOverlays() {
@@ -1565,6 +1633,9 @@ export default function HUD() {
 
       {/* "Press Space to climb" hint when inside a climb sensor. */}
       <ClimbPrompt />
+
+      {/* Drake mount / flight controls (stage 4+, any race/class). */}
+      <DragonMountPrompt />
 
       <style dangerouslySetInnerHTML={{__html: `
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;700&display=swap');

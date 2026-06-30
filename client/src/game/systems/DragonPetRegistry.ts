@@ -1,6 +1,11 @@
 /**
  * DragonPetRegistry — 6-stage dragon companion system.
  *
+ * Canon (Grudge Warlords / uMMORPG): every race and every hero class may raise
+ * dragon eggs and ride stage-4+ drakes for flight. No race or class gate —
+ * WK, BRB, ELF, DWF, ORC, UD, Worge × warrior, mage, ranger, worge all share
+ * the same egg → furnace → mount pipeline.
+ *
  * Ported from the Unity Grudge Warlords game:
  *
  *   Stage 1 · Egg          — Inventory item. Hatch by using it in your inventory.
@@ -14,15 +19,65 @@
  * They can also be obtained via OpenSea/Magic Eden NFT ownership.
  *
  * R2 CDN fallback paths are hosted on assets.grudge-studio.com (grudge-assets R2).
- * Local dev uses the models already in client/public/models/monsters/flying/.
+ * uMMORPG source (FRESH GRUDGE / Fantasy-dragons pack):
+ *   Mesh:  Assets/Fantasy-dragons/Models/dragon_anim.FBX  (all stages share this)
+ *   Egg:   Dragon Bone Drake Egg  → furnace bake → Baby Dragon Bone Drake
+ *   Pets:  Baby (scale 0.03) → Young (0.06) → Mount (0.10) prefab scales
+ *   Mount: Dragon Bone Drake Mount prefab
+ *   Mob:   Dragon Bone Drake (scale 0.15)
  */
+
+/** Canonical uMMORPG drake mesh — one skinned FBX/GLB, stage = scale only. */
+export const UMMORPG_DRAKE_MODEL = "/models/pets/drakes/dragon_anim.glb";
+
+export type DragonStage = 1 | 2 | 3 | 4 | 5 | 6;
+/** Canonical uMMORPG drake lines + legacy save aliases. */
+export type DragonColor =
+  | "bone" | "lava" | "frost" | "void" | "rock" | "nightstalker"
+  | "hellfire" | "frigid" | "forest" | "emerald"
+  | "red" | "blue" | "green" | "black" | "gold";
+
+/**
+ * uMMORPG Auto Craft Drake Eggs + boss drops — one mesh, color tint per line.
+ * Source: Assets/uMMORPG/Resources/AutoCrafts/Auto Craft Drake Eggs/
+ */
+export const DRAKE_EGG_COLOR_MAP: Record<string, DragonColor> = {
+  dragon_egg: "bone",
+  dragon_bone_drake_egg: "bone",
+  lava_drake_egg: "lava",
+  frost_drake_egg: "frost",
+  void_drake_egg: "void",
+  rock_drake_egg: "rock",
+  nightstalker_drake_egg: "nightstalker",
+  hellfire_drake_egg: "hellfire",
+  frigid_drake_egg: "frigid",
+  forest_drake_egg: "forest",
+  emerald_drake_egg: "emerald",
+};
+
+export const DRAGON_EGG_ITEM_IDS = Object.keys(DRAKE_EGG_COLOR_MAP);
+
+/** Weighted random drake egg for boss/dungeon drops (uMMORPG rarity spread). */
+export const DRAKE_EGG_LOOT_TABLE: { itemId: string; weight: number }[] = [
+  { itemId: "dragon_egg", weight: 40 },
+  { itemId: "dragon_bone_drake_egg", weight: 20 },
+  { itemId: "lava_drake_egg", weight: 10 },
+  { itemId: "frost_drake_egg", weight: 10 },
+  { itemId: "forest_drake_egg", weight: 8 },
+  { itemId: "rock_drake_egg", weight: 5 },
+  { itemId: "hellfire_drake_egg", weight: 4 },
+  { itemId: "frigid_drake_egg", weight: 4 },
+  { itemId: "nightstalker_drake_egg", weight: 4 },
+  { itemId: "emerald_drake_egg", weight: 3 },
+  { itemId: "void_drake_egg", weight: 2 },
+];
+
+/** Canon flag — all races/classes may hatch eggs and mount drakes (no gating). */
+export const DRAGON_UNIVERSAL_ACCESS = true;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
-
-export type DragonStage = 1 | 2 | 3 | 4 | 5 | 6;
-export type DragonColor = "red" | "blue" | "green" | "black" | "gold" | "void";
 
 export interface DragonAbility {
   id: string;
@@ -103,9 +158,9 @@ export const DRAGON_STAGES: Record<DragonStage, DragonStageDef> = {
   // Not a 3D unit — lives in inventory as a usable item.
   1: {
     stage: 1,
-    name: "Dragon Egg",
+    name: "Dragon Bone Drake Egg",
     icon: "🥚",
-    description: "A warm, pulsing egg. Keep it close — it will hatch when the time is right. Use from inventory to hatch.",
+    description: "A fresh drake egg from the uMMORPG furnace line. Get this egg hot in a furnace to hatch a Baby Dragon Bone Drake.",
     modelPath: "",  // egg has no 3D world presence
     cdnModelPath: undefined,
     scale: 0,
@@ -128,13 +183,13 @@ export const DRAGON_STAGES: Record<DragonStage, DragonStageDef> = {
   // ── Stage 2: Hatchling ────────────────────────────────────────────────────
   2: {
     stage: 2,
-    name: "Dragon Hatchling",
+    name: "Baby Dragon Bone Drake",
     icon: "🐉",
-    description: "A newborn dragon no bigger than a cat. Curious and loyal. Orbits the player and applies a small XP bonus.",
-    modelPath: "/models/monsters/flying/Goleling.glb",
-    cdnModelPath: `${R2}/dragon_hatchling.glb`,
-    scale: 0.35,
-    targetHeight: 0.6,
+    description: "Furnace-hatched baby drake (uMMORPG PetItem summon). Follows the player and grants a small XP bonus.",
+    modelPath: UMMORPG_DRAKE_MODEL,
+    cdnModelPath: `${R2}/drakes/dragon_anim.glb`,
+    scale: 0.3,   // Unity baby prefab dragon_animprefab scale 0.03 / mount 0.10
+    targetHeight: 0.55,
     stats: { health: 40, damage: 5, speed: 6, detectionRange: 8, attackRange: 2.5 },
     abilities: [
       {
@@ -166,13 +221,13 @@ export const DRAGON_STAGES: Record<DragonStage, DragonStageDef> = {
   // ── Stage 3: Juvenile ─────────────────────────────────────────────────────
   3: {
     stage: 3,
-    name: "Juvenile Dragon",
+    name: "Young Dragon Bone Drake",
     icon: "🐉",
-    description: "Growing fast and itching to fight. Can actively engage weak enemies. Damage aura for the player.",
-    modelPath: "/models/monsters/flying/Goleling_Evolved.glb",
-    cdnModelPath: `${R2}/dragon_juvenile.glb`,
-    scale: 0.7,
-    targetHeight: 1.1,
+    description: "Teen drake from the uMMORPG pet line. Fights weak enemies and grants a damage aura.",
+    modelPath: UMMORPG_DRAKE_MODEL,
+    cdnModelPath: `${R2}/drakes/dragon_anim.glb`,
+    scale: 0.6,   // Unity young prefab scale 0.06 / mount 0.10
+    targetHeight: 1.0,
     stats: { health: 120, damage: 18, speed: 7, detectionRange: 15, attackRange: 3.5 },
     abilities: [
       {
@@ -215,13 +270,13 @@ export const DRAGON_STAGES: Record<DragonStage, DragonStageDef> = {
   // ── Stage 4: Adult ────────────────────────────────────────────────────────
   4: {
     stage: 4,
-    name: "Adult Dragon",
+    name: "Dragon Bone Drake Mount",
     icon: "🐲",
-    description: "A fearsome adult dragon. Press R (or tap mount) to ride. Fire breath can hit multiple enemies. +20% all stats on mount.",
-    modelPath: "/models/monsters/flying/Dragon_Evolved.glb",
-    cdnModelPath: `${R2}/dragon_adult.glb`,
-    scale: 1.0,
-    targetHeight: 2.2,
+    description: "Rideable drake (uMMORPG stable mount). Press M to mount. Fire breath and +20% combat stats while riding.",
+    modelPath: UMMORPG_DRAKE_MODEL,
+    cdnModelPath: `${R2}/drakes/dragon_anim.glb`,
+    scale: 1.0,   // Unity mount prefab dragon_animprefab scale 0.10
+    targetHeight: 2.0,
     stats: { health: 400, damage: 45, speed: 9, detectionRange: 30, attackRange: 6.0 },
     abilities: [
       {
@@ -273,13 +328,13 @@ export const DRAGON_STAGES: Record<DragonStage, DragonStageDef> = {
   // ── Stage 5: Elder ────────────────────────────────────────────────────────
   5: {
     stage: 5,
-    name: "Elder Dragon",
+    name: "Dragon Bone Drake (Elder)",
     icon: "🐲",
-    description: "An ancient dragon of great power. Party-wide buff aura. Two riders. Fire storm ultimate.",
-    modelPath: "/models/monsters/flying/Dragon_Evolved.glb",
-    cdnModelPath: `${R2}/dragon_elder.glb`,
-    scale: 1.6,
-    targetHeight: 3.0,
+    description: "Fully grown drake (uMMORPG mob scale). Party-wide buff aura. Two riders.",
+    modelPath: UMMORPG_DRAKE_MODEL,
+    cdnModelPath: `${R2}/drakes/dragon_anim.glb`,
+    scale: 1.5,   // Unity mob prefab scale 0.15 / mount 0.10
+    targetHeight: 2.8,
     stats: { health: 900, damage: 80, speed: 10, detectionRange: 40, attackRange: 8.0 },
     abilities: [
       {
@@ -340,13 +395,13 @@ export const DRAGON_STAGES: Record<DragonStage, DragonStageDef> = {
   // ── Stage 6: Legendary ────────────────────────────────────────────────────
   6: {
     stage: 6,
-    name: "Legendary Dragon",
+    name: "Legendary Dragon Bone Drake",
     icon: "⚜️",
-    description: "The apex of dragon evolution. A living weapon of mass destruction. 3 riders. NFT-mintable as a Grudge Legendary asset. One of a kind per server.",
-    modelPath: "/models/monsters/flying/Dragon_Evolved.glb",
-    cdnModelPath: `${R2}/dragon_legendary.glb`,
-    scale: 2.5,
-    targetHeight: 4.5,
+    description: "Apex drake form — uMMORPG endgame evolution. 3 riders. NFT-mintable Grudge Legendary.",
+    modelPath: UMMORPG_DRAKE_MODEL,
+    cdnModelPath: `${R2}/drakes/dragon_anim.glb`,
+    scale: 2.0,
+    targetHeight: 3.5,
     stats: { health: 2500, damage: 160, speed: 12, detectionRange: 60, attackRange: 12.0 },
     abilities: [
       {
@@ -406,15 +461,40 @@ export const DRAGON_STAGES: Record<DragonStage, DragonStageDef> = {
 // Dragon variant color schemes (skin variations)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const DRAGON_COLOR_TINTS: Record<DragonColor, {
-  name: string; hex: string; emissive: string; rarity: string;
-}> = {
-  red:   { name: "Crimson",   hex: "#cc2200", emissive: "#ff3300", rarity: "common"   },
-  blue:  { name: "Frost",     hex: "#2244cc", emissive: "#4466ff", rarity: "uncommon" },
-  green: { name: "Venomfang", hex: "#228833", emissive: "#44cc55", rarity: "uncommon" },
-  black: { name: "Shadowscale",hex: "#221122",emissive: "#663366", rarity: "rare"     },
-  gold:  { name: "Auric",     hex: "#cc8800", emissive: "#ffaa00", rarity: "heroic"   },
-  void:  { name: "Voidborn",  hex: "#110022", emissive: "#8800ff", rarity: "legendary"},
+type DrakeTintDef = { name: string; hex: string; emissive: string; rarity: string };
+
+const UMMORPG_DRAKE_TINTS: Record<
+  Exclude<DragonColor, "red" | "blue" | "green" | "black" | "gold">,
+  DrakeTintDef
+> = {
+  bone:         { name: "Dragon Bone",   hex: "#c8b8a0", emissive: "#e8dcc8", rarity: "common"    },
+  lava:         { name: "Lava",          hex: "#e84400", emissive: "#ff6622", rarity: "uncommon"  },
+  frost:        { name: "Frost",         hex: "#4488dd", emissive: "#88ccff", rarity: "uncommon"  },
+  forest:       { name: "Forest",        hex: "#338844", emissive: "#55bb66", rarity: "uncommon"  },
+  rock:         { name: "Rock",          hex: "#887766", emissive: "#aa9988", rarity: "rare"      },
+  hellfire:     { name: "Hellfire",      hex: "#aa1100", emissive: "#ff2200", rarity: "rare"      },
+  frigid:       { name: "Frigid",        hex: "#99ccee", emissive: "#cceeff", rarity: "rare"      },
+  nightstalker: { name: "Nightstalker",  hex: "#332244", emissive: "#664488", rarity: "heroic"    },
+  emerald:      { name: "Emerald",       hex: "#22aa66", emissive: "#44ff99", rarity: "heroic"    },
+  void:         { name: "Void",          hex: "#220044", emissive: "#8800ff", rarity: "legendary" },
+};
+
+/** Legacy persisted colors → uMMORPG line. */
+const LEGACY_COLOR_MAP: Partial<Record<DragonColor, keyof typeof UMMORPG_DRAKE_TINTS>> = {
+  red: "bone",
+  blue: "frost",
+  green: "forest",
+  black: "nightstalker",
+  gold: "emerald",
+};
+
+export const DRAGON_COLOR_TINTS: Record<DragonColor, DrakeTintDef> = {
+  ...UMMORPG_DRAKE_TINTS,
+  red:   UMMORPG_DRAKE_TINTS.bone,
+  blue:  UMMORPG_DRAKE_TINTS.frost,
+  green: UMMORPG_DRAKE_TINTS.forest,
+  black: UMMORPG_DRAKE_TINTS.nightstalker,
+  gold:  UMMORPG_DRAKE_TINTS.emerald,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -423,6 +503,47 @@ export const DRAGON_COLOR_TINTS: Record<DragonColor, {
 
 export function getDragonStage(stage: DragonStage): DragonStageDef {
   return DRAGON_STAGES[stage];
+}
+
+export function isDragonEggItem(itemId: string): boolean {
+  return itemId in DRAKE_EGG_COLOR_MAP;
+}
+
+export function normalizeDragonColor(color: DragonColor): keyof typeof UMMORPG_DRAKE_TINTS {
+  return (LEGACY_COLOR_MAP[color] ?? color) as keyof typeof UMMORPG_DRAKE_TINTS;
+}
+
+export function getDragonColorFromEgg(itemId: string): DragonColor {
+  return DRAKE_EGG_COLOR_MAP[itemId] ?? "bone";
+}
+
+export function getDragonVariantLabel(color: DragonColor): string {
+  return DRAGON_COLOR_TINTS[color]?.name ?? "Drake";
+}
+
+export function getDragonTintHex(color: DragonColor): string {
+  return DRAGON_COLOR_TINTS[color]?.hex ?? UMMORPG_DRAKE_TINTS.bone.hex;
+}
+
+/** Pick a weighted random drake egg item id for loot tables. */
+export function rollRandomDrakeEggItem(): string {
+  const total = DRAKE_EGG_LOOT_TABLE.reduce((s, e) => s + e.weight, 0);
+  let roll = Math.random() * total;
+  for (const entry of DRAKE_EGG_LOOT_TABLE) {
+    roll -= entry.weight;
+    if (roll <= 0) return entry.itemId;
+  }
+  return "dragon_egg";
+}
+
+/** Canon: any race may place a dragon egg in a furnace (no restriction). */
+export function canRaiseDragonEgg(_race?: string, _heroClass?: string): boolean {
+  return DRAGON_UNIVERSAL_ACCESS;
+}
+
+/** Canon: any race/class may mount a stage-4+ drake for flight (no restriction). */
+export function canMountDragon(_race?: string, _heroClass?: string): boolean {
+  return DRAGON_UNIVERSAL_ACCESS;
 }
 
 export function getDragonModelPath(stage: DragonStage): string {

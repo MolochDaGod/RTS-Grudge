@@ -1,0 +1,607 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-06-25",
+  "canonical": true,
+  "description": "Crafting station mesh registry — uMMORPG faction workbenches preferred, GLB production props as fallback",
+  "recipeStations": [
+    "forge",
+    "anvil",
+    "master-forge",
+    "divine-forge",
+    "sawmill",
+    "master-sawmill",
+    "divine-sawmill",
+    "woodworking-bench",
+    "loom",
+    "master-loom",
+    "divine-loom",
+    "tanning-rack",
+    "master-tanning",
+    "divine-tanning",
+    "alchemy-station",
+    "enchanting-table",
+    "workbench",
+    "workshop",
+    "gem-cutter",
+    "kitchen",
+    "campfire",
+    "tinker-table"
+  ],
+  "ummorpgBenches": [
+    {
+      "id": "legion-workbench",
+      "name": "Legion Workbench",
+      "source": "ummorpg",
+      "sourcePath": "C:\\Users\\nugye\\Desktop\\grudgeproduction\\grudgenew\\FRESH GRUDGE\\Assets\\uMMORPG\\Prefabs\\Structure Legion\\Legion Workbench.prefab",
+      "faction": "legion",
+      "race": "orc",
+      "profession": "Miner",
+      "recipeStation": "forge",
+      "icon": "game-assets/icons/entities/Legion Workbench.PNG",
+      "meshGuids": [
+        "517a9698110014ec085aaec68b4b5641",
+        "9b91ecbcc199f4492b9a91e820070131",
+        "1791c72426ad64a53bbbfb8d0c1410b4",
+        "38d0c5817a3a6413a83b11feb609b45a",
+        "dc981b9b455a15346998294764ced34d",
+        "29115f22568c54ec098b49962266366f",
+        "0000000000000000f000000000000000",
+        "8154c0dfb012f4112aa32e81bd75189d",
+        "d9edeac44e1c94b60a83df9be31fe7fa",
+        "acd4ce578cfa46e45a1bbdff746841df",
+        "a6b2ac45ed3776e4194bf40de1e524f3",
+        "4c577c226c9a1694c87afcaa1fe637d8",
+        "db21c3acb37ff9145b975bb51b63f1be",
+        "e8e6e3d405764497ea4604bd098bcf60",
+        "313bd528678239b46871dc7d959fd48c",
+        "2283cf45d343ad94bb376d5ab9a61e36",
+        "578140277ae5d0549b6f5a99ef1391e5",
+        "72c6b7ed797bdc841a420b962ca77dc9",
+        "7ca18c5d2dbba354e922f48e26139644",
+        "c6a2896c45fa1bf44821f50611d23a9d",
+        "b3260d69a79ef7349aa9474cc34abfc5",
+        "8ff3a44a74f26bd42aa62172aa86a2ad",
+        "e5fe4a068b24f0349a6f46d51c603167",
+        "345703bd725f96f4aa1db44972eed3cf",
+        "aa507b984c8ae7649ab48ee8c61b7070",
+        "de78760d431368c4ebc01f4a0730c7e4",
+        "ee5f9200d15ad7d42ac08e7f95ef8b6a"
+      ],
+      "childObjectCount": 19,
+      "preferred": true,
+      "note": "Original Grudge Warlords uMMORPG race housing workbench — prefer over voxel GLB props",
+      "sourceMeshes": [
+        "Assets/!MAP Assets/Tent_CR_MAX_550/Model/BG/Fbx/desert_tent003.FBX",
+        "Assets/uMMORPG/Unity Essentials - Lighting Optimisation Tutorial/Models/Environment/WoodFloors01_decimated.FBX",
+        "Assets/!MAP Assets/Forge/Models/Anvil.fbx"
+      ],
+      "exportScript": "scripts/export-ummorpg-benches.mjs --unity",
+      "r2Match": {
+        "r2Key": "game-assets/environment/benches/ummorpg/legion-workbench.glb",
+        "cdn": "https://assets.grudge-studio.com/game-assets/environment/benches/ummorpg/legion-workbench.glb"
+      },
+      "glbProductionMatch": "legion-workbench.glb"
+    },
+    {
+      "id": "fabled-workbench",
+      "name": "Fabled Workbench",
+      "source": "ummorpg",
+      "sourcePath": "C:\\Users\\nugye\\Desktop\\grudgeproduction\\grudgenew\\FRESH GRUDGE\\Assets\\uMMORPG\\Prefabs\\Structure Fabled\\Fabled Workbench.prefab",
+      "faction": "fabled",
+      "race": "elf",
+      "profession": "Mystic",
+      "recipeStation": "loom",
+      "icon": "game-assets/icons/entities/Workbench.PNG",
+      "meshGuids": [
+        "834ead3ee15bef44c968ed1a0b487ffc",
+        "bf6b4759d7bcd884182e78c283e837a9",
+        "517a9698110014ec085aaec68b4b5641",
+        "9b91ecbcc199f4492b9a91e820070131",
+        "1791c72426ad64a53bbbfb8d0c1410b4",
+        "38d0c5817a3a6413a83b11feb609b45a",
+        "dc981b9b455a15346998294764ced34d",
+        "29115f22568c54ec098b49962266366f",
+        "0000000000000000f000000000000000",
+        "8154c0dfb012f4112aa32e81bd75189d",
+        "d9edeac44e1c94b60a83df9be31fe7fa",
+        "db21c3acb37ff9145b975bb51b63f1be",
+        "e8e6e3d405764497ea4604bd098bcf60",
+        "4c577c226c9a1694c87afcaa1fe637d8",
+        "313bd528678239b46871dc7d959fd48c",
+        "2283cf45d343ad94bb376d5ab9a61e36",
+        "578140277ae5d0549b6f5a99ef1391e5",
+        "72c6b7ed797bdc841a420b962ca77dc9",
+        "7ca18c5d2dbba354e922f48e26139644",
+        "c6a2896c45fa1bf44821f50611d23a9d",
+        "b3260d69a79ef7349aa9474cc34abfc5",
+        "8ff3a44a74f26bd42aa62172aa86a2ad",
+        "e5fe4a068b24f0349a6f46d51c603167",
+        "345703bd725f96f4aa1db44972eed3cf",
+        "aa507b984c8ae7649ab48ee8c61b7070",
+        "de78760d431368c4ebc01f4a0730c7e4",
+        "ee5f9200d15ad7d42ac08e7f95ef8b6a"
+      ],
+      "childObjectCount": 19,
+      "preferred": true,
+      "note": "Original Grudge Warlords uMMORPG race housing workbench — prefer over voxel GLB props",
+      "r2Match": {
+        "r2Key": "game-assets/environment/benches/ummorpg/fabled-workbench.glb",
+        "cdn": "https://assets.grudge-studio.com/game-assets/environment/benches/ummorpg/fabled-workbench.glb"
+      },
+      "glbProductionMatch": "fabled-workbench.glb"
+    },
+    {
+      "id": "crusade-workbench",
+      "name": "Crusade Workbench",
+      "source": "ummorpg",
+      "sourcePath": "C:\\Users\\nugye\\Desktop\\grudgeproduction\\grudgenew\\FRESH GRUDGE\\Assets\\uMMORPG\\Prefabs\\Structure Crusade\\Crusade Workbench.prefab",
+      "faction": "crusade",
+      "race": "human",
+      "profession": "Forester",
+      "recipeStation": "workbench",
+      "icon": "game-assets/icons/entities/Workbench.PNG",
+      "meshGuids": [
+        "834ead3ee15bef44c968ed1a0b487ffc",
+        "ae46c28c81f79f8459dc9ed86baab735",
+        "517a9698110014ec085aaec68b4b5641",
+        "9b91ecbcc199f4492b9a91e820070131",
+        "1791c72426ad64a53bbbfb8d0c1410b4",
+        "38d0c5817a3a6413a83b11feb609b45a",
+        "dc981b9b455a15346998294764ced34d",
+        "29115f22568c54ec098b49962266366f",
+        "0000000000000000f000000000000000",
+        "8154c0dfb012f4112aa32e81bd75189d",
+        "d9edeac44e1c94b60a83df9be31fe7fa",
+        "db21c3acb37ff9145b975bb51b63f1be",
+        "e8e6e3d405764497ea4604bd098bcf60",
+        "4c577c226c9a1694c87afcaa1fe637d8",
+        "313bd528678239b46871dc7d959fd48c",
+        "2283cf45d343ad94bb376d5ab9a61e36",
+        "578140277ae5d0549b6f5a99ef1391e5",
+        "72c6b7ed797bdc841a420b962ca77dc9",
+        "7ca18c5d2dbba354e922f48e26139644",
+        "c6a2896c45fa1bf44821f50611d23a9d",
+        "b3260d69a79ef7349aa9474cc34abfc5",
+        "8ff3a44a74f26bd42aa62172aa86a2ad",
+        "e5fe4a068b24f0349a6f46d51c603167",
+        "345703bd725f96f4aa1db44972eed3cf",
+        "aa507b984c8ae7649ab48ee8c61b7070",
+        "de78760d431368c4ebc01f4a0730c7e4",
+        "ee5f9200d15ad7d42ac08e7f95ef8b6a"
+      ],
+      "childObjectCount": 19,
+      "preferred": true,
+      "note": "Original Grudge Warlords uMMORPG race housing workbench — prefer over voxel GLB props",
+      "r2Match": {
+        "r2Key": "game-assets/environment/benches/ummorpg/crusade-workbench.glb",
+        "cdn": "https://assets.grudge-studio.com/game-assets/environment/benches/ummorpg/crusade-workbench.glb"
+      },
+      "glbProductionMatch": "crusade-workbench.glb"
+    },
+    {
+      "id": "workbench",
+      "name": "Workbench",
+      "source": "ummorpg",
+      "sourcePath": "C:\\Users\\nugye\\Desktop\\grudgeproduction\\grudgenew\\FRESH GRUDGE\\Assets\\uMMORPG\\Scripts\\Addons\\CraftingExtended\\Prefabs\\Prefabs [Drag to Scene]\\3D Only\\Workbench.prefab",
+      "faction": "neutral",
+      "race": null,
+      "profession": "Engineer",
+      "recipeStation": "workbench",
+      "icon": "game-assets/icons/entities/Workbench.PNG",
+      "meshGuids": [
+        "0000000000000000f000000000000000",
+        "8154c0dfb012f4112aa32e81bd75189d",
+        "9b91ecbcc199f4492b9a91e820070131",
+        "1791c72426ad64a53bbbfb8d0c1410b4",
+        "38d0c5817a3a6413a83b11feb609b45a",
+        "eb04cfba027139f4d979f35c2f92a321",
+        "517a9698110014ec085aaec68b4b5641",
+        "d9edeac44e1c94b60a83df9be31fe7fa",
+        "d1d5d5492dacbe54bb8a497b52e5b9ba",
+        "40b60825ba9db274c807da3b1ffb9e53"
+      ],
+      "childObjectCount": 7,
+      "preferred": true,
+      "note": "Original Grudge Warlords uMMORPG race housing workbench — prefer over voxel GLB props",
+      "r2Match": {
+        "r2Key": "game-assets/environment/benches/ummorpg/workbench.glb",
+        "cdn": "https://assets.grudge-studio.com/game-assets/environment/benches/ummorpg/workbench.glb"
+      },
+      "glbProductionMatch": "workbench.glb"
+    }
+  ],
+  "glbBenches": [
+    {
+      "name": "Anvil_low",
+      "category": "bench",
+      "normalized": "anvil",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "Anvil_low_WeaponsToolsMat_0",
+      "category": "bench",
+      "normalized": "anvil_low_weaponstoolsmat_0",
+      "r2Match": {
+        "name": "Weapon.FBX",
+        "path": "monsters/models/fantasy-monster-pack_Weapon.FBX",
+        "r2Key": "game-assets/monsters/models/fantasy-monster-pack_Weapon.FBX",
+        "cdn": "https://assets.grudge-studio.com/game-assets/monsters/models/fantasy-monster-pack_Weapon.FBX"
+      },
+      "recipeStation": "anvil",
+      "ummorpgPreferred": null,
+      "useProductionGlb": true
+    },
+    {
+      "name": "Bench2_low",
+      "category": "bench",
+      "normalized": "bench2",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "Bench2_low_WoodExteriorMat_0",
+      "category": "bench",
+      "normalized": "bench2_low_woodexteriormat_0",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "Bench_low",
+      "category": "bench",
+      "normalized": "bench",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "Bench_low_WoodExteriorMat_0",
+      "category": "bench",
+      "normalized": "bench_low_woodexteriormat_0",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "CraftingBenchobjcleanermaterialmergergles",
+      "category": "bench",
+      "normalized": "craftingbench",
+      "r2Match": {
+        "name": "In.FBX",
+        "path": "monsters/models/fantasy-monster-pack_In.FBX",
+        "r2Key": "game-assets/monsters/models/fantasy-monster-pack_In.FBX",
+        "cdn": "https://assets.grudge-studio.com/game-assets/monsters/models/fantasy-monster-pack_In.FBX"
+      },
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "ForgeScene",
+      "category": "bench",
+      "normalized": "forgescene",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "Forge_low",
+      "category": "bench",
+      "normalized": "forge",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "Forge_low_ForgeMat_0",
+      "category": "bench",
+      "normalized": "forge_low_forgemat_0",
+      "r2Match": null,
+      "recipeStation": "forge",
+      "ummorpgPreferred": "legion-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "Stump",
+      "category": "bench",
+      "normalized": "stump",
+      "r2Match": {
+        "name": "explosive-llc_Tree-Stump",
+        "path": "effects/models/explosive-llc_Tree-Stump.FBX",
+        "r2Key": "game-assets/effects/models/explosive-llc_Tree-Stump.FBX",
+        "cdn": "https://assets.grudge-studio.com/game-assets/effects/models/explosive-llc_Tree-Stump.FBX"
+      },
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "Stump001",
+      "category": "bench",
+      "normalized": "stump001",
+      "r2Match": {
+        "name": "1.fbx",
+        "path": "environment/models/medieval-castle_1.fbx",
+        "r2Key": "game-assets/environment/models/medieval-castle_1.fbx",
+        "cdn": "https://assets.grudge-studio.com/game-assets/environment/models/medieval-castle_1.fbx"
+      },
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "Stump001_Mat_tree_0",
+      "category": "bench",
+      "normalized": "stump001_mat_tree_0",
+      "r2Match": {
+        "name": "1.fbx",
+        "path": "environment/models/medieval-castle_1.fbx",
+        "r2Key": "game-assets/environment/models/medieval-castle_1.fbx",
+        "cdn": "https://assets.grudge-studio.com/game-assets/environment/models/medieval-castle_1.fbx"
+      },
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "Stump002",
+      "category": "bench",
+      "normalized": "stump002",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "Stump002_Mat_tree_0",
+      "category": "bench",
+      "normalized": "stump002_mat_tree_0",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "Stump003",
+      "category": "bench",
+      "normalized": "stump003",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "Stump003_Mat_tree_0",
+      "category": "bench",
+      "normalized": "stump003_mat_tree_0",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "Stump004",
+      "category": "bench",
+      "normalized": "stump004",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "Stump004_Mat_tree_0",
+      "category": "bench",
+      "normalized": "stump004_mat_tree_0",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "Stump005",
+      "category": "bench",
+      "normalized": "stump005",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "Stump005_Mat_tree_0",
+      "category": "bench",
+      "normalized": "stump005_mat_tree_0",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "Stump006",
+      "category": "bench",
+      "normalized": "stump006",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "Stump006_Mat_tree_0",
+      "category": "bench",
+      "normalized": "stump006_mat_tree_0",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "Stump007",
+      "category": "bench",
+      "normalized": "stump007",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "Stump007_Mat_tree_0",
+      "category": "bench",
+      "normalized": "stump007_mat_tree_0",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "Stump008",
+      "category": "bench",
+      "normalized": "stump008",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "Stump008_Mat_tree_0",
+      "category": "bench",
+      "normalized": "stump008_mat_tree_0",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "StumpAnvil_low",
+      "category": "bench",
+      "normalized": "stumpanvil",
+      "r2Match": null,
+      "recipeStation": "anvil",
+      "ummorpgPreferred": null,
+      "useProductionGlb": true
+    },
+    {
+      "name": "StumpAnvil_low_WoodExteriorMat_0",
+      "category": "bench",
+      "normalized": "stumpanvil_low_woodexteriormat_0",
+      "r2Match": null,
+      "recipeStation": "anvil",
+      "ummorpgPreferred": null,
+      "useProductionGlb": true
+    },
+    {
+      "name": "StumpWoodcutter_low",
+      "category": "bench",
+      "normalized": "stumpwoodcutter",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "StumpWoodcutter_low_WoodExteriorMat_0",
+      "category": "bench",
+      "normalized": "stumpwoodcutter_low_woodexteriormat_0",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "Stump_Mat_tree_0",
+      "category": "bench",
+      "normalized": "stump_mat_tree_0",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "Vase_low_ForgeMat_0",
+      "category": "bench",
+      "normalized": "vase_low_forgemat_0",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "WorkbenchStone_low",
+      "category": "bench",
+      "normalized": "workbenchstone",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "WorkbenchStone_low_ForgeMat_0",
+      "category": "bench",
+      "normalized": "workbenchstone_low_forgemat_0",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    },
+    {
+      "name": "WorkbenchWood_low",
+      "category": "bench",
+      "normalized": "workbenchwood",
+      "r2Match": null,
+      "recipeStation": "woodworking-bench",
+      "ummorpgPreferred": null,
+      "useProductionGlb": true
+    },
+    {
+      "name": "WorkbenchWood_low_ForgeMat_0",
+      "category": "bench",
+      "normalized": "workbenchwood_low_forgemat_0",
+      "r2Match": null,
+      "recipeStation": "woodworking-bench",
+      "ummorpgPreferred": null,
+      "useProductionGlb": true
+    },
+    {
+      "name": "chemistry_tablefbx",
+      "category": "bench",
+      "normalized": "chemistry_table",
+      "r2Match": null,
+      "recipeStation": "workbench",
+      "ummorpgPreferred": "crusade-workbench",
+      "useProductionGlb": false
+    }
+  ],
+  "componentMeshes": [
+    { "id": "alchemy-table", "station": "alchemy-station", "r2Key": "game-assets/environment/benches/ummorpg/alchemy-table.glb", "cdn": "https://assets.grudge-studio.com/game-assets/environment/benches/ummorpg/alchemy-table.glb" },
+    { "id": "anvil-crafting-extended", "station": "anvil", "r2Key": "game-assets/environment/benches/ummorpg/anvil-crafting-extended.glb", "cdn": "https://assets.grudge-studio.com/game-assets/environment/benches/ummorpg/anvil-crafting-extended.glb" },
+    { "id": "blacksmith-building", "station": "forge", "r2Key": "game-assets/environment/benches/ummorpg/blacksmith-building.glb", "cdn": "https://assets.grudge-studio.com/game-assets/environment/benches/ummorpg/blacksmith-building.glb" },
+    { "id": "forge-anvil", "station": "anvil", "r2Key": "game-assets/environment/benches/ummorpg/forge-anvil.glb", "cdn": "https://assets.grudge-studio.com/game-assets/environment/benches/ummorpg/forge-anvil.glb" }
+  ],
+  "stationMapping": {
+    "anvil_low": "anvil",
+    "stumpanvil": "anvil",
+    "forge_low": "forge",
+    "workbenchwood": "woodworking-bench",
+    "workbenchstone": "workbench",
+    "chemistry_tablefbx": "alchemy-station",
+    "craftingbenchobjcleanermaterialmergergles": "workbench",
+    "bench": "workbench",
+    "bench2": "workbench"
+  },
+  "policy": {
+    "preferSource": "ummorpg",
+    "fallbackSource": "production-glb",
+    "doNotUploadMonolith": true,
+    "splitStrategy": "export named roots as individual GLBs to R2",
+    "optimizeBeforeUpload": "gltf-transform optimize --texture-compress webp"
+  },
+  "uploaded": "2026-06-25"
+}

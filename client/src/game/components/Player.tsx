@@ -38,6 +38,10 @@ import { useEnemyManager } from "../systems/EnemyManager";
 import { damageDestructiblesInArc } from "../dungeon/DungeonDestructibles";
 import { tryDamageDungeonDecor } from "../dungeon/DungeonDecorDestruction";
 import { useGame, SKILL_MAX_COOLDOWNS } from "@/lib/stores/useGame";
+import { usePets } from "@/lib/stores/usePets";
+import { DRAGON_STAGES, getDragonModelPath } from "@/game/systems/DragonPetRegistry";
+import { applyDragonTint } from "@/game/systems/dragonTint";
+import { getMountedVariantGlb } from "@/game/character/FactionCharacterRegistry";
 import { useCheats } from "@/lib/stores/useCheats";
 import { useChargeHud, CHARGE_TIER_1_MS, CHARGE_TIER_2_MS } from "@/lib/stores/useChargeHud";
 import { useStaminaFlash } from "@/lib/stores/useStaminaFlash";
@@ -227,6 +231,13 @@ function PlayerModel({
   // animation mixer never has to blend incompatible rigs. The per-ability
   // cooldown is the revert window before the next toggle is allowed.
   const [worgeForm, setWorgeForm] = useState<"human" | "bear" | "wolf">("human");
+  const [horseMounted, setHorseMounted] = useState(false);
+  const mountedPet = usePets((s) => s.getMountedPet());
+  const activePet = usePets((s) => s.getActivePet());
+  const mountPet = usePets((s) => s.mountPet);
+  const dismountPet = usePets((s) => s.dismountPet);
+  const checkLevelGate = usePets((s) => s.checkLevelGate);
+  const level = useGame((s) => s.level);
   const [hitParticleActive, setHitParticleActive] = useState(false);
   const hitParticlePos = useRef<[number, number, number]>([0, 0, 0]);
   const [healParticleActive, setHealParticleActive] = useState(false);
@@ -366,12 +377,28 @@ function PlayerModel({
     selectedCharacter.worgeFormModelPath ??
     null;
   const wolfFormPath = selectedCharacter.worgeWolfFormModelPath ?? null;
+  const raceKey = selectedCharacter.race ?? "human";
+  const horseMountPath = getMountedVariantGlb(raceKey);
+  const dragonMountActive = !!(
+    mountedPet && DRAGON_STAGES[mountedPet.stage].mountable
+  );
+  const dragonMountPath = dragonMountActive
+    ? getDragonModelPath(mountedPet!.stage)
+    : null;
+  const dragonTargetHeight = dragonMountActive
+    ? DRAGON_STAGES[mountedPet!.stage].targetHeight
+    : charHeight;
+
   const formModelPath =
-    worgeForm === "bear" && bearFormPath
-      ? bearFormPath
-      : worgeForm === "wolf" && wolfFormPath
-        ? wolfFormPath
-        : selectedCharacter.modelPath;
+    mountedPet && dragonMountPath
+      ? dragonMountPath
+      : horseMounted && horseMountPath
+        ? horseMountPath
+        : worgeForm === "bear" && bearFormPath
+          ? bearFormPath
+          : worgeForm === "wolf" && wolfFormPath
+            ? wolfFormPath
+            : selectedCharacter.modelPath;
 
   // Migrated to the new controller pipeline: speed-driven locomotion blend
   // tree (idle ↔ walk ↔ run ↔ sprint) plus a bone-masked upper-body combat
@@ -379,7 +406,7 @@ function PlayerModel({
   // useCharacterModel so the rest of this component is unchanged.
   const controller = useCharacterController({
     modelPath: formModelPath,
-    targetHeight: charHeight,
+    targetHeight: dragonTargetHeight,
     materialColorOverrides: matOverrides,
     weaponType: activeWeaponType,
     // Always load the basic-gestures pack on the player so all 15 numpad
@@ -395,6 +422,18 @@ function PlayerModel({
     scene, playAnimation, update, setMovementSpeed, transitionLock, rightHand, leftHand, head,
     sendEvent: sendCharEvent, setGrounded: setCharGrounded, bounds: measuredBounds,
   } = controller;
+
+  const dragonTintKeyRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!dragonMountActive || !mountedPet || !scene) {
+      dragonTintKeyRef.current = null;
+      return;
+    }
+    const key = `${mountedPet.id}:${mountedPet.color}`;
+    if (dragonTintKeyRef.current === key) return;
+    applyDragonTint(scene, mountedPet.color);
+    dragonTintKeyRef.current = key;
+  }, [dragonMountActive, mountedPet, scene]);
 
   // Impact flinch controller — procedural bone-level recoil on damage.
   const playerFlinchRef = useRef<ImpactFlinchController | null>(null);
@@ -942,23 +981,26 @@ function PlayerModel({
   const cheatsNoClip = useCheats((s) => s.noClip);
   const flyActive = cheatsEnabled && cheatsFly;
   const noClipActive = cheatsEnabled && cheatsNoClip;
+  // Dragon mount (stage 4+) uses the same zero-gravity flight model as F8 fly.
+  const zeroGravityActive = flyActive || dragonMountActive;
 
-  // Gravity scale follows fly mode. We restore to 1 on release so the
-  // player resumes normal falling. Skips while no rb is mounted (re-key
-  // window) — the next mount sees the prop's default and the effect
-  // re-fires when rbRef populates because the `flyActive` dep is stable
-  // until the user toggles. We also re-zero the velocity on release so
-  // the player doesn't keep coasting at fly speed under gravity.
+  // Gravity scale follows fly cheat or dragon mount. Restored on release so
+  // the player resumes normal falling. Re-zero velocity on release so the
+  // body doesn't coast at fly speed under gravity.
   useEffect(() => {
     const rb = rbRef.current;
     if (!rb) return;
-    rb.setGravityScale(flyActive ? 0 : 1, true);
-    if (!flyActive) {
-      // Drop residual fly velocity so the player isn't launched.
+    rb.setGravityScale(zeroGravityActive ? 0 : 1, true);
+    if (!zeroGravityActive) {
       rb.setLinvel({ x: 0, y: 0, z: 0 }, true);
       lastVel.current[0] = 0; lastVel.current[1] = 0; lastVel.current[2] = 0;
     }
-  }, [flyActive]);
+  }, [zeroGravityActive]);
+
+  // Promote stage-3 juveniles → stage-4 mountable adults at character level 20.
+  useEffect(() => {
+    checkLevelGate(level);
+  }, [level, checkLevelGate]);
 
   // No-clip flips the capsule collider's collision groups so it neither
   // solves nor reports contacts. Restored on release using the original
@@ -1528,6 +1570,26 @@ function PlayerModel({
         }
       }
 
+      // KeyM → toggle mount: dragon (stage 4+, any race/class) takes priority.
+      if (e.code === "KeyM") {
+        if (mountedPet) {
+          dismountPet(mountedPet.id);
+          setHorseMounted(false);
+          return;
+        }
+        if (activePet && DRAGON_STAGES[activePet.stage].mountable) {
+          if (mountPet(activePet.id)) {
+            setHorseMounted(false);
+            setWorgeForm("human");
+            return;
+          }
+        }
+        if (horseMountPath) {
+          setHorseMounted((prev) => !prev);
+        }
+        return;
+      }
+
       // Class ability "R" → secondary class ability (cooldown classAbility2).
       if (e.code === "KeyR") {
         const cdReady = useGame.getState().skillCooldowns.classAbility2 <= 0;
@@ -1794,10 +1856,15 @@ function PlayerModel({
     // Animator/mixer ticked above so idle / T-pose still play.
     {
       const c = useCheats.getState();
-      if (c.enabled && c.flyMode) {
+      const cheatFly = c.enabled && c.flyMode;
+      const dragonFly = dragonMountActive && !cheatFly;
+      if (cheatFly || dragonFly) {
         const flyKeys = getKeys() as Record<string, boolean>;
-        const FLY_BASE = 9;
-        const FLY_SPRINT = 22;
+        const dragonSpeed = dragonFly && mountedPet
+          ? DRAGON_STAGES[mountedPet.stage].stats.speed
+          : 9;
+        const FLY_BASE = dragonFly ? dragonSpeed : 9;
+        const FLY_SPRINT = dragonFly ? dragonSpeed * 2.2 : 22;
         const speed = flyKeys.sprint ? FLY_SPRINT : FLY_BASE;
         let mvX = 0, mvZ = 0, mvY = 0;
         if (flyKeys.forward) mvZ -= 1;
@@ -1826,6 +1893,9 @@ function PlayerModel({
         if (modelRef.current) modelRef.current.position.set(px, py, pz);
         onPositionUpdate(playerPos.current);
         updateGrassPlayerPosition(px, py, pz);
+        if (dragonFly) {
+          setMovementSpeed(speed / FLY_BASE);
+        }
         useChargeHud.getState().clear();
         return;
       }

@@ -7,7 +7,9 @@ import { useWallet } from "@/lib/wallet/useWallet";
 import { usePets, FURNACE_COOK_SECONDS } from "@/lib/stores/usePets";
 import { useInventory } from "@/lib/stores/useInventory";
 import { useNFTs } from "@/lib/hooks/useNFTs";
-import { DRAGON_STAGES } from "@/game/systems/DragonPetRegistry";
+import {
+  DRAGON_STAGES, isDragonEggItem, getDragonVariantLabel, getDragonColorFromEgg,
+} from "@/game/systems/DragonPetRegistry";
 
 /**
  * Top-left account panel — Grudge Studio branding.
@@ -55,7 +57,9 @@ export function AccountPanel() {
   // useNFTs handles null/undefined address gracefully (returns empty)
   const { nftCount, hasDragonEgg: walletHasEgg } = useNFTs(wallet.wallet?.address);
 
-  const hasDragonEggInInventory = inventory.some(i => i.id === "dragon_egg" && i.quantity > 0);
+  const hasDragonEggInInventory = inventory.some(
+    i => isDragonEggItem(i.id) && i.quantity > 0,
+  );
 
   // Furnace cook countdown (1s tick, only active while cooking)
   const [cookSecsLeft, setCookSecsLeft] = useState(0);
@@ -159,7 +163,12 @@ export function AccountPanel() {
             {activePet && (
               <span className="text-[10px] text-orange-300 font-semibold truncate">
                 {DRAGON_STAGES[activePet.stage].icon} {activePet.name}
-                <span className="text-zinc-500 font-normal"> — {DRAGON_STAGES[activePet.stage].name}</span>
+                <span className="text-zinc-500 font-normal">
+                  {" "}— {getDragonVariantLabel(activePet.color)} · {DRAGON_STAGES[activePet.stage].name}
+                  {DRAGON_STAGES[activePet.stage].mountable && (
+                    <span className="text-orange-400/80"> · [M] mount</span>
+                  )}
+                </span>
               </span>
             )}
             {furnacePending && cookSecsLeft > 0 && (
@@ -173,7 +182,13 @@ export function AccountPanel() {
             )}
             {!furnacePending && (hasDragonEggInInventory || walletHasEgg) && (
               <span className="text-[9px] text-zinc-500">
-                Dragon Egg — place in a Furnace to hatch
+                {(() => {
+                  const egg = inventory.find(i => isDragonEggItem(i.id) && i.quantity > 0);
+                  const label = egg
+                    ? `${getDragonVariantLabel(getDragonColorFromEgg(egg.id))} Drake Egg`
+                    : "Drake Egg";
+                  return `${label} — place in a Furnace to hatch (any race/class)`;
+                })()}
               </span>
             )}
           </div>
@@ -181,7 +196,12 @@ export function AccountPanel() {
           {!furnacePending && hasDragonEggInInventory && (
             <button
               type="button"
-              onClick={() => furnaceHatch("dragon_egg", removeFromInventory)}
+              onClick={() => {
+                const eggId = inventory.find(
+                  i => isDragonEggItem(i.id) && i.quantity > 0,
+                )?.id ?? "dragon_egg";
+                furnaceHatch(eggId, removeFromInventory);
+              }}
               className="text-[9px] px-1.5 py-0.5 bg-orange-700/80 text-orange-200 rounded
                          hover:bg-orange-600 transition-colors shrink-0"
               title="Place egg in nearest Furnace to cook"
