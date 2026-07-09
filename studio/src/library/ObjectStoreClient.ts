@@ -67,6 +67,26 @@ export function objectStoreFileUrl(key: string): string {
  */
 function urlsToTry(key: string): string[] {
   const trimmed = key.replace(/^\/+/, '');
+
+  // Local Vite public assets (e.g. assets/animations/swim/swimming.fbx)
+  // and explicit local: prefix — skip ObjectStore entirely.
+  if (
+    trimmed.startsWith('assets/') ||
+    trimmed.startsWith('local/') ||
+    trimmed.startsWith('local:')
+  ) {
+    let rel = trimmed
+      .replace(/^local:/, '')
+      .replace(/^local\//, 'assets/');
+    if (!rel.startsWith('assets/')) rel = `assets/${rel}`;
+    let base = '/';
+    try {
+      const env = (import.meta as unknown as { env?: Record<string, string> }).env;
+      base = (env?.BASE_URL ?? '/').replace(/\/?$/, '/');
+    } catch { /* ignore */ }
+    return [`${base}${rel}`];
+  }
+
   const out = [trimmed];
   if (!trimmed.startsWith('game-assets/')) out.push(`game-assets/${trimmed}`);
   return out.map(

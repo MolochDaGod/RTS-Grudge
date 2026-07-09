@@ -42,6 +42,22 @@ export interface PlayerClipMap {
   jump?: string;
   hurt?: string;
   die?: string;
+  /** Forward swim stroke (loops). */
+  swim?: string;
+  /** Treading water / surface idle (loops). */
+  tread?: string;
+  /** Climb-out near shore (one-shot / loops ok). */
+  swim_to_edge?: string;
+  /** Vertical climb up (loops). */
+  climb?: string;
+  /** Hang / hold still on wall (loops). */
+  climb_idle?: string;
+  /** Climb down (loops; may reverse climb clip). */
+  climb_down?: string;
+  /** Lateral shimmy on wall (loops). */
+  climb_shimmy?: string;
+  /** Pull over ledge to standing (one-shot). */
+  climb_topout?: string;
 }
 
 export interface PlayerCharacterSpec {
@@ -80,6 +96,29 @@ const G = 'models/characters';
 const MX = 'models/animations/melee-axe';
 const RACE = 'models/grudge6/races';
 const LOCO = 'models/animations/melee-axe';
+/** Local Vite public swim trio (Mixamo-style FBX, cm units). */
+const SWIM = 'assets/animations/swim';
+/** Local climb suite (ladder/wall climb FBX). */
+const CLIMB = 'assets/animations/climb';
+
+/** Shared water locomotion clips for any split-rig avatar. */
+const SWIM_CLIPS: Pick<PlayerClipMap, 'swim' | 'tread' | 'swim_to_edge'> = {
+  swim:         `${SWIM}/swimming.fbx`,
+  tread:        `${SWIM}/treading_water.fbx`,
+  swim_to_edge: `${SWIM}/swimming_to_edge.fbx`,
+};
+
+/** Shared climb locomotion clips. */
+const CLIMB_CLIPS: Pick<
+  PlayerClipMap,
+  'climb' | 'climb_idle' | 'climb_down' | 'climb_shimmy' | 'climb_topout'
+> = {
+  climb:        `${CLIMB}/climbing.fbx`,
+  climb_idle:   `${CLIMB}/climb_idle.fbx`,
+  climb_down:   `${CLIMB}/climbing.fbx`, // reversed at playback via timeScale
+  climb_shimmy: `${CLIMB}/climbing.fbx`,
+  climb_topout: `${CLIMB}/climb_topout.fbx`,
+};
 
 /** Grudge6 Bip001 race — unarmed body, Mixamo locomotion stitched on. */
 function raceSpec(
@@ -95,6 +134,8 @@ function raceSpec(
       idle: `${LOCO}/standing idle.fbx`,
       walk: `${LOCO}/standing walk forward.fbx`,
       run:  `${LOCO}/standing run forward.fbx`,
+      ...SWIM_CLIPS,
+      ...CLIMB_CLIPS,
     },
     defaultScale: scale,
     yOffset: 0,
@@ -133,6 +174,8 @@ export const PLAYER_CHARACTERS: Record<PlayerCharacterId, PlayerCharacterSpec> =
       jump:   `${MX}/standing jump.fbx`,
       attack: `${MX}/standing melee attack horizontal.fbx`,
       hurt:   `${MX}/standing react large gut.fbx`,
+      ...SWIM_CLIPS,
+      ...CLIMB_CLIPS,
     },
     defaultScale: 0.01,
     yOffset: 0,
@@ -195,6 +238,8 @@ export const PLAYER_CHARACTERS: Record<PlayerCharacterId, PlayerCharacterSpec> =
       walk:   `${C}/player-warrior_warrior@s101.FBX`,
       run:    `${C}/player-warrior_warrior@s101.FBX`,
       attack: `${C}/player-warrior_warrior@a100.FBX`,
+      ...SWIM_CLIPS,
+      ...CLIMB_CLIPS,
     },
     defaultScale: 0.012,
     yOffset: 0,
@@ -212,6 +257,8 @@ export const PLAYER_CHARACTERS: Record<PlayerCharacterId, PlayerCharacterSpec> =
       walk:   `${C}/player-mage_mage@s301.FBX`,
       run:    `${C}/player-mage_mage@s301.FBX`,
       attack: `${C}/player-mage_mage@a300.FBX`,
+      ...SWIM_CLIPS,
+      ...CLIMB_CLIPS,
     },
     defaultScale: 0.012,
     yOffset: 0,
@@ -233,6 +280,8 @@ export const PLAYER_CHARACTERS: Record<PlayerCharacterId, PlayerCharacterSpec> =
       walk:   `${C}/player-assassin_assassin@a401.FBX`,
       run:    `${C}/player-assassin_assassin@a402.FBX`,
       attack: `${C}/player-assassin_assassin@a403.FBX`,
+      ...SWIM_CLIPS,
+      ...CLIMB_CLIPS,
     },
     defaultScale: 0.012,
     yOffset: 0,
@@ -250,6 +299,8 @@ export const PLAYER_CHARACTERS: Record<PlayerCharacterId, PlayerCharacterSpec> =
       walk:   `${C}/player-archer_archer@a501.FBX`,
       run:    `${C}/player-archer_archer@a502.FBX`,
       attack: `${C}/player-archer_archer@a505.FBX`,
+      ...SWIM_CLIPS,
+      ...CLIMB_CLIPS,
     },
     defaultScale: 0.012,
     yOffset: 0,

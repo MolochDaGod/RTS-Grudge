@@ -96,7 +96,7 @@ export function Water({ size = 600 }: WaterProps) {
       waterNormals: normalsTex,
       sunDirection: sunDir,
       sunColor:     0xffeedd,
-      // Deeper water (20 ft / 6.1 m) reads as a dark ocean blue.
+      // Ocean column: surface y=0, shelf ~-5, trenches to -50 → dark blue.
       waterColor:   0x06182e,
       distortionScale: 2.8,
       fog: false,

@@ -38,6 +38,8 @@ export function PlayHud() {
         <span className="text-muted-foreground hidden sm:inline">
           <kbd className="font-mono">WASD</kbd> move ·{' '}
           <kbd className="font-mono">Shift</kbd> sprint ·{' '}
+          <kbd className="font-mono">Space</kbd> up/climb ·{' '}
+          <kbd className="font-mono">Alt</kbd> dive/down ·{' '}
           <kbd className="font-mono">RMB</kbd> camera
         </span>
       </div>
@@ -46,6 +48,12 @@ export function PlayHud() {
         {' · '}
         <span className="font-mono">{player.locomotion}</span>
         {player.sprinting && <span className="text-amber-400"> sprint</span>}
+        {(player.locomotion === 'swim' || player.locomotion === 'tread' || player.locomotion === 'swim_to_edge') && (
+          <span className="text-sky-400"> water</span>
+        )}
+        {player.locomotion.startsWith('climb') && (
+          <span className="text-amber-500"> climb</span>
+        )}
         <span className="opacity-60"> · grass & creatures active</span>
       </div>
     </div>

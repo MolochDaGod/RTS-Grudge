@@ -1,12 +1,14 @@
 /**
  * Seeded procedural island generator.
  *
- * Constraints (from product brief):
- * - Heights cap at 3x player height above water → max ~5.4 m above sea level (player ≈ 1.8 m)
- * - Sea level = 0
- * - Carved bay along one side, suitable for a dock
- * - Flat building plateau in the central interior
- * - Stylized props (trees, rocks, bushes, flowers) + animals scattered with seeded jitter
+ * Vertical datum (Y axis):
+ * - SEA_LEVEL = 0  → water surface (authoritative water plane)
+ * - Land always slopes underwater to COAST_SUBMERGE (-1) before joining the seafloor
+ * - Outside the island circle: seafloor shelf ~SHELF_DEPTH (-5) with heightmap noise
+ * - Deepest trenches: OCEAN_FLOOR_DEEP (-50)
+ *
+ * Land and seafloor share one continuous heightmap so submersion, swimming,
+ * and fish pathfinding all sample the same mesh.
  *
  * Output:
  * - Mutated TerrainData (heights + biome arrays)
@@ -19,10 +21,58 @@ import {
   TREE_GLBS, ROCK_GLBS, HARVEST_GLBS, FISH_POOL, CREATURE_ASSET, pick,
 } from './islandAssetPools';
 
+/** Water surface Y — authoritative sea level for terrain, water plane, grass, AI. */
 export const SEA_LEVEL = 0;
 export const PLAYER_HEIGHT = 1.8;
-/** 20 ft above sea level — hard cap for all terrain heights. */
+/** ~20 ft above sea level — hard cap for land peaks. */
 export const MAX_TERRAIN = 6.096;
+/** Land always reaches at least this depth (underwater) before open-ocean seafloor. */
+export const COAST_SUBMERGE = -1;
+/** Default seafloor depth once outside the island circle. */
+export const SHELF_DEPTH = -5;
+/** Deepest seafloor trenches (heightmapped negative Y). */
+export const OCEAN_FLOOR_DEEP = -50;
+/** Small fish swim band: -1 … -5. */
+export const SMALL_FISH_Y = { min: -5, max: -1 } as const;
+/** Big fish past the island circle: -2 … -10. */
+export const BIG_FISH_Y = { min: -10, max: -2 } as const;
+/** Minimum clearance above seafloor mesh for fish / swim agents. */
+export const FLOOR_CLEARANCE = 0.4;
+/** Keep swimmers this far below the water plane (SEA_LEVEL). */
+export const SURFACE_MARGIN = 0.12;
+
+/** Larger / pelagic species — spawn past island circle in BIG_FISH_Y. */
+const BIG_FISH_SPECIES = new Set([
+  'tuna', 'swordfish', 'anglerfish', 'shark',
+]);
+
+export type DepthBand = { readonly min: number; readonly max: number };
+
+/** Nearest-cell terrain height sample (generator-side; no bilinear needed). */
+export function sampleTerrainY(t: TerrainData, x: number, z: number): number {
+  const half = t.size / 2;
+  const cell = t.size / (t.resolution - 1);
+  const xi = Math.max(0, Math.min(t.resolution - 1, Math.round((x + half) / cell)));
+  const zi = Math.max(0, Math.min(t.resolution - 1, Math.round((z + half) / cell)));
+  return t.heights[zi * t.resolution + xi]!;
+}
+
+/**
+ * Clamp a desired swim Y into the open water column:
+ * (seafloor + clearance) … min(band.max, SEA_LEVEL - surface margin) ∩ band.
+ * Returns null when the water column is too shallow for that band.
+ */
+export function clampSwimY(
+  desired: number,
+  floorY: number,
+  band: DepthBand,
+  clearance = FLOOR_CLEARANCE,
+): number | null {
+  const lo = Math.max(band.min, floorY + clearance);
+  const hi = Math.min(band.max, SEA_LEVEL - SURFACE_MARGIN);
+  if (hi < lo + 0.05) return null; // no usable column
+  return Math.max(lo, Math.min(hi, desired));
+}
 
 /** Six distinct island morphologies, each with unique height-map logic. */
 export type IslandProfile =
@@ -53,6 +103,8 @@ interface IslandShape {
   dock: { x: number; z: number };
   /** Mountain peak — dungeon / event entrance anchor */
   peak: { x: number; z: number; y: number };
+  /** Island circle radius (world units) — used for fish bands & seafloor shelf. */
+  islandR: number;
 }
 
 // ── Island profile presets ──────────────────────────────────────────────────
@@ -140,8 +192,9 @@ function buildIslandHeights(
   // ── Island shape parameters ─────────────────────────────────────────────
   // Rim expanded 25% for richer coastal height variation and build sites.
   const islandR     = t.size * P.islandFrac * 1.25;
-  const oceanFloorR = islandR + t.size * 0.12;
-  const OCEAN_FLOOR = -12.192; // 40 ft — deep trench for sharks / diving fish
+  // Transition band from submerged coast (-1) out to the -5 shelf.
+  const shelfStartR = islandR;
+  const shelfEndR   = islandR + t.size * 0.14;
   const peakH       = MAX_TERRAIN * P.peakScale;
 
   // Elongation axis (for fjord): rotate by a random angle
@@ -150,6 +203,7 @@ function buildIslandHeights(
   const elongSin   = Math.sin(elongAngle);
 
   // ── Per-vertex generation ───────────────────────────────────────────────
+  // Continuous land → submerged beach (≥ -1) → seafloor shelf (-5) → trenches (-50).
   for (let zi = 0; zi < t.resolution; zi++) {
     for (let xi = 0; xi < t.resolution; xi++) {
       const wx = -half + xi * cell;
@@ -166,7 +220,8 @@ function buildIslandHeights(
       const warpedDist = dCentre - warpAmt;
 
       const islandMask = 1 - smoothstep(islandR * 0.5, islandR, warpedDist);
-      const landGate   = 1 - smoothstep(islandR, oceanFloorR, warpedDist);
+      // landGate: 1 = full island interior, 0 = open ocean (past shelf band)
+      const landGate   = 1 - smoothstep(islandR * 0.72, shelfEndR, warpedDist);
 
       // Coastline noise (n1 + n2 two octaves)
       const coast = (n1(wx * 0.012, wz * 0.012) * 0.35
@@ -193,75 +248,114 @@ function buildIslandHeights(
       }
 
       // Hill / terrain detail — n2 (large) + n3 (fine) + optional ridge n4
-      // hillHigh capped at 0.06 (was 0.18) — prevents jagged/low-poly peak look
+      // hillHigh capped at 0.06 — prevents jagged/low-poly peak look
       const hillLow  = (n2(wx * 0.025, wz * 0.025) * 0.50
                       + n2(wx * 0.07,  wz * 0.07)  * 0.22) * P.hillAmp;
       const hillHigh = n3(wx * 0.12,  wz * 0.12)  * 0.06 * P.hillAmp;
-
-      // Ridgeline: soft spine (ridgeAmp already reduced in PROFILES)
       const ridge    = Math.abs(n4(wx * 0.018, wz * 0.018)) * P.ridgeAmp * 0.5;
+      const hill     = (hillLow + hillHigh + ridge) * landGate;
 
-      const hill = (hillLow + hillHigh + ridge) * landGate;
+      // ── Land surface (positive interior) ────────────────────────────────
+      let landH = (land - bayCarve) * peakH + hill;
 
-      // Combine
-      let h = (land - bayCarve) * peakH + hill;
-      const oceanBlend = 1 - landGate;
-      h = h * landGate + OCEAN_FLOOR * oceanBlend;
-
-      // Apply all plateaus
+      // Plateaus (build pads) — land only
       for (const pl of plateaus) {
         const dPlat = Math.hypot(wx - pl.x, wz - pl.z);
         if (dPlat < pl.r) {
           const blend = 1 - smoothstep(pl.r * 0.7, pl.r, dPlat);
-          h = h * (1 - blend) + pl.h * blend;
+          landH = landH * (1 - blend) + pl.h * blend;
         }
       }
 
-      // Expanded rim: gentle coastal hills on the outer 25% ring
+      // Gentle coastal hills on the outer land ring (still above water)
       const rimInner = islandR * 0.72;
-      const rimOuter = islandR * 1.05;
-      if (warpedDist > rimInner && warpedDist < rimOuter && h > 0.2) {
+      const rimOuter = islandR * 0.95;
+      if (warpedDist > rimInner && warpedDist < rimOuter && landH > 0.2) {
         const rimT = 1 - smoothstep(rimInner, rimOuter, warpedDist);
-        h += rimT * peakH * 0.12;
+        landH += rimT * peakH * 0.12;
       }
 
-      // Beach smoothing near coast
-      if (h > -0.35 && h < 0.45) h *= 0.5;
+      // Soft beach roll just above water (don't smash the underwater slope)
+      if (landH > 0 && landH < 0.55) landH *= 0.55;
 
-      // Hard clamp: max 20 ft above sea, 40 ft ocean floor
-      h = Math.max(OCEAN_FLOOR, Math.min(MAX_TERRAIN, h));
+      // ── Seafloor heightmap (≤ SHELF_DEPTH outside the circle) ───────────
+      // Baseline -5 past island circle; sparse trenches to -50.
+      const shelfNoise =
+        n1(wx * 0.009, wz * 0.009) * 0.45 +
+        n2(wx * 0.028, wz * 0.028) * 0.30 +
+        n3(wx * 0.06,  wz * 0.06)  * 0.15;
+      // Sparse deep trenches (high power keeps most floor near the shelf)
+      const trenchN = Math.max(0, n4(wx * 0.011 + 40, wz * 0.011 + 40));
+      const trench  = Math.pow(trenchN, 2.8);
+      const outerDeep = smoothstep(shelfStartR, shelfStartR + t.size * 0.35, warpedDist);
+      // Undulate downward from shelf only (never shallower than -5 outside)
+      let seafloor =
+        SHELF_DEPTH
+        - Math.max(0, -shelfNoise) * 1.2           // dips only, not rises above shelf
+        - trench * (SHELF_DEPTH - OCEAN_FLOOR_DEEP)
+        - outerDeep * 4;
+      seafloor = Math.max(OCEAN_FLOOR_DEEP, Math.min(SHELF_DEPTH, seafloor));
+
+      // ── Continuous land → coast (-1) → seafloor ─────────────────────────
+      // coastT: 0 interior land, 1 at island circle (forced to COAST_SUBMERGE)
+      // oceanT: 0 at island circle, 1 fully on outer shelf
+      const coastT = smoothstep(islandR * 0.72, islandR, warpedDist);
+      const oceanT = smoothstep(shelfStartR, shelfEndR, warpedDist);
+
+      // Stage 1: land falls to COAST_SUBMERGE (-1) at the island rim
+      // Use a smooth max so high interior land isn't yanked early, but the
+      // shoreline always submerges to at least -1 before open ocean.
+      let h = landH;
+      if (coastT > 0) {
+        // Hermite blend toward min(land, -1) so beaches stay gentle
+        const submerged = Math.min(landH, COAST_SUBMERGE);
+        h = landH * (1 - coastT) * (1 - coastT) + submerged * (1 - (1 - coastT) * (1 - coastT));
+        // Hard guarantee past 92% of island radius
+        if (warpedDist >= islandR * 0.92) h = Math.min(h, COAST_SUBMERGE);
+      }
+
+      // Stage 2: blend into heightmapped seafloor outside the circle
+      h = h * (1 - oceanT) + seafloor * oceanT;
+
+      // Bays / lagoons: where land mask collapsed, prefer seafloor under water
+      if (land < 0.05 && h > SEA_LEVEL) {
+        h = Math.min(h, Math.max(seafloor, COAST_SUBMERGE));
+      }
+
+      h = Math.max(OCEAN_FLOOR_DEEP, Math.min(MAX_TERRAIN, h));
       t.heights[i] = h;
 
-      // Biome assignment
+      // Biome: sand near shore / shallow shelf, rock for deeper seafloor
       let biome: 0 | 1 | 2 | 3 = 0;
-      if      (h < 0.28)                        biome = 1;  // sand
-      else if (h > peakH * P.snowFrac)           biome = 3;  // snow
-      else if (h > peakH * 0.72)                 biome = 2;  // rock
-      else                                        biome = 0;  // grass
+      if      (h <= SHELF_DEPTH - 2)              biome = 2;  // deep rock / trench
+      else if (h < 0.28)                          biome = 1;  // sand / shallows
+      else if (h > peakH * P.snowFrac)            biome = 3;  // snow
+      else if (h > peakH * 0.72)                  biome = 2;  // rock
+      else                                         biome = 0;  // grass
       t.biome[i] = biome;
     }
   }
 
   // ─ Post-generation smoothing pass ──────────────────────────────────────────
-  // Average each land vertex with its 4 cardinal neighbors once.
-  // This rounds off the angular facets that make terrain look low-poly,
-  // and ensures walkable slopes (< ~38° after smoothing).
-  // Only applied to above-water heights to keep the ocean floor intact.
+  // Smooth land AND the land↔seafloor transition so slopes stay continuous for
+  // submersion + fish pathfinding. Leave deep open-ocean trenches mostly intact.
   const R   = t.resolution;
   const tmp = Float32Array.from(t.heights);
   for (let zi = 1; zi < R - 1; zi++) {
     for (let xi = 1; xi < R - 1; xi++) {
       const i = zi * R + xi;
-      if (tmp[i] <= 0) continue; // leave ocean untouched
+      // Skip only deep trenches — still smooth shelf + coast
+      if (tmp[i]! < SHELF_DEPTH - 6) continue;
       const avg = (
-        tmp[i] +
-        tmp[(zi - 1) * R + xi] +
-        tmp[(zi + 1) * R + xi] +
-        tmp[zi * R + (xi - 1)] +
-        tmp[zi * R + (xi + 1)]
+        tmp[i]! +
+        tmp[(zi - 1) * R + xi]! +
+        tmp[(zi + 1) * R + xi]! +
+        tmp[zi * R + (xi - 1)]! +
+        tmp[zi * R + (xi + 1)]!
       ) / 5;
-      // 60% blend toward the average — removes facets, preserves character
-      t.heights[i] = tmp[i] * 0.4 + avg * 0.6;
+      // Stronger smooth on land, lighter on seafloor shelf
+      const w = tmp[i]! > SEA_LEVEL ? 0.6 : 0.35;
+      t.heights[i] = tmp[i]! * (1 - w) + avg * w;
     }
   }
 
@@ -306,6 +400,7 @@ function buildIslandHeights(
     plateau: { x: plateau.x, z: plateau.z, r: plateau.r },
     dock,
     peak: { x: finalPeakWx, z: finalPeakWz, y: peakY },
+    islandR,
   };
 }
 
@@ -549,12 +644,15 @@ export function generateIsland(
 
   // ── Animals (biome-specific) ───────────────────────────────────
   //
-  // IMPORTANT: land animals are placed at terrain height (p.y) so they
-  // sit ON the ground.  Water animals orbit AROUND the island at sea level
-  // — their Y is locked to SEA_LEVEL + 0.2 so they swim on the surface
-  // and never clip through the terrain mesh.
+  // Land animals: placed at terrain height (p.y).
+  // Surface water animals (croc): near SEA_LEVEL.
+  // Fish use depth bands over the continuous seafloor heightmap:
+  //   small  → y ∈ [-1, -5]  (reef / near-island shelf)
+  //   big    → past island circle, y ∈ [-2, -10]
 
-  // Helper: create a water-swimming creature entity
+  const islandR = shape.islandR;
+
+  // Helper: surface / near-surface water creature
   const waterAnimal = (
     name: string,
     species: string,
@@ -564,7 +662,7 @@ export function generateIsland(
     const angle = rng() * Math.PI * 2;
     const x = Math.cos(angle) * orbitRadius;
     const z = Math.sin(angle) * orbitRadius;
-    const swimY = SEA_LEVEL + 0.2; // on the water surface, never underground
+    const swimY = SEA_LEVEL - 0.15; // just under the water plane
     return entity(rng, 'creature', name,
       [x, swimY, z],
       {
@@ -572,7 +670,6 @@ export function generateIsland(
         asset: CREATURE_ASSET[species],
         behavior: 'swim',
         speed,
-        // Orbit parameters (used by the swim AI tick)
         radius:  orbitRadius,
         centerX: 0, centerZ: 0,
         altitude: swimY,
@@ -598,26 +695,70 @@ export function generateIsland(
 
   const animalCount = Math.round(animalDensity);
 
-  // ── Fish — shallow reef + deep-water schools ─────────────────────────────
-  const fishCount = 6 + Math.floor(rng() * 5);
-  for (let k = 0; k < fishCount; k++) {
-    const f = FISH_POOL[k % FISH_POOL.length]!;
-    const shallow = k < fishCount * 0.6;
-    const r = shallow
-      ? t.size * (0.22 + rng() * 0.18)
-      : t.size * (0.38 + rng() * 0.22);
-    const swimY = shallow ? 0.12 + rng() * 0.2 : -2.5 - rng() * 3.5;
-    const spd = 1.5 + rng() * 2.0;
-    const ang = rng() * Math.PI * 2;
-    const x = Math.cos(ang) * r;
-    const z = Math.sin(ang) * r;
-    ents.push(entity(rng, 'creature', f.species,
-      [x, swimY, z],
-      { species: f.species, asset: f.glb, behavior: 'swim',
-        speed: spd, radius: r, centerX: 0, centerZ: 0, altitude: swimY,
-        deepWater: !shallow },
-      [f.scale, f.scale, f.scale]));
-  }
+  // ── Fish — seafloor-aware depth bands ───────────────────────────────────
+  // Small: near rim / shelf, y ∈ [-1, -5]
+  // Big: past island circle, y ∈ [-2, -10]
+  // Always sample terrain so fish never spawn inside the mesh.
+  const smallFish = FISH_POOL.filter((f) => !BIG_FISH_SPECIES.has(f.species));
+  const bigFish   = FISH_POOL.filter((f) => BIG_FISH_SPECIES.has(f.species));
+
+  const placeFish = (
+    pool: readonly { species: string; glb: string; scale: number }[],
+    count: number,
+    band: DepthBand,
+    rMin: number,
+    rMax: number,
+    size: 'small' | 'big',
+    scaleMul = 1,
+  ) => {
+    let placed = 0;
+    let tries = 0;
+    const maxTries = count * 24;
+    while (placed < count && tries < maxTries) {
+      tries++;
+      const f = pool[placed % Math.max(1, pool.length)]
+        ?? FISH_POOL[placed % FISH_POOL.length]!;
+      const r = rMin + rng() * Math.max(0.01, rMax - rMin);
+      const ang = rng() * Math.PI * 2;
+      const x = Math.cos(ang) * r;
+      const z = Math.sin(ang) * r;
+      const floorY = sampleTerrainY(t, x, z);
+      if (floorY >= SEA_LEVEL - 0.05) continue; // dry / beach
+      const desired = band.max - rng() * (band.max - band.min);
+      const swimY = clampSwimY(desired, floorY, band);
+      if (swimY == null) continue;
+      const spd = (size === 'big' ? 2.0 : 1.4) + rng() * (size === 'big' ? 2.5 : 1.8);
+      const s = f.scale * scaleMul;
+      ents.push(entity(rng, 'creature', f.species,
+        [x, swimY, z],
+        {
+          species: f.species, asset: f.glb, behavior: 'swim',
+          speed: spd, radius: r, centerX: 0, centerZ: 0, altitude: swimY,
+          deepWater: size === 'big', fishSize: size,
+          yMin: band.min, yMax: band.max,
+        },
+        [s, s, s]));
+      placed++;
+    }
+  };
+
+  placeFish(
+    smallFish.length ? smallFish : FISH_POOL,
+    5 + Math.floor(rng() * 4),
+    SMALL_FISH_Y,
+    islandR * 0.55,
+    islandR * 1.05,
+    'small',
+  );
+  placeFish(
+    bigFish.length ? bigFish : FISH_POOL,
+    3 + Math.floor(rng() * 3),
+    BIG_FISH_Y,
+    islandR * 1.08,
+    islandR * 1.65,
+    'big',
+    1.15,
+  );
 
   if (weather === 'forest') {
     // Deer — prey: flee from wolves + camera
@@ -641,23 +782,33 @@ export function generateIsland(
     }
 
   } else if (weather === 'beach') {
-    // Sharks — deep-water predators in the outer trench
+    // Sharks — big band past island circle, seafloor-cleared
     for (let k = 0; k < 3 * animalCount; k++) {
-      const orbitR = t.size * (0.42 + rng() * 0.28);
-      const angle = rng() * Math.PI * 2;
-      const x = Math.cos(angle) * orbitR;
-      const z = Math.sin(angle) * orbitR;
-      const swimY = -3.5 - rng() * 4.5;
-      ents.push(entity(rng, 'creature', 'shark',
-        [x, swimY, z],
-        {
-          species: 'shark', asset: CREATURE_ASSET.shark, behavior: 'swim',
-          speed: 3 + rng() * 2, radius: orbitR, centerX: 0, centerZ: 0,
-          altitude: swimY, deepWater: true,
-        }));
+      let placed = false;
+      for (let attempt = 0; attempt < 20 && !placed; attempt++) {
+        const orbitR = islandR * (1.1 + rng() * 0.6);
+        const angle = rng() * Math.PI * 2;
+        const x = Math.cos(angle) * orbitR;
+        const z = Math.sin(angle) * orbitR;
+        const floorY = sampleTerrainY(t, x, z);
+        const desired = BIG_FISH_Y.max - rng() * (BIG_FISH_Y.max - BIG_FISH_Y.min);
+        const swimY = clampSwimY(desired, floorY, BIG_FISH_Y);
+        if (swimY == null) continue;
+        ents.push(entity(rng, 'creature', 'shark',
+          [x, swimY, z],
+          {
+            species: 'shark', asset: CREATURE_ASSET.shark, behavior: 'swim',
+            speed: 3 + rng() * 2, radius: orbitR, centerX: 0, centerZ: 0,
+            altitude: swimY, deepWater: true, fishSize: 'big',
+            yMin: BIG_FISH_Y.min, yMax: BIG_FISH_Y.max,
+          }));
+        placed = true;
+      }
     }
-    // Crocodile — predator, near shore
-    for (let k = 0; k < 2 * animalCount; k++) ents.push(waterAnimal('crocodile', 'crocodile', t.size * 0.18 + rng() * 10, 1.5));
+    // Crocodile — predator, near shore (surface band)
+    for (let k = 0; k < 2 * animalCount; k++) {
+      ents.push(waterAnimal('crocodile', 'crocodile', islandR * 0.75 + rng() * 8, 1.5));
+    }
     // Crab — prey
     for (const p of scatter(t, shape, rng, { count: 6 * animalCount, hMin: -0.1, hMax: 0.6, biomes: [1] })) {
       ents.push(landAnimal(p, 'crab', 'crab',
@@ -722,32 +873,79 @@ export function generateIsland(
   }
 
   // ── Nav waypoints for creature pathfinding ───────────────────────────────
+  // Land graph (above water) + underwater graph on the continuous seafloor so
+  // fish / submerged agents have path nodes over the shelf and outer trench.
   const navPts = scatter(t, shape, rng, {
     count: 14, hMin: 0.35, hMax: MAX_TERRAIN * 0.9, biomes: [0, 2], avoidPlateau: false,
   });
+  // Underwater nav: mid-column nodes above seafloor in each fish band
+  const waterNav: { x: number; z: number; y: number; layer: 'small' | 'big' }[] = [];
+  for (let k = 0; k < 14; k++) {
+    const past = k >= 7;
+    const band = past ? BIG_FISH_Y : SMALL_FISH_Y;
+    let found = false;
+    for (let attempt = 0; attempt < 16 && !found; attempt++) {
+      const ang = rng() * Math.PI * 2;
+      const r = past
+        ? islandR * (1.1 + rng() * 0.55)
+        : islandR * (0.65 + rng() * 0.4);
+      const x = Math.cos(ang) * r;
+      const z = Math.sin(ang) * r;
+      const floorY = sampleTerrainY(t, x, z);
+      if (floorY >= SEA_LEVEL) continue;
+      const desired = floorY + FLOOR_CLEARANCE + 0.5 + rng() * 1.2;
+      const y = clampSwimY(desired, floorY, band);
+      if (y == null) continue;
+      waterNav.push({ x, z, y, layer: past ? 'big' : 'small' });
+      found = true;
+    }
+  }
+
+  const allNav = [
+    ...navPts.map((p) => ({ x: p.x, z: p.z, y: p.y, layer: 'land' as const })),
+    ...waterNav.map((p) => ({ x: p.x, z: p.z, y: p.y, layer: p.layer })),
+  ];
   const navIds: string[] = [];
-  for (const p of navPts) {
+  for (const p of allNav) {
     const id = uid(rng);
     navIds.push(id);
-    const wp = entity(rng, 'nav_waypoint', 'nav', [p.x, p.y, p.z],
-      { navWaypoint: true, links: [] as string[] }, [1, 1, 1], 0);
+    const wp = entity(rng, 'nav_waypoint', p.layer === 'land' ? 'nav' : `nav_${p.layer}_fish`,
+      [p.x, p.y, p.z],
+      {
+        navWaypoint: true,
+        links: [] as string[],
+        layer: p.layer,
+        underwater: p.layer !== 'land',
+      },
+      [1, 1, 1], 0);
     wp.id = id;
     ents.push(wp);
   }
   const linkRadius = t.size * 0.14;
-  for (let i = 0; i < navPts.length; i++) {
+  for (let i = 0; i < allNav.length; i++) {
     const wp = ents.find((e) => e.id === navIds[i]);
     if (!wp) continue;
+    const layerI = allNav[i]!.layer;
     const links: string[] = [];
-    for (let j = 0; j < navPts.length; j++) {
+    for (let j = 0; j < allNav.length; j++) {
       if (i === j) continue;
-      const d = Math.hypot(navPts[i]!.x - navPts[j]!.x, navPts[i]!.z - navPts[j]!.z);
-      if (d < linkRadius) links.push(navIds[j]!);
+      // Land only links land; water layers link same layer (and big↔small loosely)
+      const layerJ = allNav[j]!.layer;
+      const landPair = layerI === 'land' && layerJ === 'land';
+      const waterPair = layerI !== 'land' && layerJ !== 'land';
+      if (!landPair && !waterPair) continue;
+      const d = Math.hypot(allNav[i]!.x - allNav[j]!.x, allNav[i]!.z - allNav[j]!.z);
+      const maxR = waterPair ? linkRadius * 1.35 : linkRadius;
+      if (d < maxR) links.push(navIds[j]!);
     }
     if (links.length < 2) {
-      const sorted = navPts
-        .map((p, j) => ({ j, d: Math.hypot(navPts[i]!.x - p.x, navPts[i]!.z - p.z) }))
-        .filter((x) => x.j !== i)
+      const sorted = allNav
+        .map((p, j) => ({
+          j,
+          d: Math.hypot(allNav[i]!.x - p.x, allNav[i]!.z - p.z),
+          same: (p.layer === 'land') === (layerI === 'land'),
+        }))
+        .filter((x) => x.j !== i && x.same)
         .sort((a, b) => a.d - b.d)
         .slice(0, 3);
       for (const s of sorted) if (!links.includes(navIds[s.j]!)) links.push(navIds[s.j]!);

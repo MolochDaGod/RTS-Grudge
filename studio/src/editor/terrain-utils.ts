@@ -3,6 +3,7 @@
  * gameplay code (or a worker) can use it without pulling Three.js.
  */
 import type { TerrainData } from '../types';
+import { MAX_TERRAIN, OCEAN_FLOOR_DEEP } from './IslandGenerator';
 
 interface Sampleable { resolution: number; size: number; heights: number[] }
 
@@ -93,10 +94,14 @@ export function applyBrush(
         }
         const mean = count > 0 ? sum / count : t.heights[i]!;
         const next = t.heights[i]! + (mean - t.heights[i]!) * strength * falloff;
-        if (next !== t.heights[i]) { t.heights[i] = next; changed = true; }
+        const clamped = Math.max(OCEAN_FLOOR_DEEP, Math.min(MAX_TERRAIN, next));
+        if (clamped !== t.heights[i]) { t.heights[i] = clamped; changed = true; }
       } else if (dh !== 0) {
-        t.heights[i] = (t.heights[i] ?? 0) + dh;
-        changed = true;
+        const next = Math.max(
+          OCEAN_FLOOR_DEEP,
+          Math.min(MAX_TERRAIN, (t.heights[i] ?? 0) + dh),
+        );
+        if (next !== t.heights[i]) { t.heights[i] = next; changed = true; }
       }
     }
   }

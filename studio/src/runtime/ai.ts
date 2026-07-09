@@ -8,7 +8,7 @@
  *   pursue  — predators close in on nearest prey (wolf → deer, shark → fish, etc.)
  *   circle  — air animals fly a large variable orbit with wind-riding mode +
  *             altitude drift + random direction reversals
- *   swim    — aquatic orbit at sea surface with depth oscillation
+ *   swim    — aquatic orbit with depth bands (small -1…-5, big -2…-10)
  *
  * Per-species config handles:
  *   - isPredator flag (wolves/harpy/shark/croc are predators)
@@ -23,6 +23,11 @@
 import * as THREE from 'three';
 import type { PlacedEntity, Vec3 } from '../types';
 import { pickNavTarget, type NavWaypoint } from './islandNavGraph';
+import {
+  FLOOR_CLEARANCE,
+  SEA_LEVEL,
+  SURFACE_MARGIN,
+} from '../editor/IslandGenerator';
 
 export type CreatureState = 'idle' | 'wander' | 'flee' | 'pursue' | 'circle' | 'swim';
 
@@ -59,6 +64,9 @@ export interface CreatureRuntime {
   windRiding: boolean;     // slow glide mode vs active flap
   windTimer: number;       // seconds until next wind-mode switch
   altPhase: number;        // drives gentle altitude oscillation
+  // Swim depth band (optional; set by island generator for fish)
+  yMin?: number;
+  yMax?: number;
   // Unstick
   lastPos: THREE.Vector3;
   stuckTimer: number;
@@ -131,6 +139,8 @@ export function fromEntity(e: PlacedEntity): CreatureRuntime {
     windRiding:   false,
     windTimer:    10 + Math.random() * 20,
     altPhase:     Math.random() * Math.PI * 2,
+    yMin:         typeof d.yMin === 'number' ? d.yMin : undefined,
+    yMax:         typeof d.yMax === 'number' ? d.yMax : undefined,
     lastPos:      new THREE.Vector3(...e.position),
     stuckTimer:   0,
     debugState:   'init',
@@ -161,7 +171,12 @@ export function tickCreatures(
     const beh = c.state;
 
     if (beh === 'circle') { tickAir(c, dt, full); continue; }
-    if (beh === 'swim')   { tickSwim(c, dt, full); continue; }
+    if (beh === 'swim') {
+      // Aquatic predators need hunt scan before orbit tick
+      if (c.isPredator) tickPredator(c, dt, full);
+      else tickSwim(c, dt, full);
+      continue;
+    }
 
     // ─ Land creatures ───────────────────────────────────────────
     if (c.isPredator) {
@@ -188,33 +203,69 @@ export function tickCreatures(
   }
 }
 
+// Aquatic predators (shark, croc, piranha) may hunt swimming prey.
+const AQUATIC_PREDATORS = new Set(['shark', 'crocodile', 'piranha']);
+
 // ── Predator AI ──────────────────────────────────────────────────
 function tickPredator(c: CreatureRuntime, dt: number, ctx: TickCtx): void {
+  const aquatic = AQUATIC_PREDATORS.has(c.species) || c.state === 'swim';
+
   // Scan for nearest non-predator within a looser detection range
   let nearestPrey: CreatureRuntime | null = null;
   let nearDist = c.visionRadius * 2.5;
   for (const other of ctx.creatures) {
     if (other.id === c.id || other.isPredator) continue;
-    if (other.state === 'swim' || other.state === 'circle') continue;
+    // Land preds ignore flyers/swimmers; aquatic preds hunt swimmers
+    if (other.state === 'circle') continue;
+    if (other.state === 'swim' && !aquatic) continue;
+    if (other.state !== 'swim' && aquatic && c.state === 'swim') continue;
     const d = c.pos.distanceTo(other.pos);
     if (d < nearDist) { nearDist = d; nearestPrey = other; }
   }
 
-  if (nearestPrey) {
-    // Pursue: set target to prey position and sprint
+  if (nearestPrey && aquatic && c.state === 'swim') {
+    // Swim chase — steer orbit center toward prey, close radius gently
+    c.pursueTarget = nearestPrey.id;
+    c.debugState = `hunt:${nearestPrey.species}`;
+    const dx = nearestPrey.pos.x - c.pos.x;
+    const dz = nearestPrey.pos.z - c.pos.z;
+    const dist = Math.hypot(dx, dz);
+    if (dist > 0.5) {
+      // Nudge swim center toward prey so orbit drifts after them
+      const pull = Math.min(1, c.speed * dt * 0.35);
+      c.centerX = (c.centerX ?? 0) + dx * pull * 0.08;
+      c.centerZ = (c.centerZ ?? 0) + dz * pull * 0.08;
+      if (c.radius != null && dist < (c.radius ?? 20)) {
+        c.radius = Math.max(6, (c.radius ?? 20) * 0.998);
+      }
+    }
+    // Depth bias toward prey within band
+    if (c.yMin != null && c.yMax != null) {
+      const ty = Math.max(c.yMin, Math.min(c.yMax, nearestPrey.pos.y));
+      c.baseAlt += (ty - c.baseAlt) * Math.min(1, dt * 0.6);
+    }
+    tickSwim(c, dt, ctx);
+    return;
+  }
+
+  if (nearestPrey && !aquatic) {
+    // Land pursue: set target to prey position and sprint
     c.target.copy(nearestPrey.pos);
     c.pursueTarget = nearestPrey.id;
     c.state        = 'pursue';
     c.debugState   = `pursue:${nearestPrey.species}`;
     moveTowardTarget(c, dt, c.fleeSpeed * 0.8, ctx, () => {
-      // Caught prey — release, go idle
       c.state = 'idle'; c.timer = 0; c.pursueTarget = undefined;
     });
     return;
   }
 
-  // No prey nearby — wander loosely
+  // No prey nearby — wander (or keep swimming)
   c.pursueTarget = undefined;
+  if (c.state === 'swim' || aquatic) {
+    tickSwim(c, dt, ctx);
+    return;
+  }
   tickWander(c, dt, ctx);
 }
 
@@ -321,31 +372,61 @@ function tickAir(c: CreatureRuntime, dt: number, _ctx: TickCtx): void {
 }
 
 // ── Water AI (swim behavior) ─────────────────────────────────────
-function tickSwim(c: CreatureRuntime, dt: number, _ctx: TickCtx): void {
+// SEA_LEVEL = 0. Stay in stamped depth band AND above the live seafloor
+// sample (groundAt) so fish never clip through terrain.
+function tickSwim(c: CreatureRuntime, dt: number, ctx: TickCtx): void {
   // Occasional lazy direction reversal (~every 30–60 s)
   if (c.windTimer <= 0) {
     if (Math.random() < 0.4) c.orbitDir = c.orbitDir === 1 ? -1 : 1;
     c.windTimer = 20 + Math.random() * 40;
-    // Vary speed a bit (fish school speed variation)
-    c.speed = c.speed * (0.8 + Math.random() * 0.4);
-    c.debugState = `swim${c.orbitDir > 0 ? '+' : '-'}`;
+    // Vary speed a bit (fish school speed variation) — clamp so it can't explode
+    c.speed = Math.min(12, Math.max(0.6, c.speed * (0.85 + Math.random() * 0.35)));
+    if (!c.debugState?.startsWith('hunt')) {
+      c.debugState = `swim${c.orbitDir > 0 ? '+' : '-'}`;
+    }
   }
 
   const angVel = (c.speed / Math.max(4, c.radius ?? 20)) * c.orbitDir;
   c.phase = ((c.phase ?? 0) + angVel * dt + Math.PI * 2) % (Math.PI * 2);
+  // altPhase already advanced in tickCreatures — don't double-step
 
   const cx = c.centerX ?? 0, cz = c.centerZ ?? 0;
   const r = c.radius ?? 20;
-
-  // Depth oscillation: deep-water spawns use their stamped altitude
-  const depthOsc = c.baseAlt < -0.5
-    ? c.baseAlt + Math.sin(c.altPhase * 0.25) * 1.2
-    : c.isPredator
-      ? -0.8 - Math.abs(Math.sin(c.altPhase * 0.25)) * 1.5
-      : 0.15 + Math.sin(c.altPhase * 0.3) * 0.1;
-
   const x = cx + Math.cos(c.phase) * r;
   const z = cz + Math.sin(c.phase) * r;
+
+  // Live seafloor under current xz
+  const floorY = ctx.groundAt(x, z);
+
+  // Desired depth from band / legacy rules
+  let depthOsc: number;
+  if (c.yMin != null && c.yMax != null) {
+    const amp = Math.min(1.4, (c.yMax - c.yMin) * 0.35);
+    const base = Number.isFinite(c.baseAlt) ? c.baseAlt : (c.yMin + c.yMax) * 0.5;
+    depthOsc = base + Math.sin(c.altPhase * 2.2) * amp;
+    depthOsc = Math.max(c.yMin, Math.min(c.yMax, depthOsc));
+  } else if (c.baseAlt < -0.5) {
+    depthOsc = c.baseAlt + Math.sin(c.altPhase * 2.0) * 1.2;
+    depthOsc = Math.min(-SURFACE_MARGIN, depthOsc);
+  } else if (c.isPredator) {
+    depthOsc = -0.8 - Math.abs(Math.sin(c.altPhase * 2.0)) * 1.5;
+  } else {
+    // Surface skim (crocodiles etc.) — just under y=0 water plane
+    depthOsc = -SURFACE_MARGIN + Math.sin(c.altPhase * 2.5) * 0.08;
+  }
+
+  // Water column clamp: above seafloor, below surface
+  const lo = floorY + FLOOR_CLEARANCE;
+  const hi = SEA_LEVEL - SURFACE_MARGIN;
+  if (hi > lo) {
+    depthOsc = Math.max(lo, Math.min(hi, depthOsc));
+  } else {
+    // Too shallow — ride just under surface (or skip dry land by pulling inward)
+    depthOsc = Math.min(hi, Math.max(floorY + 0.15, -SURFACE_MARGIN));
+    if (floorY >= SEA_LEVEL - 0.05 && c.radius != null && c.radius > 8) {
+      c.radius *= 0.995; // shrink orbit off the beach
+    }
+  }
 
   c.yaw = c.phase + (c.orbitDir > 0 ? Math.PI / 2 : -Math.PI / 2) + c.facingOffset;
   c.pos.set(x, depthOsc, z);
@@ -355,8 +436,9 @@ function tickSwim(c: CreatureRuntime, dt: number, _ctx: TickCtx): void {
 
 // ── Shared movement helpers ─────────────────────────────────────────
 function pickWanderTarget(c: CreatureRuntime, navGraph?: NavWaypoint[]): void {
+  // Land animals stay on dry waypoints; swim agents are orbit-driven.
   const nav = navGraph?.length
-    ? pickNavTarget(navGraph, c.homeX, c.homeZ, Math.random)
+    ? pickNavTarget(navGraph, c.homeX, c.homeZ, Math.random, 'land')
     : null;
   if (nav) {
     c.target.set(nav.x, nav.y, nav.z);

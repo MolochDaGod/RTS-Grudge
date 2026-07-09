@@ -275,7 +275,19 @@ export const createEnvSlice: StateCreator<
 
 // ── Play slice (third-person runtime state) ─────────────────────────
 
-export type LocomotionState = 'idle' | 'walk' | 'run' | 'attack';
+export type LocomotionState =
+  | 'idle'
+  | 'walk'
+  | 'run'
+  | 'attack'
+  | 'swim'          // forward stroke
+  | 'tread'         // treading water (surface idle)
+  | 'swim_to_edge'  // climb-out transition near shore
+  | 'climb'         // vertical climb up
+  | 'climb_idle'    // hang / hold on wall
+  | 'climb_down'    // climb down
+  | 'climb_shimmy'  // lateral along wall
+  | 'climb_topout';  // pull over ledge
 
 /** Persisted across reloads so the user keeps their character pick. */
 const PLAYER_CHAR_LS = 'studio.playerCharacterId';

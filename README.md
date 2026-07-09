@@ -13,20 +13,21 @@
 2. [Tech Stack](#tech-stack)
 3. [Quick Start](#quick-start)
 4. [Architecture](#architecture)
-5. [World & Zone System](#world--zone-system)
-6. [Hero & Faction System](#hero--faction-system)
-7. [Combat UI](#combat-ui)
-8. [Harvest Mode](#harvest-mode)
-9. [Build Mode](#build-mode)
-10. [Character Prefab System](#character-prefab-system)
-11. [Weapon Prefabs & Object Storage](#weapon-prefabs--object-storage)
-12. [Skill Icons & Hotbar](#skill-icons--hotbar)
-13. [API Reference](#api-reference)
-14. [Asset Registry (D1 + R2)](#asset-registry-d1--r2)
-15. [Routes](#routes)
-16. [Deployment](#deployment)
-17. [Environment Variables](#environment-variables)
-18. [Grudge Fleet](#grudge-fleet)
+5. [Studio Map Editor](#studio-map--model-editor)
+6. [World & Zone System](#world--zone-system)
+7. [Hero & Faction System](#hero--faction-system)
+8. [Combat UI](#combat-ui)
+9. [Harvest Mode](#harvest-mode)
+10. [Build Mode](#build-mode)
+11. [Character Prefab System](#character-prefab-system)
+12. [Weapon Prefabs & Object Storage](#weapon-prefabs--object-storage)
+13. [Skill Icons & Hotbar](#skill-icons--hotbar)
+14. [API Reference](#api-reference)
+15. [Asset Registry (D1 + R2)](#asset-registry-d1--r2)
+16. [Routes](#routes)
+17. [Deployment](#deployment)
+18. [Environment Variables](#environment-variables)
+19. [Grudge Fleet](#grudge-fleet)
 
 ---
 
@@ -106,11 +107,46 @@ RTS-Grudge/
 │       ├── stores/          # Zustand state (useGame, useInventory, useMissions…)
 │       ├── data/            # ItemPrefabRegistry, ArmorPrefabDatabase, WeaponPrefabs
 │       └── auth/            # Puter + Grudge auth integration
+├── studio/                  # Map & model editor (Vite) — see studio/README.md
+│   ├── src/editor/          # Island generator, sculpt, play HUD
+│   ├── src/runtime/         # Player (land/swim/climb), AI, water, nav
+│   └── public/assets/animations/  # Local swim + climb FBX
 ├── server/
 │   ├── grudge.ts            # Express entry point
 │   ├── routes.ts            # REST API routes
 │   └── authMiddleware.ts    # JWT/session middleware
 └── docs/                    # Extended documentation
+```
+
+---
+
+## Studio Map & Model Editor
+
+**Live editor:** [grudge-studio-editor.vercel.app/editor](https://grudge-studio-editor.vercel.app/editor)
+
+Full details: [`studio/README.md`](./studio/README.md).
+
+### Ocean heightmap (play + pathfinding)
+
+| Y | Role |
+|---|---|
+| **0** | Water surface (`SEA_LEVEL`) |
+| **≤ −1** | Coast always submerges before open sea |
+| **−5** | Seafloor shelf outside island circle |
+| **−50** | Deepest trenches |
+
+Continuous land → coast → seafloor mesh. Small fish **−1…−5**; big fish past circle **−2…−10**.
+
+### Play controls (third-person)
+
+- **WASD** move · **Shift** sprint  
+- **Space** swim/climb **up** · **Alt** dive / climb **down**  
+- **RMB** camera · climb mounts on steep terrain faces  
+
+Local clips: `studio/public/assets/animations/swim|climb/`.
+
+```bash
+cd studio && npm install && npm run dev
 ```
 
 ### Layer ordering (world scene)

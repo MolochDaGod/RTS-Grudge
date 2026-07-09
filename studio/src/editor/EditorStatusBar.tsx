@@ -27,7 +27,7 @@ export function EditorStatusBar() {
       {brushing && <span className="font-mono">brush {brushRadius.toFixed(1)}m</span>}
       <span className="ml-auto font-mono">{entityCount} entities</span>
       {!playMode && (
-        <span className="hidden sm:inline opacity-70">lightweight edit · still water · no grass</span>
+        <span className="hidden sm:inline opacity-70">edit · water y=0 · seafloor −5…−50 · no grass</span>
       )}
     </div>
   );
