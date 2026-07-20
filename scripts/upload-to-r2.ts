@@ -7,6 +7,15 @@
  *
  * Usage:
  *   npx ts-node scripts/upload-to-r2.ts [--dry-run] [--category characters]
+ *                                       [--public-dir <path>] [--no-clobber]
+ *                                       [--manifest-out <path>]
+ *
+ *   --public-dir   Scan an arbitrary public/ dir (e.g. another repo) instead of
+ *                  this repo's client/public. Manifest/collision reports get a
+ *                  per-dir slug so parallel runs don't clobber each other.
+ *   --no-clobber   Never overwrite an R2 object whose content differs; record it
+ *                  in a collisions report for manual resolution instead.
+ *                  (Requires S3 credentials to detect existing objects.)
  *
  * Required env vars (add to .env or export before running):
  *   CLOUDFLARE_ACCOUNT_ID
@@ -51,14 +60,38 @@ const CDN_BASE =
     process.env.ASSET_CDN_BASE ?? "https://assets.grudge-studio.com";
 
 const DRY_RUN = process.argv.includes("--dry-run");
-const CATEGORY_FILTER = (() => {
-    const idx = process.argv.indexOf("--category");
-    return idx !== -1 ? process.argv[idx + 1] : null;
-})();
+const NO_CLOBBER = process.argv.includes("--no-clobber");
+function argValue(flag: string): string | null {
+    const idx = process.argv.indexOf(flag);
+    return idx !== -1 ? process.argv[idx + 1] ?? null : null;
+}
+const CATEGORY_FILTER = argValue("--category");
 const PROJECT_ROOT = path.resolve(__here, "..");
-const PUBLIC_DIR = path.resolve(__here, "../client/public");
+const PUBLIC_DIR_OVERRIDE = argValue("--public-dir");
+const PUBLIC_DIR = PUBLIC_DIR_OVERRIDE
+    ? path.resolve(PUBLIC_DIR_OVERRIDE)
+    : path.resolve(__here, "../client/public");
 const DIST_DIR = path.resolve(__here, "../dist");
-const MANIFEST_PATH = path.join(DIST_DIR, "asset-manifest.json");
+
+// When targeting a non-default public dir, slug output filenames by the resolved
+// path so parallel per-repo runs don't clobber each other's reports.
+function slugForDir(dir: string): string {
+    const resolved = path.resolve(dir);
+    const hash = crypto.createHash("md5").update(resolved).digest("hex").slice(0, 8);
+    const baseName = path.basename(resolved) || "public";
+    return `${baseName}-${hash}`.replace(/[^a-zA-Z0-9_-]/g, "_");
+}
+const OUTPUT_SLUG = PUBLIC_DIR_OVERRIDE ? slugForDir(PUBLIC_DIR) : null;
+const MANIFEST_PATH =
+    argValue("--manifest-out") ??
+    path.join(
+        DIST_DIR,
+        OUTPUT_SLUG ? `asset-manifest.${OUTPUT_SLUG}.json` : "asset-manifest.json",
+    );
+const COLLISIONS_PATH = path.join(
+    DIST_DIR,
+    OUTPUT_SLUG ? `r2-collisions.${OUTPUT_SLUG}.json` : "r2-collisions.json",
+);
 
 // Extensions we upload
 const ASSET_EXTENSIONS = new Set([
@@ -134,7 +167,14 @@ async function main() {
         }
     }
 
-    console.log("Scanning local asset tree…");
+    if (NO_CLOBBER && uploadMode === "wrangler") {
+        console.warn(
+            "⚠ --no-clobber needs S3 credentials to detect existing objects; " +
+            "running without collision detection (Wrangler mode).",
+        );
+    }
+
+    console.log(`Scanning local asset tree at ${PUBLIC_DIR}…`);
 
     // Collect all files
     const files: string[] = [];
@@ -195,9 +235,17 @@ async function main() {
     }
 
     const manifest: ManifestEntry[] = [];
+    const collisions: Array<{
+        r2Key: string;
+        localPath: string;
+        localHash: string;
+        remoteEtag: string;
+        fileSize: number;
+    }> = [];
     let uploaded = 0;
     let skipped = 0;
     let errors = 0;
+    let collided = 0;
 
     for (const { filePath, fileSize, localHash, manifestEntry } of prepared) {
         const { r2Key } = manifestEntry;
@@ -208,6 +256,19 @@ async function main() {
             skipped++;
             manifest.push(manifestEntry);
             continue;
+        }
+
+        // --no-clobber: an object already exists at this key with DIFFERENT
+        // content. Do not overwrite — record a collision for manual resolution.
+        if (!DRY_RUN && NO_CLOBBER) {
+            const remoteEtag = existingEtags.get(r2Key);
+            if (remoteEtag !== undefined && remoteEtag !== localHash) {
+                collisions.push({ r2Key, localPath: filePath, localHash, remoteEtag, fileSize });
+                collided++;
+                manifest.push(manifestEntry);
+                console.warn(`  ⚠ collision (kept remote): ${r2Key}`);
+                continue;
+            }
         }
 
         if (DRY_RUN) {
@@ -296,13 +357,20 @@ async function main() {
     // Write manifest
     if (!fs.existsSync(DIST_DIR)) fs.mkdirSync(DIST_DIR, { recursive: true });
     fs.writeFileSync(MANIFEST_PATH, JSON.stringify(manifest, null, 2));
+    if (collisions.length > 0) {
+        fs.writeFileSync(COLLISIONS_PATH, JSON.stringify(collisions, null, 2));
+    }
 
     console.log(`\n── Summary ─────────────────────────────────`);
-    console.log(`  Uploaded : ${uploaded}`);
-    console.log(`  Skipped  : ${skipped} (unchanged)`);
-    console.log(`  Errors   : ${errors}`);
-    console.log(`  Manifest : ${MANIFEST_PATH} (${manifest.length} entries)`);
-    if (errors === 0) {
+    console.log(`  Uploaded   : ${uploaded}`);
+    console.log(`  Skipped    : ${skipped} (unchanged)`);
+    console.log(`  Collisions : ${collided}${NO_CLOBBER ? "" : " (--no-clobber off)"}`);
+    console.log(`  Errors     : ${errors}`);
+    console.log(`  Manifest   : ${MANIFEST_PATH} (${manifest.length} entries)`);
+    if (collisions.length > 0) {
+        console.log(`  Collisions report: ${COLLISIONS_PATH}`);
+    }
+    if (errors === 0 && !PUBLIC_DIR_OVERRIDE) {
         console.log(`\nNext step: npx ts-node scripts/seed-d1.ts`);
     }
 }

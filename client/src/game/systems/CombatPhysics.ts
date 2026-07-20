@@ -26,7 +26,7 @@
  */
 
 import * as THREE from "three";
-import { vfx, VFXPresets } from "../vfx";
+import { vfx, VFXPresets, tickFlameFxPool, spawnFlameAoe } from "../vfx";
 import { useFatigue, DRAIN_RATES } from "./FatigueSystem";
 import type { ExtendedWeaponType, WeaponTier } from "./WeaponPrefabDatabase";
 import { getTrailConfig, getWeaponSkillAnims } from "./WeaponPrefabWiring";
@@ -345,16 +345,18 @@ export function spawnHitImpactMeshVFX(
   // Normalize so the downstream `===` / `startsWith` checks are total
   // (Player.tsx forwards an optional `combatState?: string`).
   const cs = combatState ?? "";
-  // Explosive arrow / AoE attacks get sphere explosion
+  // Explosive arrow / AoE attacks get sphere explosion + threejs-games Flame AOE
   if (cs === "earthquake" || cs === "skill3" || cs === "classAbility3") {
     spawnSphereExplosion(scene, hitPos, { element: element ?? "fire" });
     spawnSplash(scene, hitPos, { element: element ?? "lava", scale: 1.5 });
+    spawnFlameAoe(hitPos, 1.35, { color: 0xff5500 });
     return;
   }
 
-  // Crit hits get spark explosion
+  // Crit hits get spark explosion + flame pop on fire weapons
   if (isCrit) {
     spawnSparkExplosion(scene, hitPos, { scale: 0.6 });
+    if (element === "fire") spawnFlameAoe(hitPos, 0.9);
     return;
   }
 
@@ -362,6 +364,7 @@ export function spawnHitImpactMeshVFX(
   if (isChargeWeapon(weaponType) && (cs.startsWith("skill") || cs.startsWith("class"))) {
     const colors: Record<string, number> = { fire: 0xff4400, ice: 0x44aaff, lightning: 0xeeeeff, shadow: 0x6622aa, arcane: 0x4488ff };
     spawnSparkExplosion(scene, hitPos, { color: colors[element ?? "arcane"] ?? 0xffaa44, scale: 0.5 });
+    if (element === "fire") spawnFlameAoe(hitPos, 1.0);
   }
 }
 
@@ -371,6 +374,8 @@ export function spawnHitImpactMeshVFX(
 export function tickCombatVFX(delta: number): void {
   tickMeshVFX(delta);
   tickSpellZones(delta);
+  // threejs-games Flame pool (trail / beam / AOE) — imperative FX
+  tickFlameFxPool(delta);
 }
 
 /**
@@ -614,6 +619,11 @@ export function fireHitVFX(
 ): void {
   const wvfx = getWeaponVFX(weaponType);
   wvfx.onHit(hitPos, hitDir);
+
+  // Fire-element hits always get threejs-games Flame AOE damage burst
+  if (element === "fire") {
+    spawnFlameAoe(hitPos, isCrit ? 1.15 : 0.75);
+  }
 
   if (isCrit) {
     emitCritHit(hitPos, hitDir, element);

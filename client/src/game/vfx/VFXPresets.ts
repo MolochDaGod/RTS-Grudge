@@ -100,6 +100,83 @@ export function wispTrail(position: Pos, hue: "arcane" | "holy" | "shadow" | "fi
 }
 
 /**
+ * Flame trail particle — style from
+ * https://threejs-games.github.io/examples/20-particles/flame/
+ * Emit per-frame behind weapons / projectiles (pairs with FlameTrail mesh).
+ */
+export function flameTrail(position: Pos): ParticleSpec {
+  return {
+    position,
+    velocity: [
+      (Math.random() - 0.5) * 0.6,
+      0.8 + Math.random() * 1.2,
+      (Math.random() - 0.5) * 0.6,
+    ],
+    colorStart: 0xffcc44,
+    colorEnd: 0x661100,
+    sizeStart: 0.28 + Math.random() * 0.12,
+    sizeEnd: 0.02,
+    lifetime: 0.35 + Math.random() * 0.25,
+    gravity: -4,
+    damping: 1.2,
+    drift: 1.6,
+  };
+}
+
+/**
+ * Flame beam segment — denser stream for continuous skill beams.
+ */
+export function flameBeamSpark(
+  position: Pos,
+  direction?: Pos,
+): ParticleSpec {
+  const dir = direction
+    ? Array.isArray(direction)
+      ? new THREE.Vector3(direction[0], direction[1], direction[2])
+      : direction.clone()
+    : new THREE.Vector3(0, 1, 0);
+  dir.normalize();
+  const speed = 4 + Math.random() * 6;
+  return {
+    position,
+    velocity: [
+      dir.x * speed + (Math.random() - 0.5) * 0.8,
+      dir.y * speed + (Math.random() - 0.5) * 0.8,
+      dir.z * speed + (Math.random() - 0.5) * 0.8,
+    ],
+    colorStart: 0xff8822,
+    colorEnd: 0x330800,
+    sizeStart: 0.35,
+    sizeEnd: 0.05,
+    lifetime: 0.28,
+    gravity: -2,
+    damping: 0.8,
+    drift: 0.6,
+  };
+}
+
+/**
+ * AOE damage flame burst — omnidirectional expand (explosion).
+ * Use with FlameAoeBurst mesh for the threejs-games Flame look.
+ */
+export function flameAoeBurst(position: Pos, intensity = 1): BurstSpec {
+  return {
+    position,
+    count: Math.floor(28 * intensity),
+    speed: 5 + intensity * 3,
+    speedJitter: 0.55,
+    colorStart: 0xffaa33,
+    colorEnd: 0x440000,
+    sizeStart: 0.4 * intensity,
+    sizeEnd: 0.05,
+    lifetime: 0.55 + intensity * 0.2,
+    gravity: -1,
+    damping: 1.4,
+    drift: 1.2,
+  };
+}
+
+/**
  * Tight high-velocity streak particle — for bullets / arrows / fast bolts
  * where you want a thin, short, directional line of light.
  */

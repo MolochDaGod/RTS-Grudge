@@ -297,7 +297,8 @@ export const WORLD_SECTORS: Record<SectorBiome, WorldSector> = {
     resources: ["obsidian", "lava_ore", "sulfur", "fire_gems", "infernal_coal"],
     enemies: ["lava_golem", "fire_demon", "ash_wraith", "magma_drake"],
     bosses: ["volcano_titan", "infernal_dragon"],
-    primaryAssetPath: "/models/environment/lava/lava_surface.glb",
+    // free_lava_zone_environment — full Ember Reaches shell (bottom-right sector)
+    primaryAssetPath: "/models/environment/lava/free_lava_zone_environment.glb",
     fallbackMode: "scene",
     supportsSinking: false,
   },

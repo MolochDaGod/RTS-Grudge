@@ -20,6 +20,40 @@ export interface StarterMap {
 }
 
 export const STARTER_MAPS: StarterMap[] = [
+  // ── uMMORPG migrated hubs (locked seeds — parity with Unity Dojo / Island1 / Genesis) ──
+  {
+    id: 'ummorpg-dojo',
+    name: 'Dojo Hub',
+    tagline: 'Private start pad — craft, bank, portal to the world.',
+    description:
+      'Migrated from uMMORPG Dojo scene. Small safe hub for character flow, profession stations, and zone portals. Not a full open-world sim.',
+    seed: 10001,
+    difficulty: 'Skirmish',
+    recommendedPlayers: '1',
+    options: { treeDensity: 0.3, rockDensity: 0.4, flowerDensity: 0.5, animalDensity: 0 },
+  },
+  {
+    id: 'ummorpg-island1',
+    name: 'Island 1 (Starter)',
+    tagline: 'First open island — harvest, mines, farm, claim practice.',
+    description:
+      'Migrated from uMMORPG Island1 / starter world. Mines, farm/wheat, survival craft, tutorial claim flag. Professions SSOT: ObjectStore.',
+    seed: 10002,
+    difficulty: 'Standard',
+    recommendedPlayers: '1 – 3',
+    options: { treeDensity: 1.1, flowerDensity: 1.2, rockDensity: 1.0, animalDensity: 1.0 },
+  },
+  {
+    id: 'ummorpg-genesis',
+    name: 'Genesis Island',
+    tagline: 'Guild-claimable birthplace island — PvP, dense nodes.',
+    description:
+      'Migrated from Unity Genesis / DCQ zone-10. Claimable, requiredLevel 5, denser resources. Align spawns with genesis-zone-10.json when refining.',
+    seed: 10010,
+    difficulty: 'Hard',
+    recommendedPlayers: '2 – 8',
+    options: { treeDensity: 0.9, rockDensity: 1.5, flowerDensity: 0.8, animalDensity: 1.2 },
+  },
   {
     id: 'starter-emerald-cove',
     name: 'Emerald Cove',

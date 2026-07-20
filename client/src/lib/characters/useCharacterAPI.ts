@@ -22,6 +22,15 @@ export interface CharacterAppearance {
   weaponOffset?: Record<string, unknown>;
   scale?: number;
   speedMult?: number;
+  // ── Captain promotion metadata (set when a level-100 unit is promoted) ──
+  /** Where this character originated, e.g. "promoted-unit". */
+  origin?: string;
+  /** True when this playable character was promoted from an RTS unit. */
+  isCaptain?: boolean;
+  /** The original ally id the captain was promoted from. */
+  sourceUnitId?: string;
+  /** Per-profession levels inherited from the promoted unit. */
+  professionLevels?: Record<string, number>;
 }
 
 export interface CharacterEquipment {

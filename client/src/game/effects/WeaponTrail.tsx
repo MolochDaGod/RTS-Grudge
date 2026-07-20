@@ -2,6 +2,12 @@ import { useMemo, useRef, useEffect, type RefObject } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { hasSwingArc, getSwingArcDef } from "../anim/SwingArcs";
+import {
+  createWeaponTrailFlame,
+  type FlameFxController,
+} from "./FlameParticles";
+import { vfx } from "../vfx";
+import * as VFXPresets from "../vfx/VFXPresets";
 
 /**
  * Ribbon trail that follows a weapon's blade tip during attack windows.
@@ -141,6 +147,13 @@ export interface WeaponTrailProps {
    * is actually playing without React re-renders.
    */
   attackIdRef?: RefObject<string | null>;
+  /**
+   * When true (default), layer threejs-games Flame particles on the blade tip
+   * while swinging — trailing fire from:
+   * https://threejs-games.github.io/examples/20-particles/flame/
+   * Charge tier ≥ 1 and warm weapons (axe/hammer) always get denser flames.
+   */
+  flameTrail?: boolean;
 }
 
 /**
@@ -195,6 +208,15 @@ function findWeaponChild(bone: THREE.Object3D): THREE.Object3D | null {
   return null;
 }
 
+/** Weapons that always carry a warm flame trail while swinging. */
+const WARM_TRAIL_WEAPONS = new Set([
+  "axe",
+  "poleaxe",
+  "hammer",
+  "mace",
+  "staff",
+]);
+
 export function WeaponTrail({
   bone,
   originRef,
@@ -206,6 +228,7 @@ export function WeaponTrail({
   baseWidth,
   weaponType,
   attackIdRef,
+  flameTrail = true,
 }: WeaponTrailProps) {
   const profile = useMemo(() => resolveWeaponProfile(weaponType), [weaponType]);
   const resolvedBaseWidth = baseWidth ?? profile.baseWidth;
@@ -213,6 +236,19 @@ export function WeaponTrail({
   const profileLengthScale = profile.lengthScale ?? 1;
   const meshRef = useRef<THREE.Mesh>(null);
   const matRef = useRef<THREE.MeshBasicMaterial>(null);
+  const flameGroupRef = useRef<THREE.Group>(null);
+  const flameCtrl = useRef<FlameFxController | null>(null);
+
+  useEffect(() => {
+    if (!flameTrail) return;
+    const c = createWeaponTrailFlame();
+    flameCtrl.current = c;
+    flameGroupRef.current?.add(c.mesh);
+    return () => {
+      c.dispose();
+      flameCtrl.current = null;
+    };
+  }, [flameTrail]);
 
   // Ring buffer of sampled tip positions + insertion timestamps.
   const samples = useMemo(() => {
@@ -262,7 +298,6 @@ export function WeaponTrail({
   const tmpPerp = useMemo(() => new THREE.Vector3(), []);
 
   useFrame((_, delta) => {
-    void delta;
     const mesh = meshRef.current;
     if (!mesh) return;
 
@@ -380,20 +415,56 @@ export function WeaponTrail({
 
     mesh.visible = anyVisible;
     if (matRef.current) matRef.current.opacity = anyVisible ? 1 : 0;
+
+    // ── threejs-games Flame trail on blade tip ───────────────────────────
+    // Active while swinging; denser for charged strikes + warm weapons.
+    // Source: https://threejs-games.github.io/examples/20-particles/flame/
+    const flame = flameCtrl.current;
+    if (flame && flameTrail) {
+      // Always trail while swinging; denser pool emit on charge / warm weapons.
+      if (active && gotSample) {
+        const tip: [number, number, number] = [tmpTip.x, tmpTip.y, tmpTip.z];
+        if (flame.mode !== "trail") {
+          flame.playTrail(tip, {
+            color: liveStrike
+              ? 0xfff1c2
+              : liveTier >= 2
+                ? 0xffaa44
+                : liveTier >= 1
+                  ? 0x7ad7ff
+                  : 0xffcc66,
+          });
+        }
+        flame.update(delta, { pos: tip });
+        const dense =
+          liveTier >= 1 ||
+          liveStrike ||
+          (weaponType != null && WARM_TRAIL_WEAPONS.has(weaponType));
+        if (Math.random() < (dense ? 0.55 : 0.28)) {
+          vfx.emit(VFXPresets.flameTrail(tip));
+        }
+      } else if (flame.mode === "trail") {
+        flame.stop();
+      }
+    }
   });
 
   return (
-    <mesh ref={meshRef} frustumCulled={false} renderOrder={5}>
-      <primitive object={geometry} attach="geometry" />
-      <meshBasicMaterial
-        ref={matRef}
-        vertexColors
-        transparent
-        depthWrite={false}
-        side={THREE.DoubleSide}
-        blending={THREE.AdditiveBlending}
-        toneMapped={false}
-      />
-    </mesh>
+    <group>
+      <mesh ref={meshRef} frustumCulled={false} renderOrder={5}>
+        <primitive object={geometry} attach="geometry" />
+        <meshBasicMaterial
+          ref={matRef}
+          vertexColors
+          transparent
+          depthWrite={false}
+          side={THREE.DoubleSide}
+          blending={THREE.AdditiveBlending}
+          toneMapped={false}
+        />
+      </mesh>
+      {/* threejs-games Flame particle trail (blade tip) */}
+      <group ref={flameGroupRef} />
+    </group>
   );
 }

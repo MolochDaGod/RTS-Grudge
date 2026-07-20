@@ -62,11 +62,14 @@ export function getWeaponVFX(weaponType: ExtendedWeaponType | string): AttackVFX
     case "poleaxe":
       return {
         swingTrail: (pos, dir) => {
+          // threejs-games Flame trail on axe swings
+          vfx.emit(VFXPresets.flameTrail(pos));
           for (let i = 0; i < 2; i++) vfx.emit(VFXPresets.fireSpark(jitter(pos, 0.15)));
         },
         onHit: (pos, dir) => {
           vfx.burst(VFXPresets.hitSparks(pos, dir, 10));
           vfx.burst(VFXPresets.bloodBurst(pos, 8));
+          vfx.burst(VFXPresets.flameAoeBurst(pos, 0.7));
         },
       };
 
@@ -79,6 +82,8 @@ export function getWeaponVFX(weaponType: ExtendedWeaponType | string): AttackVFX
         onHit: (pos, dir) => {
           vfx.burst(VFXPresets.groundSlam(pos, 12));
           vfx.burst(VFXPresets.hitSparks(pos, dir, 6));
+          // AOE damage flame puff on heavy impact
+          vfx.burst(VFXPresets.flameAoeBurst(pos, 0.85));
         },
       };
 
@@ -470,10 +475,16 @@ export function getElementalProjectile(element: string): ElementalProjectileBeha
     case "fire":
       return {
         trail: (pos, vel) => {
+          // threejs-games Flame trail + classic fire stream
+          // https://threejs-games.github.io/examples/20-particles/flame/
+          vfx.emit(VFXPresets.flameTrail(pos));
           vfx.emit(VFXPresets.fireStream(pos, vel));
           if (Math.random() < 0.5) vfx.emit(VFXPresets.fireSpark(jitter(pos, 0.1)));
         },
-        impact: (pos) => { vfx.burst(VFXPresets.fireBurst(pos, 20)); },
+        impact: (pos) => {
+          vfx.burst(VFXPresets.fireBurst(pos, 20));
+          vfx.burst(VFXPresets.flameAoeBurst(pos, 1.2));
+        },
         glowColor: 0xff4400, speedMult: 1.0, seeking: false, seekRate: 0,
       };
 

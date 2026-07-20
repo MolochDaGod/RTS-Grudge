@@ -449,10 +449,14 @@ export function tickMeshVFX(delta: number): void {
 
     inst.group.position.copy(inst.position);
 
-    // Emit trail particles
+    // Emit trail particles — fire hues use threejs-games Flame trail style
     if (Math.random() < inst.def.particleRate * delta) {
       const pos: [number, number, number] = [inst.position.x, inst.position.y, inst.position.z];
-      vfx.emit(VFXPresets.wispTrail(pos, inst.def.particleHue));
+      if (inst.def.particleHue === "fire") {
+        vfx.emit(VFXPresets.flameTrail(pos));
+      } else {
+        vfx.emit(VFXPresets.wispTrail(pos, inst.def.particleHue));
+      }
     }
   }
 
@@ -715,6 +719,8 @@ export function spawnFireOrb(
     duration: 3,
     onExpire: (pos) => {
       vfx.burst(VFXPresets.fireBurst([pos.x, pos.y, pos.z], 24));
+      // threejs-games Flame AOE damage burst
+      vfx.burst(VFXPresets.flameAoeBurst([pos.x, pos.y, pos.z], 1.3));
     },
   });
 }

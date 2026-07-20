@@ -251,6 +251,42 @@ export const TOOL_PREFABS: ToolPrefab[] = [
   { id: "sickle_t1", name: "Stone Sickle", type: "sickle", tier: 1, modelPath: "/models/weapons/daggers_fbx/_dagger_4.fbx", modelFormat: "fbx", harvestSpeed: 1.3, profession: "herbalism", attachBone: "rightHand" },
   { id: "rod_t1",  name: "Wood Rod",       type: "fishing_rod", tier: 1, modelPath: "/models/weapons/canes_fbx/_Cane_5.fbx", modelFormat: "fbx", harvestSpeed: 1.3, profession: "fishing", attachBone: "rightHand" },
   { id: "shovel_t1", name: "Stone Shovel", type: "shovel", tier: 1, modelPath: "/models/weapons/polearms_fbx/_polearm_6.fbx", modelFormat: "fbx", harvestSpeed: 1.3, profession: "mining", attachBone: "rightHand" },
+
+  // Pirate pack tools (low_poly_pirate_pack_1) — fishing rod v1/v2 + dig shovel
+  // Mesh isolation: PIRATE_PACK-FishingRod / FishingRodStanding / Shovel
+  {
+    id: "rod_pirate_v1",
+    name: "Pirate Fishing Pole",
+    type: "fishing_rod",
+    tier: 1,
+    modelPath: "/models/pirate/low_poly_pirate_pack_1.glb",
+    modelFormat: "glb",
+    harvestSpeed: 1.35,
+    profession: "fishing",
+    attachBone: "rightHand",
+  },
+  {
+    id: "rod_pirate_v2",
+    name: "Fishing Pole with Line",
+    type: "fishing_rod",
+    tier: 2,
+    modelPath: "/models/pirate/low_poly_pirate_pack_1.glb",
+    modelFormat: "glb",
+    harvestSpeed: 1.65,
+    profession: "fishing",
+    attachBone: "rightHand",
+  },
+  {
+    id: "shovel_pirate",
+    name: "Pirate Shovel",
+    type: "shovel",
+    tier: 1,
+    modelPath: "/models/pirate/low_poly_pirate_pack_1.glb",
+    modelFormat: "glb",
+    harvestSpeed: 1.25,
+    profession: "mining",
+    attachBone: "rightHand",
+  },
 ];
 
 /** Get tool prefabs by profession */

@@ -1,6 +1,9 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 import * as THREE from "three";
 import type { WeaponType } from "@/lib/stores/useGame";
+import { useUnitProfessions, unitProfessionLevels } from "./useUnitProfessions";
+import type { ProfessionId } from "./useProfessions";
 
 export type AllyType = "soldier" | "archer" | "knight" | "elite_archer" | "farmer" | "warrior" | "ranger" | "mage" | "wizard" | "captain";
 
@@ -33,6 +36,93 @@ export const MAX_ALLY_LEVEL = 100;
 export function xpForNextLevel(level: number): number {
   if (level >= MAX_ALLY_LEVEL) return Infinity;
   return Math.round(50 * Math.pow(level, 1.6));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Captain promotion (a level-100 unit can be promoted into a playable character)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Max number of units that can be promoted into playable captains. */
+export const MAX_CAPTAINS = 8;
+
+// AllyType → playable hero class (the characters API stores this free-form).
+const TYPE_TO_HERO_CLASS: Record<AllyType, string> = {
+  soldier: "warrior", warrior: "warrior", knight: "warrior", captain: "warrior", farmer: "warrior",
+  archer: "ranger", elite_archer: "ranger", ranger: "ranger",
+  mage: "mage", wizard: "mage",
+};
+
+/** Best-effort race derivation from the unit's model path. */
+function raceFromModelPath(modelPath: string): string {
+  const p = modelPath.toLowerCase();
+  if (p.includes("elf")) return "elf";
+  if (p.includes("orc")) return "orc";
+  if (p.includes("dwarf")) return "dwarf";
+  if (p.includes("vampire") || p.includes("undead")) return "undead";
+  return "human";
+}
+
+/** Payload built from a unit, fed to the characters REST API on promotion. */
+export interface CaptainPromotion {
+  name: string;
+  heroClass: string;
+  race: string;
+  modelPath: string;
+  /** Combat level inherited by the captain (applied via a follow-up update). */
+  level: number;
+  /** Per-profession levels inherited from the unit. */
+  professionLevels: Record<ProfessionId, number>;
+  /** Original ally id. */
+  sourceUnitId: string;
+  faction?: AllyData["faction"];
+}
+
+/** Persisted summary of a promoted captain — enforces the cap across sessions. */
+export interface PromotedCaptain {
+  allyId: string;
+  characterId: string | null;
+  name: string;
+  type: AllyType;
+  race: string;
+  faction?: AllyData["faction"];
+  level: number;
+  professionLevels: Record<ProfessionId, number>;
+  promotedAt: number;
+}
+
+export type PromotionCheck = { ok: true } | { ok: false; reason: string };
+
+function fallbackProfessionLevels(): Record<ProfessionId, number> {
+  return { miner: 1, forester: 1, chef: 1, engineer: 1, mystic: 1 };
+}
+
+// ── Persistence helpers (THREE.Vector3 ⇄ plain {x,y,z}) ──────────────────────
+type StoredVec = { x: number; y: number; z: number };
+const vecToObj = (v: THREE.Vector3): StoredVec => ({ x: v.x, y: v.y, z: v.z });
+const objToVec = (o: StoredVec): THREE.Vector3 => new THREE.Vector3(o?.x ?? 0, o?.y ?? 0, o?.z ?? 0);
+
+export type SerializedAlly = Omit<AllyData, "position" | "patrolCenter" | "homePosition"> & {
+  position: StoredVec;
+  patrolCenter: StoredVec;
+  homePosition: StoredVec;
+};
+
+export function serializeAlly(a: AllyData): SerializedAlly {
+  return {
+    ...a,
+    position: vecToObj(a.position),
+    patrolCenter: vecToObj(a.patrolCenter),
+    homePosition: vecToObj(a.homePosition),
+  };
+}
+
+export function deserializeAlly(a: SerializedAlly): AllyData {
+  return {
+    ...a,
+    position: objToVec(a.position),
+    patrolCenter: objToVec(a.patrolCenter),
+    homePosition: objToVec(a.homePosition),
+  };
 }
 
 export const ALLY_COMMAND_LABELS: Record<AllyCommand, string> = {
@@ -335,6 +425,7 @@ interface AlliesState {
   globalCommand: AllyCommand;
   commandTargetId: string | null;
   selectedAllyId: string | null;
+  promotedCaptains: PromotedCaptain[];
   spawnAllies: (type: AllyType, count: number, center: THREE.Vector3, patrolRadius: number, buildingUid: string) => void;
   removeAlliesForBuilding: (buildingUid: string) => void;
   damageAlly: (id: string, amount: number) => void;
@@ -348,14 +439,21 @@ interface AlliesState {
   selectAlly: (id: string | null) => void;
   getAlliesNear: (pos: THREE.Vector3, radius: number) => AllyData[];
   getCaptainBuff: (pos: THREE.Vector3) => number;
+  /** True/false eligibility check for promoting a unit to a playable captain. */
+  canPromoteUnit: (allyId: string) => PromotionCheck;
+  /** Build the captain create-payload from a unit (does NOT mutate the store). */
+  buildCaptainPayload: (allyId: string) => CaptainPromotion | null;
+  /** Finalize a promotion: retire the unit and record the captain (call after the REST create succeeds). */
+  finalizePromotion: (allyId: string, characterId: string | null) => void;
   setGlobalCommand: (command: AllyCommand, targetId?: string | null) => void;
 }
 
-export const useAllies = create<AlliesState>((set, get) => ({
+export const useAllies = create<AlliesState>()(persist((set, get) => ({
   allies: [],
   globalCommand: "patrol" as AllyCommand,
   commandTargetId: null as string | null,
   selectedAllyId: null as string | null,
+  promotedCaptains: [] as PromotedCaptain[],
 
   spawnAllies: (type, count, center, patrolRadius, buildingUid) => {
     const config = ALLY_CONFIGS[type];
@@ -392,24 +490,36 @@ export const useAllies = create<AlliesState>((set, get) => ({
       });
     }
     set(s => ({ allies: [...s.allies, ...newAllies] }));
+    // Every unit gets the full 5-profession set (the same engine as the player).
+    const profStore = useUnitProfessions.getState();
+    for (const a of newAllies) profStore.ensureUnit(a.id);
   },
 
-  removeAlliesForBuilding: (buildingUid) => set(s => ({
-    allies: s.allies.filter(a => a.spawnedBy !== buildingUid),
-    selectedAllyId: s.allies.find(a => a.id === s.selectedAllyId)?.spawnedBy === buildingUid
-      ? null
-      : s.selectedAllyId,
-  })),
+  removeAlliesForBuilding: (buildingUid) => {
+    const removed = get().allies.filter(a => a.spawnedBy === buildingUid);
+    set(s => ({
+      allies: s.allies.filter(a => a.spawnedBy !== buildingUid),
+      selectedAllyId: removed.some(a => a.id === s.selectedAllyId) ? null : s.selectedAllyId,
+    }));
+    const profStore = useUnitProfessions.getState();
+    for (const a of removed) profStore.removeUnit(a.id);
+  },
 
-  damageAlly: (id, amount) => set(s => {
-    const next = s.allies
-      .map(a => a.id === id ? { ...a, health: Math.max(0, a.health - amount) } : a)
-      .filter(a => a.health > 0);
-    return {
-      allies: next,
-      selectedAllyId: next.find(a => a.id === s.selectedAllyId) ? s.selectedAllyId : null,
-    };
-  }),
+  damageAlly: (id, amount) => {
+    const wasAlive = get().allies.some(a => a.id === id);
+    set(s => {
+      const next = s.allies
+        .map(a => a.id === id ? { ...a, health: Math.max(0, a.health - amount) } : a)
+        .filter(a => a.health > 0);
+      return {
+        allies: next,
+        selectedAllyId: next.find(a => a.id === s.selectedAllyId) ? s.selectedAllyId : null,
+      };
+    });
+    // If that blow killed the unit, drop its per-unit profession state too.
+    const stillAlive = get().allies.some(a => a.id === id);
+    if (wasAlive && !stillAlive) useUnitProfessions.getState().removeUnit(id);
+  },
 
   updateAllyPosition: (id, pos) => set(s => ({
     allies: s.allies.map(a => a.id === id ? { ...a, position: pos.clone() } : a),
@@ -507,6 +617,58 @@ export const useAllies = create<AlliesState>((set, get) => ({
     return buff;
   },
 
+  // ── Captain promotion ──────────────────────────────────────────────────────
+  canPromoteUnit: (allyId) => {
+    const s = get();
+    const ally = s.allies.find(a => a.id === allyId);
+    if (!ally) return { ok: false, reason: "Unit not found" };
+    if (ally.level < MAX_ALLY_LEVEL) return { ok: false, reason: `Requires level ${MAX_ALLY_LEVEL}` };
+    if (s.promotedCaptains.some(c => c.allyId === allyId)) return { ok: false, reason: "Already promoted" };
+    if (s.promotedCaptains.length >= MAX_CAPTAINS) return { ok: false, reason: `Captain limit reached (${MAX_CAPTAINS})` };
+    return { ok: true };
+  },
+
+  buildCaptainPayload: (allyId) => {
+    const ally = get().allies.find(a => a.id === allyId);
+    if (!ally) return null;
+    const profs = useUnitProfessions.getState().getUnitProfessions(allyId);
+    return {
+      name: ally.name,
+      heroClass: TYPE_TO_HERO_CLASS[ally.type] ?? "warrior",
+      race: raceFromModelPath(ally.modelPath),
+      modelPath: ally.modelPath,
+      level: ally.level,
+      professionLevels: profs ? unitProfessionLevels(profs) : fallbackProfessionLevels(),
+      sourceUnitId: allyId,
+      faction: ally.faction,
+    };
+  },
+
+  finalizePromotion: (allyId, characterId) => {
+    const ally = get().allies.find(a => a.id === allyId);
+    if (!ally) return;
+    if (get().promotedCaptains.some(c => c.allyId === allyId)) return;
+    const profs = useUnitProfessions.getState().getUnitProfessions(allyId);
+    const record: PromotedCaptain = {
+      allyId,
+      characterId,
+      name: ally.name,
+      type: ally.type,
+      race: raceFromModelPath(ally.modelPath),
+      faction: ally.faction,
+      level: ally.level,
+      professionLevels: profs ? unitProfessionLevels(profs) : fallbackProfessionLevels(),
+      promotedAt: Date.now(),
+    };
+    set(s => ({
+      allies: s.allies.filter(a => a.id !== allyId),
+      selectedAllyId: s.selectedAllyId === allyId ? null : s.selectedAllyId,
+      promotedCaptains: [...s.promotedCaptains, record],
+    }));
+    // The unit has retired into a captain — drop its per-unit profession state.
+    useUnitProfessions.getState().removeUnit(allyId);
+  },
+
   setGlobalCommand: (command, targetId = null) => {
     const behaviorMap: Record<AllyCommand, AllyBehavior> = {
       follow: "follow",
@@ -527,5 +689,31 @@ export const useAllies = create<AlliesState>((set, get) => ({
         };
       }),
     }));
+  },
+}), {
+  name: "grudge_allies",
+  storage: createJSONStorage(() => {
+    try { return localStorage; }
+    catch { return { getItem: () => null, setItem: () => {}, removeItem: () => {} }; }
+  }),
+  // Persist the full roster + progression. THREE.Vector3 fields are stored as
+  // plain {x,y,z} and rehydrated back into Vector3 instances in `merge`.
+  partialize: (s) => ({
+    allies: s.allies.map(serializeAlly),
+    promotedCaptains: s.promotedCaptains,
+  }),
+  merge: (persisted, current) => {
+    const p = persisted as { allies?: SerializedAlly[]; promotedCaptains?: PromotedCaptain[] } | undefined;
+    return {
+      ...current,
+      allies: Array.isArray(p?.allies) ? p!.allies.map(deserializeAlly) : current.allies,
+      promotedCaptains: Array.isArray(p?.promotedCaptains) ? p!.promotedCaptains : current.promotedCaptains,
+    };
+  },
+  // Make sure every rehydrated unit has its profession set ready.
+  onRehydrateStorage: () => (state) => {
+    if (!state) return;
+    const profStore = useUnitProfessions.getState();
+    for (const a of state.allies) profStore.ensureUnit(a.id);
   },
 }));
