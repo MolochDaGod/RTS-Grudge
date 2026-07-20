@@ -9,22 +9,7 @@ import { useCampaign } from "@/lib/stores/useCampaign";
 import { kickoffHeroForgePreload } from "./heroForge/preload";
 import { kickoffIntroAnimPreload } from "./intro/preload";
 import { AccountPanel } from "./AccountPanel";
-
-// Production class backgrounds (from Grudge Warlords class-selector reference)
-const CLASS_BACKGROUNDS: Record<string, string> = {
-  mage:    "https://i.imgur.com/vKQR4UT.png",
-  warrior: "https://i.imgur.com/Wj2mUH2.png",
-  ranger:  "https://i.imgur.com/5A6e5kL.png",
-  worge:   "https://i.imgur.com/BrQH0Bx.png",
-};
-
-// Class accent colors matching the production class-selector
-const CLASS_COLORS: Record<string, string> = {
-  mage:    "#6aa9ff",
-  warrior: "#ff6b57",
-  ranger:  "#6bdc8b",
-  worge:   "#c792ff",
-};
+import { CLASS_STAGE_BACKGROUNDS, CLASS_ACCENT_COLORS, CLASS_CYCLE } from "@/lib/data/artAssets";
 
 // Particle count
 const PARTICLE_COUNT = 60;
@@ -68,9 +53,6 @@ const FONTS = {
 
 const noop = () => {};
 
-// Cycling class showcase: cycles through classes to animate the background
-const CLASS_CYCLE = ["warrior", "mage", "ranger", "worge"] as const;
-
 export default function MenuScreen() {
   const { goToForge, goToController, goToCharacterSelect, enterTutorialIsland, goToHome } = useGame();
   const startCampaign = useCampaign((s) => s.startCampaign);
@@ -106,7 +88,7 @@ export default function MenuScreen() {
     goToCharacterSelect();
   };
 
-  const accentColor = CLASS_COLORS[activeClass] ?? "#6ee7b7";
+  const accentColor = CLASS_ACCENT_COLORS[activeClass as keyof typeof CLASS_ACCENT_COLORS] ?? "#6ee7b7";
 
   return (
     <div
@@ -124,7 +106,7 @@ export default function MenuScreen() {
           <div
             key={cls}
             className={`menu-stage-bg${cls === activeClass ? " active" : ""}`}
-            style={{ backgroundImage: `url('${CLASS_BACKGROUNDS[cls]}')` }}
+            style={{ backgroundImage: `url('${CLASS_STAGE_BACKGROUNDS[cls]}')` }}
           />
         ))}
         {/* Dark vignette overlay */}
@@ -207,8 +189,8 @@ export default function MenuScreen() {
             {CLASS_CYCLE.map(cls => (
               <div key={cls} style={{
                 width: 8, height: 8, borderRadius: "50%",
-                background: cls === activeClass ? CLASS_COLORS[cls] : "rgba(255,255,255,.15)",
-                boxShadow: cls === activeClass ? `0 0 12px ${CLASS_COLORS[cls]}` : "none",
+                background: cls === activeClass ? CLASS_ACCENT_COLORS[cls] : "rgba(255,255,255,.15)",
+                boxShadow: cls === activeClass ? `0 0 12px ${CLASS_ACCENT_COLORS[cls]}` : "none",
                 transition: "all .4s ease",
               }} />
             ))}
@@ -270,7 +252,7 @@ export default function MenuScreen() {
             type="button"
             className="flex items-center justify-center gap-2 py-2 px-3 bg-zinc-900 text-purple-300 border-2 border-purple-900/60 rounded-md hover:bg-zinc-800 hover:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all"
             aria-label="Open Grudge Studio Forge"
-            title="Three.js scene editor, AI game builder, 96+ models"
+            title="Grudge Studio Forge — map editor, model converter, fleet deploy (Warlords / RTS / DCQ)"
           >
             <Settings className="w-4 h-4" />
             <span

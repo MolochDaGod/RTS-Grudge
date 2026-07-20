@@ -12,7 +12,7 @@
  *   const hero = CharacterPrefab.fromModel(loadedModel, {
  *     race: 'elf', faction: 'fabled', class: 'ranger',
  *     isPlayer: true, tier: 3,
- *     attributes: { STR: 15, DEX: 30, INT: 20, VIT: 25, WIS: 15, LCK: 20, CHA: 15, END: 20 }
+ *     attributes: { STR: 15, DEX: 30, INT: 20, VIT: 25, WIS: 15, AGI: 15, TAC: 20, END: 20 }
  *   });
  *   scene.add(hero.model);
  *   // Per frame:

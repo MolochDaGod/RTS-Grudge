@@ -91,6 +91,8 @@ export function Outliner() {
               <option value="creature">creature</option>
               <option value="resource_node">resource_node</option>
               <option value="dock">dock</option>
+              <option value="nav_waypoint">nav_waypoint</option>
+              <option value="dungeon_entrance">dungeon_entrance</option>
             </select>
           </Field>
           <Field label="Model GLB path (e.g. /assets/models/creatures/deer.glb)">

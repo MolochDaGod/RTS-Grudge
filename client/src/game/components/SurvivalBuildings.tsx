@@ -3,6 +3,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { RigidBody, CuboidCollider } from "@react-three/rapier";
 import { useSurvivalBuilding } from "@/lib/stores/useSurvivalBuilding";
+import { isCampfireRecipe } from "@/game/claims/claimAreaTypes";
 import { getTerrainHeight, globalHeightData } from "./Terrain";
 import { COLLISION_MASKS } from "./BuildingColliders";
 
@@ -11,7 +12,7 @@ function SurvivalBuildingMesh({ building }: { building: ReturnType<typeof useSur
   const isWall = sy > 1 && sz < 0.5;
   const isDoorway = building.recipeId === "wood_wall_door";
   const isWindow = building.recipeId === "wood_wall_window";
-  const isCampfire = building.recipeId === "campfire" || building.recipeId === "fire_pit";
+  const isClaimAnchor = isCampfireRecipe(building.recipeId);
 
   return (
     <RigidBody
@@ -57,21 +58,11 @@ function SurvivalBuildingMesh({ building }: { building: ReturnType<typeof useSur
               <meshStandardMaterial color={building.color} roughness={0.8} />
             </mesh>
           </>
-        ) : (
+        ) : isClaimAnchor ? null : (
           <mesh castShadow receiveShadow>
             <boxGeometry args={[sx, sy, sz]} />
             <meshStandardMaterial color={building.color} roughness={isWall ? 0.8 : 0.7} />
           </mesh>
-        )}
-
-        {isCampfire && (
-          <pointLight
-            position={[0, sy + 0.5, 0]}
-            color="#ff6600"
-            intensity={3}
-            distance={8}
-            decay={2}
-          />
         )}
       </group>
     </RigidBody>

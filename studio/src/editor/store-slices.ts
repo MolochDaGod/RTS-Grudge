@@ -243,16 +243,16 @@ export interface EnvSettings {
 
 export const DEFAULT_ENV: EnvSettings = {
   shoreFoam: false,
-  sparkles: true,
+  sparkles: false,
   rain: false,
   hdr: false,
   weather: 'forest',
   grass: {
-    enabled: true,
-    density: 12,
-    height: 0.45,
-    noiseScale: 0.04,
-    windStrength: 1,
+    enabled: false,
+    density: 20,
+    height: 1.1,
+    noiseScale: 0.035,
+    windStrength: 1.2,
   },
 };
 
@@ -275,7 +275,19 @@ export const createEnvSlice: StateCreator<
 
 // ── Play slice (third-person runtime state) ─────────────────────────
 
-export type LocomotionState = 'idle' | 'walk' | 'run' | 'attack';
+export type LocomotionState =
+  | 'idle'
+  | 'walk'
+  | 'run'
+  | 'attack'
+  | 'swim'          // forward stroke
+  | 'tread'         // treading water (surface idle)
+  | 'swim_to_edge'  // climb-out transition near shore
+  | 'climb'         // vertical climb up
+  | 'climb_idle'    // hang / hold on wall
+  | 'climb_down'    // climb down
+  | 'climb_shimmy'  // lateral along wall
+  | 'climb_topout';  // pull over ledge
 
 /** Persisted across reloads so the user keeps their character pick. */
 const PLAYER_CHAR_LS = 'studio.playerCharacterId';
@@ -306,17 +318,12 @@ export interface PlaySlice {
 }
 
 function readPersistedCharacter(): string {
-  // 'hero' is the best-formed default — Meshy2 rig + Mixamo standard
-  // locomotion clips (see PlayerCharacterRegistry). We migrate any user
-  // who was persisted on the old 'soldier' default UNLESS they explicitly
-  // re-picked it during the legacy build (we can't tell, so this is a soft
-  // migration: if they want soldier they re-pick from the dropdown).
   try {
     const v = localStorage.getItem(PLAYER_CHAR_LS);
-    if (!v || v === 'soldier') return 'hero';
+    if (!v || v === 'soldier' || v === 'hero') return 'wk';
     return v;
   } catch {
-    return 'hero';
+    return 'wk';
   }
 }
 
@@ -324,7 +331,20 @@ export const createPlaySlice: StateCreator<
   Combined, [], [], PlaySlice
 > = (set) => ({
   playMode: false,
-  togglePlay: () => set((s) => ({ playMode: !s.playMode })),
+  togglePlay: () =>
+    set((s) => {
+      const entering = !s.playMode;
+      return {
+        playMode: entering,
+        env: {
+          ...s.env,
+          grass: {
+            ...s.env.grass,
+            enabled: entering,
+          },
+        },
+      };
+    }),
   playerCharacterId: readPersistedCharacter(),
   setPlayerCharacter: (id) => {
     try { localStorage.setItem(PLAYER_CHAR_LS, id); } catch { /* ignore */ }

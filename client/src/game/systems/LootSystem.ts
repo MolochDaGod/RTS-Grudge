@@ -1,5 +1,10 @@
 import { useInventory } from "@/lib/stores/useInventory";
 import type { EnemyData, LootDrop } from "./EnemyManager";
+import {
+  rollRandomDrakeEggItem,
+  getDragonColorFromEgg,
+  getDragonVariantLabel,
+} from "@/game/systems/DragonPetRegistry";
 
 export type ContainerLootKind = "chest" | "sarcophagus" | "bookshelf";
 
@@ -58,10 +63,16 @@ export function rollLootDrops(enemy: EnemyData): DroppedLoot[] {
       const qty = loot.quantity[0] + Math.floor(Math.random() * (loot.quantity[1] - loot.quantity[0] + 1));
       const spreadX = (Math.random() - 0.5) * 2;
       const spreadZ = (Math.random() - 0.5) * 2;
+      let itemId = loot.itemId;
+      let name = loot.name;
+      if (itemId === "dragon_egg") {
+        itemId = enemy.type === "dragon" ? rollRandomDrakeEggItem() : itemId;
+        name = `${getDragonVariantLabel(getDragonColorFromEgg(itemId))} Drake Egg`;
+      }
       drops.push({
         id: `loot_${lootIdCounter++}`,
-        itemId: loot.itemId,
-        name: loot.name,
+        itemId,
+        name,
         icon: loot.icon,
         quantity: qty,
         type: loot.type,
@@ -116,10 +127,16 @@ export function rollContainerLootDrops(
       const qty = loot.quantity[0] + Math.floor(Math.random() * (loot.quantity[1] - loot.quantity[0] + 1));
       const spreadX = (Math.random() - 0.5) * 1.2;
       const spreadZ = (Math.random() - 0.5) * 1.2;
+      let itemId = loot.itemId;
+      let name = loot.name;
+      if (itemId === "dragon_egg") {
+        itemId = rollRandomDrakeEggItem();
+        name = `${getDragonVariantLabel(getDragonColorFromEgg(itemId))} Drake Egg`;
+      }
       drops.push({
         id: `loot_${lootIdCounter++}`,
-        itemId: loot.itemId,
-        name: loot.name,
+        itemId,
+        name,
         icon: loot.icon,
         quantity: qty,
         type: loot.type,

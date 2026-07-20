@@ -20,63 +20,11 @@ import {
   type CombatEvent,
   type CombatState,
 } from "../../machines/combatMachine";
-import { CLASS_WEAPON_RESTRICTIONS, TIER_MULTIPLIERS } from "./constants";
+import { CLASS_WEAPON_RESTRICTIONS } from "./constants";
 import type { ClassId, PrefabWeaponType, StatsAllocation, HotbarSlot, DamageEvent } from "./types";
+import { computePrefabDerivedStats, type PrefabDerivedStats } from "./statsBridge";
 
-// ---------------------------------------------------------------------------
-// Simplified stats engine (port of playground StatsEngine.js)
-// ---------------------------------------------------------------------------
-
-interface DerivedStats {
-  maxHp: number;
-  maxStamina: number;
-  maxMana: number;
-  attackPower: number;
-  defense: number;
-  magicPower: number;
-  magicDefense: number;
-  critChance: number;
-  critDamage: number;
-  moveSpeed: number;
-  attackSpeed: number;
-  dodgeChance: number;
-  blockChance: number;
-}
-
-function computeDerivedStats(attrs: StatsAllocation, tier: number): DerivedStats {
-  const mult = TIER_MULTIPLIERS[Math.min(tier, 8)] ?? 1.0;
-
-  // Diminishing returns: 1-25 = 100%, 26-50 = 50%, 51+ = 25%
-  const dr = (v: number) => {
-    if (v <= 25) return v;
-    if (v <= 50) return 25 + (v - 25) * 0.5;
-    return 25 + 12.5 + (v - 50) * 0.25;
-  };
-
-  const str = dr(attrs.STR);
-  const dex = dr(attrs.DEX);
-  const int = dr(attrs.INT);
-  const vit = dr(attrs.VIT);
-  const wis = dr(attrs.WIS);
-  const lck = dr(attrs.LCK);
-  const end = dr(attrs.END);
-
-  return {
-    maxHp: Math.floor((100 + vit * 8 + str * 2 + end * 3) * mult),
-    maxStamina: Math.floor((80 + end * 5 + dex * 2) * mult),
-    maxMana: Math.floor((60 + int * 6 + wis * 4) * mult),
-    attackPower: Math.floor((str * 2.5 + dex * 0.8) * mult),
-    defense: Math.floor(Math.sqrt((vit * 3 + end * 2) * mult) * 5),
-    magicPower: Math.floor((int * 2.5 + wis * 1.2) * mult),
-    magicDefense: Math.floor(Math.sqrt((wis * 3 + int * 1) * mult) * 4),
-    critChance: Math.min(0.5, (lck * 0.004 + dex * 0.002) * mult),
-    critDamage: 1.5 + lck * 0.01 * mult,
-    moveSpeed: 5.0 + dex * 0.03 * mult,
-    attackSpeed: 1.0 + dex * 0.005 * mult,
-    dodgeChance: Math.min(0.3, dex * 0.003 * mult),
-    blockChance: Math.min(0.5, (str * 0.003 + vit * 0.002) * mult),
-  };
-}
+type DerivedStats = PrefabDerivedStats;
 
 // ---------------------------------------------------------------------------
 // Hotbar generation per weapon type
@@ -165,7 +113,7 @@ export class CharacterCombat {
 
   constructor(classId: ClassId, attributes: StatsAllocation, tier: number) {
     this.classId = classId;
-    this.stats = computeDerivedStats(attributes, tier);
+    this.stats = computePrefabDerivedStats(attributes, tier);
     this.hp = this.stats.maxHp;
     this.stamina = this.stats.maxStamina;
     this.mana = this.stats.maxMana;

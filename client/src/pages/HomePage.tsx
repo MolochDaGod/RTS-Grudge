@@ -1,5 +1,8 @@
 import { useGame } from "@/lib/stores/useGame";
 import { AccountPanel } from "@/game/AccountPanel";
+import { useLocation } from "wouter";
+import { openHostedHomeIsland } from "@/lib/fleetHomeIsland";
+import { loadHomeIslandSession } from "@/lib/homeIslandSession";
 
 const FONTS = {
   title: "'MorkDungeon', 'Cinzel', serif",
@@ -9,7 +12,7 @@ const FONTS = {
 
 // Fleet game links — external Grudge Studio deployments
 const FLEET_GAMES = [
-  { name: "Grudge Warlords", desc: "Main RPG — crafting, shop, codex", url: "https://grudgewarlords.com", color: "#f6c945" },
+  { name: "Grudge Warlords", desc: "Main RPG — home island, crafting, codex", url: "https://grudgewarlords.com/home-island", color: "#f6c945" },
   { name: "Dungeon Crawler Quest", desc: "Voxel dungeon crawling", url: "https://dcq.grudge-studio.com", color: "#66bb6a" },
   { name: "Grudge Crafting", desc: "Crafting & item management", url: "https://grudge-crafting.puter.site", color: "#ce93d8" },
 ];
@@ -24,16 +27,23 @@ interface NavTile {
 }
 
 export default function HomePage() {
+  const [, navigate] = useLocation();
   const {
     goToCharacterSelect, goToCombat2d, goToIslandV2,
     goToGGE, goToAdmin, goToController, goToWallet, restart,
   } = useGame();
 
+  const openHomeIsland = () => {
+    if (loadHomeIslandSession()) openHostedHomeIsland();
+    else navigate('/island');
+  };
+
   const tiles: NavTile[] = [
     { label: "HERO FORGE", desc: "Create & customize your character", icon: "⚔️", color: "#f6c945", border: "rgba(246,201,69,.4)", action: goToCharacterSelect },
     { label: "PLAY", desc: "Enter the 3D open world", icon: "🎮", color: "#ff6b57", border: "rgba(255,107,87,.4)", action: restart },
     { label: "2D COMBAT", desc: "Gruda Wars — 2D battles", icon: "⚡", color: "#6aa9ff", border: "rgba(106,169,255,.4)", action: goToCombat2d },
-    { label: "ISLAND", desc: "Shipwreck Island — survival mode", icon: "🏝️", color: "#6bdc8b", border: "rgba(107,220,139,.4)", action: goToIslandV2 },
+    { label: "HOME ISLAND", desc: "Forge new or open hosted island", icon: "🏠", color: "#f6c945", border: "rgba(246,201,69,.4)", action: openHomeIsland },
+    { label: "SURVIVAL", desc: "Shipwreck Island — survival mode", icon: "🏝️", color: "#6bdc8b", border: "rgba(107,220,139,.4)", action: goToIslandV2 },
     { label: "EDITOR", desc: "GGE — level & scene editor", icon: "🔧", color: "#ce93d8", border: "rgba(206,147,216,.4)", action: goToGGE },
     { label: "CONTROLLER", desc: "Animation & input lab", icon: "🕹️", color: "#4dd0e1", border: "rgba(77,208,225,.4)", action: goToController },
     { label: "ADMIN", desc: "Server management", icon: "🛡️", color: "#ffb74d", border: "rgba(255,183,77,.4)", action: goToAdmin },

@@ -43,6 +43,39 @@ interface WaterProps {
  * normal stays in sync — this is what eliminates the "rubbery" look
  * the CPU version had.
  */
+/**
+ * Calm, static ocean — no wave simulation or per-frame uniform updates.
+ * Used in the map editor so edit mode stays lightweight.
+ */
+export function StillWater({ size = 600 }: WaterProps) {
+  const mat = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: new THREE.Color('#06182e'),
+        roughness: 0.12,
+        metalness: 0.42,
+        transparent: true,
+        opacity: 0.96,
+        polygonOffset: true,
+        polygonOffsetFactor: 1,
+        polygonOffsetUnits: 1,
+      }),
+    [],
+  );
+  return (
+    <mesh
+      rotation={[-Math.PI / 2, 0, 0]}
+      position={[0, SEA_LEVEL - 0.015, 0]}
+      renderOrder={0}
+      receiveShadow
+      material={mat}
+    >
+      <planeGeometry args={[size + 400, size + 400, 1, 1]} />
+    </mesh>
+  );
+}
+
+/** Animated Three.js Water — play mode only (GPU cost each frame). */
 export function Water({ size = 600 }: WaterProps) {
   const { scene } = useThree();
   const waterRef = useRef<ThreeWater | null>(null);
@@ -63,7 +96,7 @@ export function Water({ size = 600 }: WaterProps) {
       waterNormals: normalsTex,
       sunDirection: sunDir,
       sunColor:     0xffeedd,
-      // Deeper water (20 ft / 6.1 m) reads as a dark ocean blue.
+      // Ocean column: surface y=0, shelf ~-5, trenches to -50 → dark blue.
       waterColor:   0x06182e,
       distortionScale: 2.8,
       fog: false,

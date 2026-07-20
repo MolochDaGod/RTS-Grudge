@@ -1,6 +1,60 @@
 import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
 import { rm, readFile } from "fs/promises";
+import { spawn } from "node:child_process";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const ROOT = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
+const STUDIO_DIR = path.join(ROOT, "studio");
+const FORGE_OUT = path.join(ROOT, "dist", "public", "forge");
+
+function run(cmd: string, args: string[], opts: { cwd?: string; env?: NodeJS.ProcessEnv }) {
+  return new Promise<void>((resolve, reject) => {
+    const proc = spawn(cmd, args, {
+      cwd: opts.cwd ?? ROOT,
+      env: { ...process.env, ...opts.env },
+      shell: true,
+      stdio: "inherit",
+    });
+    proc.on("error", reject);
+    proc.on("exit", (code) => {
+      if (code === 0) resolve();
+      else reject(new Error(`${cmd} ${args.join(" ")} exited ${code}`));
+    });
+  });
+}
+
+async function buildForgeEditor() {
+  console.log("building Grudge Studio Forge editor (studio/)...");
+  // Vercel sets NODE_ENV=production during build, which would omit vite/tsc
+  // (devDependencies) and break the studio bundle. Force a full install.
+  const studioInstallEnv = {
+    NODE_ENV: "development",
+    npm_config_production: "false",
+  };
+  const lockfile = path.join(STUDIO_DIR, "package-lock.json");
+  try {
+    await readFile(lockfile);
+    await run("npm", ["ci", "--include=dev", "--legacy-peer-deps"], {
+      cwd: STUDIO_DIR,
+      env: studioInstallEnv,
+    });
+  } catch {
+    await run("npm", ["install", "--include=dev", "--legacy-peer-deps"], {
+      cwd: STUDIO_DIR,
+      env: studioInstallEnv,
+    });
+  }
+  await run("npm", ["run", "build"], {
+    cwd: STUDIO_DIR,
+    env: {
+      ...studioInstallEnv,
+      BASE_PATH: "/forge/",
+      STUDIO_OUT_DIR: FORGE_OUT,
+    },
+  });
+}
 
 const allowlist = [
   "@aws-sdk/client-s3",
@@ -23,6 +77,8 @@ async function buildAll() {
 
   console.log("building client...");
   await viteBuild();
+
+  await buildForgeEditor();
 
   console.log("building server...");
   const pkg = JSON.parse(await readFile("package.json", "utf-8"));

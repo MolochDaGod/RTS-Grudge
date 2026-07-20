@@ -1,8 +1,15 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { Switch, Route, Router as WouterRouter, Link, useLocation } from 'wouter';
 import { LibraryPage } from './library/LibraryPage';
 import { EditorPage } from './editor/EditorPage';
 import { ModelConverter } from './converter/ModelConverter';
+import {
+  FLEET_GAMES,
+  FORGE_TOOLCHAIN,
+  getActiveFleetTarget,
+  setActiveFleetTarget,
+  type FleetGameId,
+} from './lib/fleetTargets';
 
 // Lazy-loaded so PlayCanvas (which adds EntityLayer + TerrainMesh + ORC GLB
 // to the bundle) is code-split into its own chunk, keeping the editor chunk
@@ -21,6 +28,12 @@ function PlayPage() {
 
 function NavBar() {
   const [loc] = useLocation();
+  const [target, setTarget] = useState(getActiveFleetTarget);
+
+  const onTargetChange = (id: FleetGameId) => {
+    setTarget(setActiveFleetTarget(id));
+  };
+
   const link = (to: string, label: string) => (
     <Link
       href={to}
@@ -34,14 +47,40 @@ function NavBar() {
     </Link>
   );
   return (
-    <nav className="flex items-center gap-2 px-4 py-2 border-b border-border bg-card/60 backdrop-blur">
-      <Link href="/" className="text-sm font-semibold tracking-tight mr-3">
-        Grudge Studio
+    <nav className="flex items-center gap-2 px-4 py-2 border-b border-border bg-card/60 backdrop-blur flex-wrap">
+      <Link href="/" className="text-sm font-semibold tracking-tight mr-2 shrink-0">
+        <span className="text-primary">Grudge Studio Forge</span>
       </Link>
+      <select
+        value={target.id}
+        onChange={(e) => onTargetChange(e.target.value as FleetGameId)}
+        className="text-xs bg-secondary border border-border rounded px-2 py-1 text-foreground mr-2"
+        title="Deploy target game"
+      >
+        {FLEET_GAMES.map((g) => (
+          <option key={g.id} value={g.id}>
+            {g.shortLabel} — {g.stack.render}
+          </option>
+        ))}
+      </select>
+      <span
+        className="hidden lg:inline text-[10px] text-muted-foreground font-mono truncate max-w-[280px]"
+        title={`${FORGE_TOOLCHAIN.render} · ${FORGE_TOOLCHAIN.physics}`}
+      >
+        {target.stack.physics}
+      </span>
       {link('/', 'Library')}
       {link('/editor', 'Map Editor')}
       {link('/play', '▶ Play')}
       {link('/converter', 'Model Converter')}
+      <a
+        href={target.liveUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="ml-auto text-xs text-muted-foreground hover:text-primary px-2 py-1"
+      >
+        Open {target.shortLabel} ↗
+      </a>
     </nav>
   );
 }

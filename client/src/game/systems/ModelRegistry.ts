@@ -143,6 +143,8 @@ const BRB_BASE_PACK: AnimationPackEntry = {
     { name: "walk",                  file: "Swagger Walk.glb" },
     { name: "run",                   file: "Swagger Walk.glb" },        // TODO: proper run clip
     { name: "sprint",                file: "Swagger Walk.glb" },        // TODO: proper sprint clip
+    { name: "run_backward",          file: "Swagger Walk.glb" },        // backpedal — body faces camera
+    { name: "block",                 file: "Crouch Idle.glb" },       // guard pose until dedicated block clip
     // ── Jumping / airborne ──
     { name: "jump",                  file: "Kick.glb" },                // upward burst → kick serves as placeholder
     { name: "fall",                  file: "Disarmed.glb" },            // arms-out pose reads as falling
@@ -261,6 +263,98 @@ const BRB_MAGIC_PACK: AnimationPackEntry = {
   ],
 };
 
+// ---------------------------------------------------------------------------
+// Rokoko mocap — Mixamo rig clips (npm run convert:rokoko:mixamo in ObjectStore)
+// Retargeted to Bip001 via BoneAliases.retargetClips at runtime.
+// ---------------------------------------------------------------------------
+
+const ROKOKO_COMBAT_PACK: AnimationPackEntry = {
+  id: "rokoko_combat",
+  name: "Rokoko Mocap — Combat (Mixamo)",
+  basePath: "/models/animations/rokoko/rokoko_combat",
+  combatStyle: "melee",
+  animations: [
+    { name: "attack",  file: "attack.glb" },
+    { name: "combo2",  file: "combo2.glb" },
+    { name: "hit",     file: "hit.glb" },
+    { name: "death",   file: "death.glb" },
+  ],
+};
+
+const ROKOKO_GUNS_PACK: AnimationPackEntry = {
+  id: "rokoko_guns",
+  name: "Rokoko Mocap — Guns (Mixamo)",
+  basePath: "/models/animations/rokoko/rokoko_guns",
+  combatStyle: "ranged",
+  animations: [
+    { name: "gun_fire",   file: "gun_fire.glb" },
+    { name: "gun_reload", file: "gun_reload.glb" },
+    { name: "gun_aim",    file: "gun_aim.glb" },
+    { name: "attack",     file: "gun_fire.glb" },
+  ],
+};
+
+const ROKOKO_MAGIC_PACK: AnimationPackEntry = {
+  id: "rokoko_magic",
+  name: "Rokoko Mocap — Magic (Mixamo)",
+  basePath: "/models/animations/rokoko/rokoko_magic",
+  combatStyle: "caster",
+  animations: [
+    { name: "cast",     file: "cast.glb" },
+    { name: "attack",   file: "cast.glb" },
+    { name: "hadouken", file: "cast.glb" },
+  ],
+};
+
+const ROKOKO_IDLES_PACK: AnimationPackEntry = {
+  id: "rokoko_idles",
+  name: "Rokoko Mocap — Weapon Idles (Mixamo)",
+  basePath: "/models/animations/rokoko/rokoko_idles",
+  combatStyle: "universal",
+  animations: [
+    { name: "idle",       file: "idle.glb" },
+    { name: "gun_aim",    file: "gun_aim.glb" },
+    { name: "block",      file: "idle.glb" },
+  ],
+};
+
+// Blender-retargeted clips — native Bip001 skeleton (npm run retarget:store in ObjectStore)
+const RETARGETED_BIP001_PACK: AnimationPackEntry = {
+  id: "retargeted_bip001",
+  name: "Retargeted — Bip001 Native (Paragon + Rokoko)",
+  basePath: "/models/animations/retargeted/bip001",
+  combatStyle: "universal",
+  animations: [
+    { name: "walk",    file: "paragon_walk.glb" },
+    { name: "run",     file: "paragon_run.glb" },
+    { name: "hit",     file: "paragon_hit.glb" },
+    { name: "attack",  file: "rokoko_boxing.glb" },
+    { name: "combo2",  file: "rokoko_boxing.glb" },
+  ],
+};
+
+// Paragon shared locomotion — UE5 Manny skeleton, retarget Phase 2 (BoneAliases ue5_manny)
+const PARAGON_SHARED_PACK: AnimationPackEntry = {
+  id: "paragon_shared",
+  name: "Paragon — Shared Locomotion (UE5 Manny)",
+  basePath: "/models/animations/paragon/shared",
+  combatStyle: "universal",
+  animations: [
+    { name: "walk",         file: "walk.glb" },
+    { name: "run",          file: "run.glb" },
+    { name: "run_start",    file: "run_start.glb" },
+    { name: "run_stop",     file: "run_stop.glb" },
+    { name: "run_backward", file: "run_backward.glb" },
+    { name: "strafe_left",  file: "strafe_left.glb" },
+    { name: "strafe_right", file: "strafe_right.glb" },
+    { name: "jump",         file: "jump.glb" },
+    { name: "land",         file: "land.glb" },
+    { name: "hit",          file: "hit.glb" },
+    { name: "hit_alt",      file: "hit_alt.glb" },
+    { name: "cast",         file: "cast.glb" },
+  ],
+};
+
 export const ANIMATION_PACKS: AnimationPackEntry[] = [
   // GLocomotion — REAL GLBs from the extracted GLocomotion Pack zip.
   // 12 clips converted from FBX → GLB and uploaded to R2.
@@ -278,6 +372,8 @@ export const ANIMATION_PACKS: AnimationPackEntry[] = [
       { name: "walk",               file: "walking.glb" },
       { name: "run",                file: "running.glb" },
       { name: "sprint",             file: "running.glb" },
+      { name: "run_backward",       file: "walking.glb" },
+      { name: "block",              file: "idle.glb" },
       { name: "jump",               file: "jump.glb" },
       { name: "turn_left",          file: "left_turn.glb" },
       { name: "turn_right",         file: "right_turn.glb" },
@@ -360,6 +456,14 @@ export const ANIMATION_PACKS: AnimationPackEntry[] = [
       { name: "quick_formal_bow", file: "quick_formal_bow.glb" },
     ],
   },
+  // ── Rokoko + Paragon (ObjectStore npm run integrate:animations)
+  // Native Bip001 retargets take priority over runtime BoneAliases retarget
+  RETARGETED_BIP001_PACK,
+  ROKOKO_COMBAT_PACK,
+  ROKOKO_GUNS_PACK,
+  ROKOKO_MAGIC_PACK,
+  ROKOKO_IDLES_PACK,
+  PARAGON_SHARED_PACK,
   // ── Grudge6 BRB Bip001 packs — registered here so ANIMATION_PACKS.find() works
   // GLBs are generated by: node scripts/convert-brb-animations.mjs
   BRB_BASE_PACK,
@@ -377,19 +481,19 @@ export const ANIMATION_PACKS: AnimationPackEntry[] = [
 // GLBs are restored later, but they are NOT required — grudge6 covers
 // every game state the FSM can reach.
 export const WEAPON_ANIM_MAPPING: WeaponAnimMapping[] = [
-  { weaponType: "sword",      recommendedPacks: ["grudge6_brb_sword_shield", "grudge6_brb_onehanded", "grudge6_brb_base", "grudge6_brb_emotes"], description: "1H sword: sword+shield → onehanded → base locomotion" },
-  { weaponType: "greatsword", recommendedPacks: ["grudge6_brb_greatsword",   "grudge6_brb_base", "grudge6_brb_emotes"],                          description: "2H sword: greatsword → base locomotion" },
-  { weaponType: "axe",        recommendedPacks: ["grudge6_brb_onehanded",    "grudge6_brb_base", "grudge6_brb_emotes"],                          description: "1H axe: onehanded → base locomotion" },
-  { weaponType: "poleaxe",    recommendedPacks: ["grudge6_brb_greatsword",   "grudge6_brb_base", "grudge6_brb_emotes"],                          description: "Poleaxe: greatsword → base locomotion" },
-  { weaponType: "hammer",     recommendedPacks: ["grudge6_brb_onehanded",    "grudge6_brb_base", "grudge6_brb_emotes"],                          description: "Hammer: onehanded → base locomotion" },
-  { weaponType: "dagger",     recommendedPacks: ["grudge6_brb_onehanded",    "grudge6_brb_base", "grudge6_brb_emotes"],                          description: "Dagger: dual-wield onehanded → base locomotion" },
-  { weaponType: "staff",      recommendedPacks: ["grudge6_brb_magic",        "grudge6_brb_base", "grudge6_brb_emotes"],                          description: "Staff: 2H magic → base locomotion" },
-  { weaponType: "wand",       recommendedPacks: ["grudge6_brb_magic",        "grudge6_brb_base", "grudge6_brb_emotes"],                          description: "Wand: 1H cast → base locomotion" },
-  { weaponType: "bow",        recommendedPacks: ["grudge6_brb_base",         "grudge6_brb_emotes"],                                              description: "Bow: base locomotion (bow pack pending)" },
-  { weaponType: "crossbow",   recommendedPacks: ["grudge6_brb_base",         "grudge6_brb_emotes"],                                              description: "Crossbow: base locomotion" },
-  { weaponType: "gun",        recommendedPacks: ["grudge6_brb_base",         "grudge6_brb_emotes"],                                              description: "Gun: base locomotion" },
-  { weaponType: "shield",     recommendedPacks: ["grudge6_brb_sword_shield", "grudge6_brb_base", "grudge6_brb_emotes"],                          description: "Shield: sword+shield → base locomotion" },
-  { weaponType: "fists",      recommendedPacks: ["grudge6_brb_base",         "grudge6_brb_emotes"],                                              description: "Unarmed: base kick/throw/locomotion" },
+  { weaponType: "sword",      recommendedPacks: ["grudge6_brb_sword_shield", "retargeted_bip001", "rokoko_combat", "paragon_shared", "grudge6_brb_onehanded", "grudge6_brb_base", "grudge6_brb_emotes"], description: "1H sword: BRB combat → Bip001 retarget → Rokoko → Paragon → BRB fallback" },
+  { weaponType: "greatsword", recommendedPacks: ["grudge6_brb_greatsword", "retargeted_bip001", "rokoko_combat", "paragon_shared", "grudge6_brb_base", "grudge6_brb_emotes"], description: "2H sword: greatsword → Bip001 retarget → Rokoko → Paragon → BRB" },
+  { weaponType: "axe",        recommendedPacks: ["grudge6_brb_onehanded", "retargeted_bip001", "rokoko_combat", "paragon_shared", "grudge6_brb_base", "grudge6_brb_emotes"], description: "1H axe: onehanded → Bip001 retarget → Rokoko → Paragon → BRB" },
+  { weaponType: "poleaxe",    recommendedPacks: ["grudge6_brb_greatsword", "retargeted_bip001", "rokoko_combat", "paragon_shared", "grudge6_brb_base", "grudge6_brb_emotes"], description: "Poleaxe: greatsword → Bip001 retarget → Rokoko → Paragon → BRB" },
+  { weaponType: "hammer",     recommendedPacks: ["grudge6_brb_onehanded", "retargeted_bip001", "rokoko_combat", "paragon_shared", "grudge6_brb_base", "grudge6_brb_emotes"], description: "Hammer: onehanded → Bip001 retarget → Rokoko → Paragon → BRB" },
+  { weaponType: "dagger",     recommendedPacks: ["grudge6_brb_onehanded", "retargeted_bip001", "rokoko_combat", "paragon_shared", "grudge6_brb_base", "grudge6_brb_emotes"], description: "Dagger: dual-wield → Bip001 retarget → Rokoko → Paragon → BRB" },
+  { weaponType: "staff",      recommendedPacks: ["grudge6_brb_magic", "retargeted_bip001", "rokoko_magic", "paragon_shared", "grudge6_brb_base", "grudge6_brb_emotes"], description: "Staff: BRB magic → Bip001 retarget → Rokoko cast → Paragon → BRB" },
+  { weaponType: "wand",       recommendedPacks: ["grudge6_brb_magic", "retargeted_bip001", "rokoko_magic", "paragon_shared", "grudge6_brb_base", "grudge6_brb_emotes"], description: "Wand: BRB magic → Bip001 retarget → Rokoko → Paragon → BRB" },
+  { weaponType: "bow",        recommendedPacks: ["retargeted_bip001", "paragon_shared", "grudge6_brb_base", "grudge6_brb_emotes"], description: "Bow: Bip001 retarget locomotion → Paragon → BRB (bow pack pending)" },
+  { weaponType: "crossbow",   recommendedPacks: ["rokoko_guns", "retargeted_bip001", "paragon_shared", "grudge6_brb_base", "grudge6_brb_emotes"], description: "Crossbow: Rokoko guns → Bip001 retarget → Paragon → BRB" },
+  { weaponType: "gun",        recommendedPacks: ["rokoko_guns", "rokoko_idles", "retargeted_bip001", "paragon_shared", "grudge6_brb_base", "grudge6_brb_emotes"], description: "Gun: Rokoko guns/idles → Bip001 retarget → Paragon → BRB" },
+  { weaponType: "shield",     recommendedPacks: ["grudge6_brb_sword_shield", "retargeted_bip001", "rokoko_combat", "paragon_shared", "grudge6_brb_base", "grudge6_brb_emotes"], description: "Shield: sword+shield → Bip001 retarget → Rokoko → Paragon → BRB" },
+  { weaponType: "fists",      recommendedPacks: ["retargeted_bip001", "rokoko_combat", "paragon_shared", "grudge6_brb_base", "grudge6_brb_emotes"], description: "Unarmed: Bip001 boxing retarget → Rokoko fight → Paragon → BRB" },
 ];
 
 function generateWeaponModels(prefix: string, dir: string, indices: number[], category: WeaponCategory, weaponType: WeaponType, namePrefix: string): WeaponModelEntry[] {
@@ -538,6 +642,20 @@ export const ITEM_MODELS: Record<string, { path: string; defaultScale: number }>
   potion_small_red:    { path: `${S}/potionSmall_red.glb`,         defaultScale: 0.35 },
   potion_small_blue:   { path: `${S}/potionSmall_blue.glb`,        defaultScale: 0.35 },
   potion_small_green:  { path: `${S}/potionSmall_green.glb`,       defaultScale: 0.35 },
+  // Grudge skill-tree pack — tools, recipes, props, skill emblems
+  tool_axe:                  { path: `${ST}/Axe.glb`,                  defaultScale: 0.9 },
+  tool_builder_hammer:         { path: `${ST}/Builder_Hammer.glb`,       defaultScale: 0.8 },
+  tool_repair_hammer:        { path: `${ST}/Repair_Hammer.glb`,        defaultScale: 0.8 },
+  tool_shovel:                 { path: `${ST}/Shovel_Land_Editor.glb`,   defaultScale: 1.0 },
+  tool_torch:                  { path: `${ST}/Torch.glb`,                defaultScale: 0.7 },
+  tool_torch_burnt:            { path: `${ST}/Torch_Burnt.glb`,          defaultScale: 0.7 },
+  tool_wand:                   { path: `${ST}/Wand.glb`,                 defaultScale: 0.5 },
+  recipe_scroll:               { path: `${ST}/Recipe.glb`,               defaultScale: 0.3 },
+  recipe_rolled:               { path: `${ST}/Recipe_Rolled.glb`,        defaultScale: 0.3 },
+  rope_bundle:                 { path: `${ST}/Rope_Bundle_A.glb`,        defaultScale: 0.4 },
+  skill_emblem_cooking:        { path: `${ST}/Cooking.glb`,              defaultScale: 0.6 },
+  skill_emblem_engineering:    { path: `${ST}/Engineering.glb`,          defaultScale: 0.6 },
+  skill_emblem_mining:         { path: `${ST}/Mining.glb`,               defaultScale: 0.6 },
 };
 
 /** Reward chest models by tier, with separate lid pieces for open state. */

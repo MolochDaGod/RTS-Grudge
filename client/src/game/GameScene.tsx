@@ -15,6 +15,8 @@ import World from "./components/World";
 import ResourceNodes from "./components/ResourceNode";
 import Lighting from "./components/Lighting";
 import { VFXSystem } from "./vfx";
+import { CampfireFireSystem } from "./effects/CampfireFireSystem";
+import { ClaimAreaSync, ClaimAreaVisuals } from "./claims";
 import Camera from "./components/Camera";
 import Sky from "./components/Sky";
 import WeatherEvents from "./components/WeatherEvents";
@@ -22,6 +24,7 @@ import { AssetLoaderInit } from "./systems/AssetLoaderInit";
 import WaveSpawner from "./components/WaveSpawner";
 import NPCs from "./components/NPCs";
 import BiomeWildlife from "./components/BiomeWildlife";
+import { PetCompanion } from "./components/PetCompanion";
 import HUD from "./components/HUD";
 import MatchHUD from "./components/MatchHUD";
 import DungeonEntrances from "./dungeon/DungeonEntrances";
@@ -259,6 +262,7 @@ export default function GameScene() {
             antialias: false,
             powerPreference: "high-performance",
             failIfMajorPerformanceCaveat: false,
+            localClippingEnabled: true,
             toneMapping: THREE.ACESFilmicToneMapping,
             toneMappingExposure: 1.0,
             outputColorSpace: THREE.SRGBColorSpace,
@@ -358,6 +362,7 @@ export default function GameScene() {
           antialias: false,
           powerPreference: "high-performance",
           failIfMajorPerformanceCaveat: false,
+          localClippingEnabled: true,
           toneMapping: THREE.ACESFilmicToneMapping,
           toneMappingExposure: 1.0,
           outputColorSpace: THREE.SRGBColorSpace,
@@ -385,6 +390,9 @@ export default function GameScene() {
             <WeatherEvents />
             <Lighting />
             <VFXSystem />
+            <ClaimAreaSync />
+            <ClaimAreaVisuals />
+            <CampfireFireSystem />
             <Terrain />
             <TerrainCollider />
             <TerrainEditor />
@@ -414,6 +422,7 @@ export default function GameScene() {
             ))}
             {!isWilderness && <NPCs />}
             <BiomeWildlife />
+            <PetCompanion playerPosRef={playerPosRef} />
             <AllyNPCs />
             <PlacedBuildings />
             {!isWilderness && <SurvivalBuildings />}

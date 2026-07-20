@@ -67,6 +67,26 @@ export function objectStoreFileUrl(key: string): string {
  */
 function urlsToTry(key: string): string[] {
   const trimmed = key.replace(/^\/+/, '');
+
+  // Local Vite public assets (e.g. assets/animations/swim/swimming.fbx)
+  // and explicit local: prefix — skip ObjectStore entirely.
+  if (
+    trimmed.startsWith('assets/') ||
+    trimmed.startsWith('local/') ||
+    trimmed.startsWith('local:')
+  ) {
+    let rel = trimmed
+      .replace(/^local:/, '')
+      .replace(/^local\//, 'assets/');
+    if (!rel.startsWith('assets/')) rel = `assets/${rel}`;
+    let base = '/';
+    try {
+      const env = (import.meta as unknown as { env?: Record<string, string> }).env;
+      base = (env?.BASE_URL ?? '/').replace(/\/?$/, '/');
+    } catch { /* ignore */ }
+    return [`${base}${rel}`];
+  }
+
   const out = [trimmed];
   if (!trimmed.startsWith('game-assets/')) out.push(`game-assets/${trimmed}`);
   return out.map(
@@ -202,6 +222,57 @@ export async function loadAnimatedFbx(
  * a green/red dot next to "ObjectStore reachable". Not used in the editor's
  * critical path; failures of individual assets surface as load errors.
  */
+export interface ObjectStoreModelRecord {
+  id: string;
+  filename: string;
+  mime: string;
+  size: number;
+  category: string;
+  tags: string[];
+  created_at: string;
+  file_url: string;
+  thumbnail_url?: string;
+}
+
+export interface ObjectStoreModelsPage {
+  models: ObjectStoreModelRecord[];
+  count: number;
+  total: number;
+  limit: number;
+  offset: number;
+  hasMore: boolean;
+  nextOffset: number | null;
+}
+
+export interface ListModelsParams {
+  limit?: number;
+  offset?: number;
+  category?: string;
+  search?: string;
+}
+
+export async function listObjectStoreModels(
+  params: ListModelsParams = {},
+): Promise<ObjectStoreModelsPage> {
+  const qs = new URLSearchParams();
+  qs.set("limit", String(params.limit ?? 24));
+  qs.set("offset", String(params.offset ?? 0));
+  if (params.category) qs.set("category", params.category);
+  if (params.search) qs.set("search", params.search);
+
+  const res = await fetch(`${getObjectStoreBase()}/v1/models?${qs}`);
+  if (!res.ok) {
+    throw new Error(`ObjectStore models ${res.status}`);
+  }
+  return res.json() as Promise<ObjectStoreModelsPage>;
+}
+
+/** Full URL for a model file (Worker path or absolute CDN). */
+export function modelFileUrl(model: ObjectStoreModelRecord): string {
+  if (model.file_url.startsWith("http")) return model.file_url;
+  return `${getObjectStoreBase()}${model.file_url}`;
+}
+
 export async function objectStoreHealth(): Promise<{ ok: boolean; status: number }> {
   try {
     const res = await fetch(`${getObjectStoreBase()}/v1/health`);

@@ -135,6 +135,101 @@ export const SPINE2_ALIASES = [
   "Bip01_Spine2", "Bip001_Spine2", "CC_Base_Spine02",
 ];
 
+/** Bip001 utility bones — bags only. Never attach weapons/quivers here. */
+export const BAG_ALIASES = ["Bone_bag", "bone_bag"];
+
+/** Bip001 lumber/wood carry bone. Never attach weapons here. */
+export const WOOD_ALIASES = ["Bone_wood", "bone_wood"];
+
+/** Bip001 arrow quiver bone. Never attach sheathed weapons here. */
+export const QUIVER_ALIASES = [
+  "Quiver_container", "quiver_container", "L_quiver_container",
+];
+
+/**
+ * Dedicated back-slot for sheathed 2H weapons and generic back items.
+ * Falls back to upper spine — never Bone_bag / Bone_wood / Quiver_container.
+ */
+export const BACK_SLOT_ALIASES = [
+  "Back_slot_container", "Back_container", "back_container",
+  "R_back_container", "weapon_back_container",
+  ...SPINE2_ALIASES,
+];
+
+export type AttachmentSlot = "backWeapon" | "backAccessory" | "quiver" | "bag" | "wood";
+
+const ATTACHMENT_SLOT_ALIASES: Record<AttachmentSlot, string[]> = {
+  backWeapon: BACK_SLOT_ALIASES,
+  backAccessory: BACK_SLOT_ALIASES,
+  quiver: QUIVER_ALIASES,
+  bag: BAG_ALIASES,
+  wood: WOOD_ALIASES,
+};
+
+function isUtilityBoneName(name: string): "bag" | "wood" | "quiver" | null {
+  const n = name.toLowerCase();
+  if (n.includes("bone_bag") || n === "bone_bag") return "bag";
+  if (n.includes("bone_wood") || n === "bone_wood") return "wood";
+  if (n.includes("quiver")) return "quiver";
+  return null;
+}
+
+/**
+ * Resolve the correct Bip001 attachment bone for a slot.
+ * Prevents bag/wood/quiver bones from being used for weapons or quivers.
+ */
+/** Local offset on upper spine when synthesizing `Back_slot_container`. */
+const BACK_SLOT_SYNTH_OFFSET = new THREE.Vector3(0, 0.1, -0.16);
+
+/**
+ * Ensure a dedicated back-slot attach point exists on Bip001 rigs.
+ * BRB race GLBs ship bag/wood/quiver bones but often omit `Back_slot_container`;
+ * we parent a named node to upper spine so sheathed weapons never land on utility bones.
+ */
+export function ensureBackSlotBone(root: THREE.Object3D): THREE.Object3D | null {
+  const dedicated = findBoneByAlias(root, [
+    "Back_slot_container", "Back_container", "back_container",
+    "R_back_container", "weapon_back_container",
+  ]);
+  if (dedicated) return dedicated;
+
+  const spine = findBoneByAlias(root, SPINE2_ALIASES);
+  if (!spine) return null;
+
+  const util = isUtilityBoneName(spine.name);
+  if (util) return null;
+
+  const slot = new THREE.Object3D();
+  slot.name = "Back_slot_container";
+  slot.position.copy(BACK_SLOT_SYNTH_OFFSET);
+  spine.add(slot);
+  slot.updateMatrixWorld(true);
+  return slot;
+}
+
+export function resolveAttachmentBone(
+  root: THREE.Object3D,
+  slot: AttachmentSlot,
+): THREE.Object3D | null {
+  if (slot === "backWeapon" || slot === "backAccessory") {
+    const back = ensureBackSlotBone(root)
+      ?? findBoneByAlias(root, BACK_SLOT_ALIASES.filter((a) => {
+        const lower = a.toLowerCase();
+        return !lower.includes("bag") && !lower.includes("wood") && !lower.includes("quiver");
+      }));
+    if (!back) return null;
+    return isUtilityBoneName(back.name) ? null : back;
+  }
+
+  const aliases = ATTACHMENT_SLOT_ALIASES[slot];
+  const found = findBoneByAlias(root, aliases);
+  if (!found) return null;
+
+  const util = isUtilityBoneName(found.name);
+  if (util && util !== slot) return null;
+  return found;
+}
+
 export const CHEST_ALIASES = [
   "Spine1", "mixamorigSpine1", "mixamorig:Spine1", "chest",
   "Spine2", "mixamorigSpine2", "mixamorig:Spine2",
@@ -310,7 +405,104 @@ export const RIGHT_THUMB_1_ALIASES  = fingerAliases("Right", "Thumb",  1);
 export const RIGHT_THUMB_2_ALIASES  = fingerAliases("Right", "Thumb",  2);
 export const RIGHT_THUMB_3_ALIASES  = fingerAliases("Right", "Thumb",  3);
 
-export type SkeletonType = "kaykit" | "mixamo" | "cc4" | "bip001" | "generic";
+/** UE5 Manny / Paragon retarget skeleton (pelvis root, spine_01 chain). */
+export const UE5_MANNY_HIPS_ALIASES = [
+  "pelvis", "Pelvis", "root", "Root",
+  ...HIPS_ALIASES,
+];
+
+export const UE5_MANNY_SPINE_ALIASES = [
+  "spine_01", "spine_02", "spine_03", "spine_04", "spine_05",
+  "Spine_01", "Spine_02", "Spine_03",
+  ...SPINE_ALIASES,
+];
+
+export const UE5_MANNY_SPINE2_ALIASES = [
+  "spine_03", "spine_04", "spine_05", "chest", "upperchest",
+  ...SPINE2_ALIASES,
+];
+
+export const UE5_MANNY_NECK_ALIASES = [
+  "neck_01", "neck_02", "Neck_01", "Neck_02",
+  "mixamorigNeck", "Neck", "neck", "Bip01_Neck", "Bip001_Neck",
+];
+
+export const UE5_MANNY_HEAD_ALIASES = [
+  "head", "Head",
+  ...HEAD_ALIASES,
+];
+
+export const UE5_MANNY_CLAVICLE_R_ALIASES = [
+  "clavicle_r", "Clavicle_R", "clavicle.r",
+  ...SHOULDER_R_ALIASES,
+];
+
+export const UE5_MANNY_CLAVICLE_L_ALIASES = [
+  "clavicle_l", "Clavicle_L", "clavicle.l",
+  ...SHOULDER_L_ALIASES,
+];
+
+export const UE5_MANNY_UPPER_ARM_R_ALIASES = [
+  "upperarm_r", "upper_arm_r", "UpperArm_R",
+  ...UPPER_ARM_R_ALIASES,
+];
+
+export const UE5_MANNY_UPPER_ARM_L_ALIASES = [
+  "upperarm_l", "upper_arm_l", "UpperArm_L",
+  ...UPPER_ARM_L_ALIASES,
+];
+
+export const UE5_MANNY_LOWER_ARM_R_ALIASES = [
+  "lowerarm_r", "lower_arm_r", "forearm_r",
+  ...FOREARM_R_ALIASES,
+];
+
+export const UE5_MANNY_LOWER_ARM_L_ALIASES = [
+  "lowerarm_l", "lower_arm_l", "forearm_l",
+  ...FOREARM_L_ALIASES,
+];
+
+export const UE5_MANNY_HAND_R_ALIASES = [
+  "hand_r", "Hand_R",
+  ...RIGHT_HAND_ALIASES,
+];
+
+export const UE5_MANNY_HAND_L_ALIASES = [
+  "hand_l", "Hand_L",
+  ...LEFT_HAND_ALIASES,
+];
+
+export const UE5_MANNY_THIGH_R_ALIASES = [
+  "thigh_r", "Thigh_R", "thigh.r",
+  ...RIGHT_UP_LEG_ALIASES,
+];
+
+export const UE5_MANNY_THIGH_L_ALIASES = [
+  "thigh_l", "Thigh_L", "thigh.l",
+  ...LEFT_UP_LEG_ALIASES,
+];
+
+export const UE5_MANNY_CALF_R_ALIASES = [
+  "calf_r", "Calf_R", "shin_r",
+  ...RIGHT_LOWER_LEG_ALIASES,
+];
+
+export const UE5_MANNY_CALF_L_ALIASES = [
+  "calf_l", "Calf_L", "shin_l",
+  ...LEFT_LOWER_LEG_ALIASES,
+];
+
+export const UE5_MANNY_FOOT_R_ALIASES = [
+  "foot_r", "Foot_R", "ball_r",
+  ...RIGHT_FOOT_ALIASES,
+];
+
+export const UE5_MANNY_FOOT_L_ALIASES = [
+  "foot_l", "Foot_L", "ball_l",
+  ...LEFT_FOOT_ALIASES,
+];
+
+export type SkeletonType = "kaykit" | "mixamo" | "cc4" | "bip001" | "ue5_manny" | "generic";
 
 export function detectSkeletonType(boneNames: string[]): SkeletonType {
   if (boneNames.some(b => b === "Fist.R" || b === "FistR" || b === "Fist.L" || b === "FistL")) {
@@ -322,6 +514,13 @@ export function detectSkeletonType(boneNames: string[]): SkeletonType {
   }
   if (joined.includes("cc_base_")) {
     return "cc4";
+  }
+  // UE5 Manny / Paragon retarget — pelvis + spine_01 + thigh_r/l naming.
+  if (
+    boneNames.some((b) => /^pelvis$/i.test(b) || /^spine_0[1-5]$/i.test(b)) ||
+    (joined.includes("thigh_r") && joined.includes("thigh_l") && joined.includes("spine_01"))
+  ) {
+    return "ue5_manny";
   }
   // Grudge6 uMMORPG 3ds-Max Biped rig — detected via the Pelvis root node or
   // the R_hand_container weapon attachment bone that all 6 race models share.
@@ -411,28 +610,28 @@ export function findBoneByAliasFromList(
 }
 
 export const RETARGET_ALIAS_MAP: Record<string, string[]> = {
-  Hips: [...HIPS_ALIASES, "CC_Base_Pelvis"],
-  Spine: [...SPINE_ALIASES],
-  Spine1: ["mixamorigSpine1", "Spine1", "spine1", "Spine.001", "CC_Base_Spine01"],
-  Spine2: ["mixamorigSpine2", "Spine2", "spine2", "Chest", "chest", "CC_Base_Spine02"],
-  Neck: ["mixamorigNeck", "Neck", "neck", "Bip01_Neck", "Bip001_Neck", "J_Bip_C_Neck", "CC_Base_NeckTwist01", "CC_Base_NeckTwist02"],
-  Head: [...HEAD_ALIASES],
-  LeftShoulder: [...SHOULDER_L_ALIASES],
-  LeftArm: [...UPPER_ARM_L_ALIASES],
-  LeftForeArm: [...FOREARM_L_ALIASES],
-  LeftHand: [...LEFT_HAND_ALIASES],
-  RightShoulder: [...SHOULDER_R_ALIASES],
-  RightArm: [...UPPER_ARM_R_ALIASES],
-  RightForeArm: [...FOREARM_R_ALIASES],
-  RightHand: [...RIGHT_HAND_ALIASES],
-  LeftUpLeg: [...LEFT_UP_LEG_ALIASES],
-  LeftLeg: [...LEFT_LOWER_LEG_ALIASES],
-  LeftFoot: [...LEFT_FOOT_ALIASES],
-  LeftToeBase: [...LEFT_TOE_ALIASES],
-  RightUpLeg: [...RIGHT_UP_LEG_ALIASES],
-  RightLeg: [...RIGHT_LOWER_LEG_ALIASES],
-  RightFoot: [...RIGHT_FOOT_ALIASES],
-  RightToeBase: [...RIGHT_TOE_ALIASES],
+  Hips: [...HIPS_ALIASES, ...UE5_MANNY_HIPS_ALIASES, "CC_Base_Pelvis"],
+  Spine: [...SPINE_ALIASES, ...UE5_MANNY_SPINE_ALIASES],
+  Spine1: ["mixamorigSpine1", "Spine1", "spine1", "Spine.001", "CC_Base_Spine01", "spine_02", "spine_03"],
+  Spine2: ["mixamorigSpine2", "Spine2", "spine2", "Chest", "chest", "CC_Base_Spine02", ...UE5_MANNY_SPINE2_ALIASES],
+  Neck: [...UE5_MANNY_NECK_ALIASES, "J_Bip_C_Neck", "CC_Base_NeckTwist01", "CC_Base_NeckTwist02"],
+  Head: [...UE5_MANNY_HEAD_ALIASES],
+  LeftShoulder: [...UE5_MANNY_CLAVICLE_L_ALIASES],
+  LeftArm: [...UE5_MANNY_UPPER_ARM_L_ALIASES],
+  LeftForeArm: [...UE5_MANNY_LOWER_ARM_L_ALIASES],
+  LeftHand: [...UE5_MANNY_HAND_L_ALIASES],
+  RightShoulder: [...UE5_MANNY_CLAVICLE_R_ALIASES],
+  RightArm: [...UE5_MANNY_UPPER_ARM_R_ALIASES],
+  RightForeArm: [...UE5_MANNY_LOWER_ARM_R_ALIASES],
+  RightHand: [...UE5_MANNY_HAND_R_ALIASES],
+  LeftUpLeg: [...UE5_MANNY_THIGH_L_ALIASES],
+  LeftLeg: [...UE5_MANNY_CALF_L_ALIASES],
+  LeftFoot: [...UE5_MANNY_FOOT_L_ALIASES],
+  LeftToeBase: [...LEFT_TOE_ALIASES, "ball_l", "Ball_L"],
+  RightUpLeg: [...UE5_MANNY_THIGH_R_ALIASES],
+  RightLeg: [...UE5_MANNY_CALF_R_ALIASES],
+  RightFoot: [...UE5_MANNY_FOOT_R_ALIASES],
+  RightToeBase: [...RIGHT_TOE_ALIASES, "ball_r", "Ball_R"],
   LeftHandIndex1:   [...LEFT_INDEX_1_ALIASES],
   LeftHandIndex2:   [...LEFT_INDEX_2_ALIASES],
   LeftHandIndex3:   [...LEFT_INDEX_3_ALIASES],
@@ -1289,6 +1488,29 @@ const GRIP_TRANSFORMS: Record<SkeletonType, Record<GripStyle, { right: GripTrans
       left:  { position: [0, 0, 0], rotation: [0, 0, 0], scale: 1.0 },
     },
   },
+  // UE5 Manny / Paragon retarget — baseline from mixamo until per-weapon tuned.
+  ue5_manny: {
+    main_1h: {
+      right: { position: [0, 0.08, 0.02], rotation: [-PI / 2, 0, 0.3], scale: 1.0 },
+      left:  { position: [0, 0.08, 0.02], rotation: [-PI / 2, 0, -0.3], scale: 1.0 },
+    },
+    off_1h: {
+      right: { position: [0, 0, 0], rotation: [0, 0, 0], scale: 1.0 },
+      left:  { position: [0.02, 0.08, 0.05], rotation: [-PI * 0.5, 0.15, -0.2], scale: 1.0 },
+    },
+    two_hand: {
+      right: { position: [0, 0.09, 0.02], rotation: [-PI / 2, 0, 0.35], scale: 1.0 },
+      left:  { position: [0, 0, 0], rotation: [0, 0, 0], scale: 1.0 },
+    },
+    ranged_2h: {
+      right: { position: [0, 0.06, 0.04], rotation: [-PI / 2, 0, 0], scale: 1.0 },
+      left:  { position: [0, 0.07, 0.04], rotation: [-PI / 2, PI / 2, -0.1], scale: 1.0 },
+    },
+    unarmed: {
+      right: { position: [0, 0, 0], rotation: [0, 0, 0], scale: 1.0 },
+      left:  { position: [0, 0, 0], rotation: [0, 0, 0], scale: 1.0 },
+    },
+  },
   cc4: {
     main_1h: {
       right: { position: [0, 0.07, 0.02], rotation: [-PI / 2, 0, 0.25], scale: 1.0 },
@@ -1363,6 +1585,20 @@ const WEAPON_SPECIFIC_OFFSETS: Record<SkeletonType, Partial<Record<WeaponType, W
     shield: { posAdj: [0.01, 0.04, 0.04], rotAdj: [PI / 2, 0, 0.05] },
   },
   mixamo: {
+    sword: { posAdj: [0, 0.03, 0.02], rotAdj: [-0.2, 0, 0] },
+    greatsword: { posAdj: [0, 0.08, 0.02], rotAdj: [-0.3, -0.08, 0] },
+    axe: { posAdj: [0, 0.06, 0.03], rotAdj: [-0.15, 0.12, 0] },
+    poleaxe: { posAdj: [0, 0.12, 0.02], rotAdj: [-0.1, 0, 0] },
+    hammer: { posAdj: [0, 0.06, 0.03], rotAdj: [-0.15, 0.08, 0] },
+    dagger: { posAdj: [0, 0.01, 0.015], rotAdj: [-0.2, 0, 0] },
+    staff: { posAdj: [0, 0.14, 0.01], rotAdj: [-0.06, 0, 0] },
+    wand: { posAdj: [0, 0.04, 0.015], rotAdj: [-0.2, 0.08, 0] },
+    bow: { posAdj: [0, 0.03, 0.05], rotAdj: [0, PI / 2, 0] },
+    crossbow: { posAdj: [0, 0.04, 0.06], rotAdj: [-PI / 2, 0, 0] },
+    gun: { posAdj: [0, 0.04, 0.06], rotAdj: [0, 0, 0] },
+    shield: { posAdj: [0.01, 0.05, 0.06], rotAdj: [PI / 2, 0, 0.08] },
+  },
+  ue5_manny: {
     sword: { posAdj: [0, 0.03, 0.02], rotAdj: [-0.2, 0, 0] },
     greatsword: { posAdj: [0, 0.08, 0.02], rotAdj: [-0.3, -0.08, 0] },
     axe: { posAdj: [0, 0.06, 0.03], rotAdj: [-0.15, 0.12, 0] },

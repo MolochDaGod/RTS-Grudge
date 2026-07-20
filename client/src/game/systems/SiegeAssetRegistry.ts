@@ -32,7 +32,45 @@ export interface SiegeAssetEntry {
   description: string;
 }
 
+/** Toon_RTS race-specific siege engines (Grudge6 faction pack). */
+export const GRUDGE6_SIEGE_ASSETS: SiegeAssetEntry[] = [
+  {
+    id: "grudge6_wk_catapult",
+    name: "WK Catapult",
+    staticPath: "/models/grudge6/siege/WK_Catapult.glb",
+    riggedPath: null,
+    category: "catapult",
+    defaultScale: 1.0,
+    baseHP: 5500,
+    operable: true,
+    description: "Western Kingdoms trebuchet. Crusade faction siege engine.",
+  },
+  {
+    id: "grudge6_orc_catapult",
+    name: "Orc Catapult",
+    staticPath: "/models/grudge6/siege/ORC_Catapult.glb",
+    riggedPath: null,
+    category: "catapult",
+    defaultScale: 1.0,
+    baseHP: 5200,
+    operable: true,
+    description: "Legion orc catapult. Heavier frame, shorter range, more splash.",
+  },
+  {
+    id: "grudge6_elf_bolt_thrower",
+    name: "Elf Bolt Thrower",
+    staticPath: "/models/grudge6/siege/ELF_BoltThrower.glb",
+    riggedPath: null,
+    category: "ballista",
+    defaultScale: 1.0,
+    baseHP: 4000,
+    operable: true,
+    description: "Fabled elf bolt thrower. High-accuracy single-target siege.",
+  },
+];
+
 export const SIEGE_ASSETS: SiegeAssetEntry[] = [
+  ...GRUDGE6_SIEGE_ASSETS,
   {
     id: "siege_catapult",
     name: "Catapult",

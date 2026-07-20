@@ -1,7 +1,8 @@
-import { useState, useRef, Suspense, useEffect, useMemo, useCallback } from "react";
+import { useState, useRef, Suspense, useEffect, useMemo, useCallback, type CSSProperties } from "react";
 import { useCharacterAPI, type ServerCharacter } from "@/lib/characters/useCharacterAPI";
 import { SceneErrorBoundary } from "./components/SceneErrorBoundary";
 import { CharacterRosterPanel } from "./components/CharacterRosterPanel";
+import { HangingSignTabBar, HangingSignSectionLabel } from "./components/HangingSignTabBar";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, TransformControls, Text } from "@react-three/drei";
 import * as THREE from "three";
@@ -20,9 +21,10 @@ import {
   UPPER_ARM_R_ALIASES, UPPER_ARM_L_ALIASES,
   FOREARM_R_ALIASES, FOREARM_L_ALIASES,
   SHOULDER_R_ALIASES, SHOULDER_L_ALIASES,
-  HEAD_ALIASES, SPINE2_ALIASES,
+  HEAD_ALIASES,
   RIGHT_FOOT_ALIASES, LEFT_FOOT_ALIASES,
   findBoneByAlias, findBoneByAliasFromList, findBoneNameByAlias,
+  resolveAttachmentBone, ensureBackSlotBone,
   retargetClips,
 } from "./systems/BoneAliases";
 import { useSurvival } from "@/lib/stores/useSurvival";
@@ -56,6 +58,10 @@ import {
   type AnimationPackEntry, type WeaponModelEntry, type WeaponAnimMapping,
 } from "./systems/ModelRegistry";
 import { loadAsset } from "./systems/AssetLoader";
+import { COMBAT_CLASS_BACKGROUNDS, RACE_PICKER_TILES } from "@/lib/data/artAssets";
+import { CHARACTER_VIEWER_TOKENS } from "@/lib/data/uiArt";
+import { CharacterViewerShell } from "./components/CharacterViewerShell";
+import { navigateToGcsCreate } from "@/lib/gcsRedirect";
 
 interface CharacterDef {
   id: string;
@@ -198,29 +204,11 @@ const PRESET_CATEGORIES: { key: StylePreset["category"]; label: string; color: s
   { key: "ranged",  label: "Rangers",  color: "#66bb6a" },
 ];
 
-// Production class backgrounds matching class-selector.html
-const CHAR_CLASS_BG: Record<string, string> = {
-  melee:   "https://i.imgur.com/Wj2mUH2.png",   // warrior
-  caster:  "https://i.imgur.com/vKQR4UT.png",   // mage
-  ranger:  "https://i.imgur.com/5A6e5kL.png",   // ranger
-};
 const CHAR_CLASS_COLORS: Record<string, { main: string; bg: string; border: string }> = {
   melee:  { main: "#ff6b57", bg: "rgba(255,107,87,.08)",  border: "rgba(255,107,87,.35)" },
   caster: { main: "#6aa9ff", bg: "rgba(106,169,255,.08)", border: "rgba(106,169,255,.35)" },
   ranger: { main: "#6bdc8b", bg: "rgba(107,220,139,.08)", border: "rgba(107,220,139,.35)" },
 };
-
-// Race portrait tiles data — uses existing entity icons from the game
-const RACE_PORTRAITS: { id: string; name: string; modelFilter: string; icon: string; portrait: string }[] = [
-  { id: "elf",       name: "Elf",       modelFilter: "/elf-",                icon: "🧝", portrait: "/icons/grudge/entities/elf%20warrior.png" },
-  { id: "human",     name: "Human",     modelFilter: "assassin",             icon: "👤", portrait: "/icons/grudge/entities/Human%20Warrior.png" },
-  { id: "dwarf",     name: "Dwarf",     modelFilter: "/dwarf-",              icon: "⛏️", portrait: "/icons/grudge/entities/dwarf%20warrior.png" },
-  { id: "orc",       name: "Orc",       modelFilter: "orc_scout",            icon: "👹", portrait: "/icons/grudge/entities/orc%20warrior.png" },
-  { id: "barbarian", name: "Barbarian",  modelFilter: "battle_mage",         icon: "🪓", portrait: "/icons/grudge/entities/barb%20warrior.png" },
-  { id: "undead",    name: "Undead",    modelFilter: "vampire_aristocrat",   icon: "💀", portrait: "/icons/grudge/entities/undead%20warrior.png" },
-  // Worge is a class (not a race) — selectable via class presets, not race portraits.
-  // Goblin is an enemy NPC — not a playable race.
-];
 
 // CSS for animated stage backgrounds + race portrait hover
 const CHAR_SELECT_CSS = `
@@ -256,6 +244,15 @@ const CHAR_SELECT_CSS = `
   position:absolute;left:0;right:0;bottom:4px;z-index:2;text-align:center;
   font-family:'Cinzel',serif;font-size:9px;letter-spacing:1.5px;color:#fff;
   text-shadow:0 2px 6px rgba(0,0,0,.9);
+}
+.cs-left-shop{
+  background:
+    linear-gradient(180deg,rgba(12,8,5,.92) 0%,rgba(6,5,8,.94) 100%),
+    repeating-linear-gradient(
+      0deg,
+      #2a1a10 0px,#3d2818 3px,#2a1a10 6px,#352218 9px
+    ) !important;
+  box-shadow:inset -8px 0 24px rgba(0,0,0,.45),4px 0 20px rgba(0,0,0,.25);
 }
 `;
 
@@ -602,7 +599,7 @@ function WeaponGizmo({
       ref={transformRef}
       object={grpObj}
       mode={gizmoMode}
-      size={0.4}
+      size={CHARACTER_VIEWER_TOKENS.gizmo.size}
       onObjectChange={() => {
         if (!grpObj) return;
         const p = grpObj.position;
@@ -897,6 +894,10 @@ function CharacterPreview({
       }
     });
 
+    if (equipMgr.prefix) {
+      equipMgr.syncFaceClip();
+    }
+
     return s;
   }, [gltf, scale, materialColors, dynamicMaterialMap]);
 
@@ -927,7 +928,9 @@ function CharacterPreview({
   // bone-search + load + cleanup pattern as `Player.tsx`.
   useEffect(() => {
     if (!cloned) return;
-    const backBone = findBoneByAlias(cloned, SPINE2_ALIASES);
+    ensureBackSlotBone(cloned);
+    const isQuiver = !!backAccessoryId && (backAccessoryId.includes("arrow") || backAccessoryId.includes("quiver"));
+    const backBone = resolveAttachmentBone(cloned, isQuiver ? "quiver" : "backAccessory");
     if (!backBone) return;
 
     const ACCESSORY_NAME_PREFIX = "back_accessory_";
@@ -1174,8 +1177,11 @@ function PreviewCanvas({
   backAccessoryId?: string | null;
   onEquipmentSlots?: (mgr: EquipmentMeshManager | null) => void;
 }) {
+  const viewer = CHARACTER_VIEWER_TOKENS.canvas;
+  const [cx, cy, cz] = viewer.cameraPosition;
+  const [tx, ty, tz] = viewer.target;
   return (
-    <Canvas camera={{ position: [0, 1.2, 3], fov: 45 }} dpr={[1, 1.5]} style={{ width: "100%", height: "100%" }} gl={{ antialias: false, alpha: true, powerPreference: "high-performance", failIfMajorPerformanceCaveat: false, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.0, outputColorSpace: THREE.SRGBColorSpace }} onCreated={({ gl }) => { const c = gl.domElement; c.addEventListener("webglcontextlost", (e) => { e.preventDefault(); }); c.addEventListener("webglcontextrestored", () => {}); }}>
+    <Canvas camera={{ position: [cx, cy, cz], fov: viewer.fov }} dpr={viewer.dpr} style={{ width: "100%", height: "100%", display: "block" }} gl={{ antialias: false, alpha: true, powerPreference: "high-performance", failIfMajorPerformanceCaveat: false, localClippingEnabled: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.0, outputColorSpace: THREE.SRGBColorSpace }} onCreated={({ gl }) => { const c = gl.domElement; c.addEventListener("webglcontextlost", (e) => { e.preventDefault(); }); c.addEventListener("webglcontextrestored", () => {}); }}>
       <AssetLoaderInit />
       <ambientLight intensity={0.6} />
       <directionalLight position={[3, 5, 3]} intensity={1.2} castShadow />
@@ -1237,9 +1243,9 @@ function PreviewCanvas({
       <OrbitControls
         makeDefault
         enableZoom={true} enablePan={true} enableRotate={true}
-        minDistance={0.5} maxDistance={10}
+        minDistance={viewer.minDistance} maxDistance={viewer.maxDistance}
         minPolarAngle={0.05} maxPolarAngle={Math.PI - 0.05}
-        target={[0, 0.9, 0]}
+        target={[tx, ty, tz]}
       />
     </Canvas>
   );
@@ -1417,7 +1423,7 @@ export default function CharacterSelectScreen() {
   const filteredPresets = useMemo(() => {
     let list = presetFilter === "all" ? STYLE_PRESETS : STYLE_PRESETS.filter(p => p.category === presetFilter);
     if (raceFilter) {
-      const rf = RACE_PORTRAITS.find(r => r.id === raceFilter);
+      const rf = RACE_PICKER_TILES.find(r => r.id === raceFilter);
       if (rf) list = list.filter(p => p.modelPath?.includes(rf.modelFilter));
     }
     return list;
@@ -1647,6 +1653,24 @@ export default function CharacterSelectScreen() {
     setTimeout(() => { autoSaveReady.current = true; }, 200);
   }, [applyServerCharacterToEditor, charAPI]);
 
+  // GCS return handoff — ?from=gcs&characterId=char_… after account save
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("from") !== "gcs") return;
+    const characterId = params.get("characterId");
+    if (!characterId) return;
+    const match = charAPI.characters.find(c => c.character_id === characterId);
+    if (match) {
+      selectServerCharacter(match);
+      params.delete("from");
+      params.delete("characterId");
+      const qs = params.toString();
+      window.history.replaceState({}, "", `${window.location.pathname}${qs ? `?${qs}` : ""}`);
+    } else if (charAPI.status === "ready") {
+      charAPI.refresh();
+    }
+  }, [charAPI.characters, charAPI.status, charAPI.refresh, selectServerCharacter]);
+
   const handleWeaponOffsetChange = useCallback((hand: "right" | "left", pos: [number, number, number], rot: [number, number, number], scl: [number, number, number]) => {
     setWeaponOffset(prev => ({
       ...prev,
@@ -1865,11 +1889,11 @@ export default function CharacterSelectScreen() {
       />
       {/* ── Animated class background ── */}
       <div style={{ position: "absolute", inset: 0, zIndex: 0, overflow: "hidden", pointerEvents: "none" }}>
-        {(["melee", "caster", "ranger"] as (keyof typeof CHAR_CLASS_BG)[]).map(cls => (
+        {(["melee", "caster", "ranger"] as const).map(cls => (
           <div
             key={cls}
             className={`cs-stage-bg${cls === combatClass ? " active" : ""}`}
-            style={{ backgroundImage: `url('${CHAR_CLASS_BG[cls]}')` }}
+            style={{ backgroundImage: `url('${COMBAT_CLASS_BACKGROUNDS[cls]}')` }}
           />
         ))}
         {/* Vignette */}
@@ -1890,12 +1914,11 @@ export default function CharacterSelectScreen() {
       </div>
 
       {/* All panels are z:1 to sit above background */}
-      <div style={{
+      <div className="cs-left-shop" style={{
         position: "relative", zIndex: 1,
-        flex: "0 0 280px", borderRight: `1px solid ${classPalette.border}`,
+        flex: "0 0 280px", borderRight: "2px solid rgba(90,60,35,.55)",
         display: "flex", flexDirection: "column",
-        background: "linear-gradient(180deg,rgba(6,8,14,.88),rgba(4,6,12,.9))",
-        backdropFilter: "blur(12px)",
+        backdropFilter: "blur(8px)",
       }}>
         <div style={{ padding: "10px 12px 8px", borderBottom: `1px solid ${classPalette.border}` }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -1911,17 +1934,29 @@ export default function CharacterSelectScreen() {
               }}>HERO FORGE</div>
               <div style={{ fontSize: 8, color: "#9aa3c7", letterSpacing: "2px", fontFamily: "'Cinzel',serif", marginTop: 1 }}>CHARACTER CREATOR</div>
             </div>
-            <button onClick={() => useGame.getState().goToGGE()}
-              style={{
-                padding: "3px 8px", fontSize: 8, borderRadius: 6, cursor: "pointer",
-                background: classPalette.bg, border: `1px solid ${classPalette.border}`,
-                color: classPalette.main, textTransform: "uppercase", letterSpacing: 1,
-              }}>GGE</button>
+            <div style={{ display: "flex", gap: 4 }}>
+              <button
+                type="button"
+                onClick={() => navigateToGcsCreate("/character")}
+                title="Create a new hero in Grudge Character Studio (account roster)"
+                style={{
+                  padding: "3px 8px", fontSize: 8, borderRadius: 6, cursor: "pointer",
+                  background: "rgba(246,201,69,.12)", border: "1px solid rgba(246,201,69,.45)",
+                  color: "#f6c945", textTransform: "uppercase", letterSpacing: 1,
+                }}
+              >+ GCS</button>
+              <button onClick={() => useGame.getState().goToGGE()}
+                style={{
+                  padding: "3px 8px", fontSize: 8, borderRadius: 6, cursor: "pointer",
+                  background: classPalette.bg, border: `1px solid ${classPalette.border}`,
+                  color: classPalette.main, textTransform: "uppercase", letterSpacing: 1,
+                }}>GGE</button>
+            </div>
           </div>
         </div>
 
-        <div style={{ padding: "8px 10px", borderBottom: "1px solid rgba(201,149,10,0.1)" }}>
-          <div style={{ fontSize: 8, color: "#c9a86c", textTransform: "uppercase", letterSpacing: 1, marginBottom: 4, fontFamily: "'Cinzel', serif" }}>Hero Name</div>
+        <div style={{ padding: "8px 10px", borderBottom: "1px solid rgba(90,60,35,.35)" }}>
+          <HangingSignSectionLabel label="Hero Name" accent={classPalette.main} />
           <input type="text" value={heroName}
             onChange={(e) => setHeroName(e.target.value)}
             style={{
@@ -1949,10 +1984,10 @@ export default function CharacterSelectScreen() {
         </div>
 
         {/* Race portrait grid — click to filter presets by race */}
-        <div style={{ padding: "8px 10px 6px", borderBottom: `1px solid ${classPalette.border}` }}>
-          <div style={{ fontSize: 8, color: "#9aa3c7", textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 6, fontFamily: "'Cinzel',serif" }}>Race</div>
+        <div style={{ padding: "8px 10px 6px", borderBottom: "1px solid rgba(90,60,35,.35)" }}>
+          <HangingSignSectionLabel label="Race" accent="#6bdc8b" />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 6 }}>
-            {RACE_PORTRAITS.map(race => {
+            {RACE_PICKER_TILES.map(race => {
               const isActive = raceFilter === race.id;
               return (
                 <div
@@ -1983,10 +2018,10 @@ export default function CharacterSelectScreen() {
           )}
         </div>
 
-        <div style={{ padding: "6px 10px 4px", borderBottom: `1px solid ${classPalette.border}` }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-            <div style={{ fontSize: 9, color: classPalette.main, textTransform: "uppercase", letterSpacing: 1, fontFamily: "'Cinzel', serif" }}>Style Presets</div>
-            <span style={{ fontSize: 7, color: "#555" }}>{filteredPresets.length} styles</span>
+        <div style={{ padding: "6px 10px 4px", borderBottom: "1px solid rgba(90,60,35,.35)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 4 }}>
+            <HangingSignSectionLabel label="Style Presets" accent={classPalette.main} />
+            <span style={{ fontSize: 7, color: "#8a7050", marginBottom: 6, fontFamily: "'Cinzel',serif" }}>{filteredPresets.length} styles</span>
           </div>
           <div style={{ display: "flex", gap: 2, flexWrap: "wrap", marginBottom: 4 }}>
             <button onClick={() => setPresetFilter("all")}
@@ -2063,8 +2098,9 @@ export default function CharacterSelectScreen() {
         </div>
       </div>
 
-      <div style={{ position: "relative", zIndex: 1, flex: 1, display: "flex", flexDirection: "column" }}>
-        <div style={{ flex: 1, position: "relative", minHeight: 0 }}>
+      <div style={{ position: "relative", zIndex: 1, flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+        <div style={{ position: "relative", flex: 1, minHeight: 0 }}>
+        <CharacterViewerShell variant="forge">
           <PreviewCanvas
             modelPath={currentModelPath} scale={scale} materialColors={matColors}
             materialMap={currentChar.materialMap} previewAnim={previewAnim}
@@ -2081,8 +2117,9 @@ export default function CharacterSelectScreen() {
             backAccessoryId={backAccessoryId}
             onEquipmentSlots={handleEquipmentSlots}
           />
+        </CharacterViewerShell>
           <div style={{
-            position: "absolute", top: 8, left: 8,
+            position: "absolute", top: 8, left: 8, pointerEvents: "auto", zIndex: 2,
             background: "linear-gradient(135deg,rgba(6,8,16,.85),rgba(4,5,12,.9))",
             padding: "8px 12px", borderRadius: 10,
             border: `1px solid ${classPalette.border}`,
@@ -2165,33 +2202,22 @@ export default function CharacterSelectScreen() {
             }}>
             <div style={{ width: 40, height: 2, borderRadius: 1, background: "rgba(201,149,10,0.25)" }} />
           </div>
-          <div style={{ display: "flex", borderBottom: "1px solid rgba(201,149,10,0.1)", alignItems: "stretch" }}>
-            {tabs.map(tab => (
-              <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-                style={{
-                  flex: 1, padding: "6px", fontSize: 9, textTransform: "uppercase", letterSpacing: 0.5,
-                  fontFamily: "'Cinzel', serif",
-                  background: activeTab === tab.key ? classPalette.bg : "transparent",
-                  border: "none",
-                  borderBottom: activeTab === tab.key ? `2px solid ${classPalette.main}` : "2px solid transparent",
-                  color: activeTab === tab.key ? classPalette.main : "#8a7e6a", cursor: "pointer",
-                  transition: "color .15s, background .15s",
-                }}>{tab.label}</button>
-            ))}
-            <button
-              onClick={toggleDevTools}
-              title={showDevTools ? "Hide developer tabs (Edit Mode, Studio, Model Info, Debug)" : "Show developer tabs"}
-              style={{
-                flex: "0 0 auto", padding: "6px 10px", fontSize: 9, textTransform: "uppercase", letterSpacing: 0.5,
-                fontFamily: "'Cinzel', serif",
-                background: showDevTools ? "rgba(80,40,40,0.35)" : "transparent",
-                border: "none", borderLeft: "1px solid rgba(201,149,10,0.1)",
-                borderBottom: showDevTools ? "2px solid #b87a4a" : "2px solid transparent",
-                color: showDevTools ? "#f0c08a" : "#6a5e4a", cursor: "pointer",
-              }}>
-              {showDevTools ? "Dev: ON" : "Dev"}
-            </button>
-          </div>
+          <HangingSignTabBar
+            tabs={tabs}
+            activeKey={activeTab}
+            onSelect={(key) => setActiveTab(key as typeof activeTab)}
+            trailing={
+              <button
+                type="button"
+                onClick={toggleDevTools}
+                title={showDevTools ? "Hide developer tabs" : "Show developer tabs"}
+                className={`cs-sign-board cs-section-sign-board${showDevTools ? " active" : ""}`}
+                style={{ "--sign-accent": "#b87a4a", minWidth: 44, cursor: "pointer" } as CSSProperties}
+              >
+                <span className="cs-sign-label">{showDevTools ? "Dev ON" : "Dev"}</span>
+              </button>
+            }
+          />
 
           <div style={{ flex: 1, overflowY: "auto", padding: "8px 12px" }}>
             {activeTab === "class" && (

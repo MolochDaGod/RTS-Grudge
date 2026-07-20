@@ -23,6 +23,8 @@
 import { getPuterUuidSync, puterReady, getPuterUser, type PuterUser } from "./puter";
 import {
   GRUDGE_ID_URL,
+  AUTH_API,
+  AUTH_PAGE_URL,
   TOKEN_KEY,
   TOKEN_EXP_KEY,
   PLAYER_ID_KEY,
@@ -153,7 +155,7 @@ async function resolveSession(): Promise<GrudgeSessionUser | null> {
   const token = getStoredToken();
   if (token) {
     try {
-      const resp = await fetch(`${ID_SERVICE}/auth/me`, {
+      const resp = await fetch(`${AUTH_API}/me`, {
         headers: { Authorization: `Bearer ${token}` },
         signal: AbortSignal.timeout(4000),
       });
@@ -292,7 +294,7 @@ export function redirectToLogin(returnUrl?: string, reason?: string): void {
   const ret = returnUrl ?? (typeof window !== "undefined" ? window.location.href : "");
   const params = new URLSearchParams({ redirect: ret });
   if (reason) params.set("reason", reason);
-  window.location.href = `${ID_SERVICE}/auth/login?${params.toString()}`;
+  window.location.href = `${AUTH_PAGE_URL}?${params.toString()}`;
 }
 
 /**
@@ -321,7 +323,7 @@ function startKeepAlive(): void {
 
     // Token about to expire — refresh it
     try {
-      const resp = await fetch(`${ID_SERVICE}/auth/refresh`, {
+      const resp = await fetch(`${AUTH_API}/refresh`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

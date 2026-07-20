@@ -43,7 +43,7 @@ const ROLE_ICONS: Record<BuildingRole, string> = {
 };
 
 const ROLE_DESCRIPTIONS: Record<BuildingRole, string> = {
-  campfire: "Provides warmth and cooking. Allies gather here at night.",
+  campfire: "Your claim anchor — camp, base, and flag are the same place. Cook and rally here.",
   workbench: "Assign workers to craft items and gain XP.",
   barracks: "Manage allies — spawn, dismiss, and assign orders.",
   storage: "Store and retrieve items from community stockpile.",

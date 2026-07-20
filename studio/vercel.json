@@ -1,21 +1,31 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "cd ../.. && pnpm install --frozen-lockfile=false && NODE_OPTIONS='--max-old-space-size=3072' pnpm --filter @workspace/studio run build",
-  "installCommand": "echo 'install handled in buildCommand'",
+  "buildCommand": "npm install --legacy-peer-deps && BASE_PATH=/ npm run build",
   "outputDirectory": "dist/public",
   "framework": null,
-  "devCommand": "pnpm --filter @workspace/studio run dev",
+  "alias": ["forge.grudge-studio.com"],
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://api.grudge-studio.com/:path*" },
+    { "source": "/api/:path*", "destination": "https://api.grudge-studio.com/api/:path*" },
+    { "source": "/auth/:path*", "destination": "https://id.grudge-studio.com/auth/:path*" },
     { "source": "/assets-cdn/:path*", "destination": "https://assets.grudge-studio.com/:path*" },
+    { "source": "/objectstore/:path*", "destination": "https://objectstore.grudge-studio.com/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
     {
-      "source": "/models/(.*)",
+      "source": "/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
-        { "key": "Access-Control-Allow-Origin", "value": "*" }
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        {
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors 'self' https://*.grudge-studio.com https://grudgewarlords.com https://*.vercel.app"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     }
   ]

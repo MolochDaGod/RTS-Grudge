@@ -38,6 +38,10 @@ import { useEnemyManager } from "../systems/EnemyManager";
 import { damageDestructiblesInArc } from "../dungeon/DungeonDestructibles";
 import { tryDamageDungeonDecor } from "../dungeon/DungeonDecorDestruction";
 import { useGame, SKILL_MAX_COOLDOWNS } from "@/lib/stores/useGame";
+import { usePets } from "@/lib/stores/usePets";
+import { DRAGON_STAGES, getDragonModelPath } from "@/game/systems/DragonPetRegistry";
+import { applyDragonTint } from "@/game/systems/dragonTint";
+import { getMountedVariantGlb } from "@/game/character/FactionCharacterRegistry";
 import { useCheats } from "@/lib/stores/useCheats";
 import { useChargeHud, CHARGE_TIER_1_MS, CHARGE_TIER_2_MS } from "@/lib/stores/useChargeHud";
 import { useStaminaFlash } from "@/lib/stores/useStaminaFlash";
@@ -72,9 +76,17 @@ import {
   detectSkeletonType,
   buildWeaponGripData, cleanWeaponsFromBone, applyWeaponTransformToBone, getWeaponBaseUserData,
   type GripTransform,
-  findBoneByAlias, SPINE2_ALIASES,
+  findBoneByAlias, resolveAttachmentBone,
   getWeaponReach,
 } from "@/game/systems/BoneAliases";
+
+/** Shortest-path Y rotation lerp — prevents snap spins on sprint backpedal. */
+function smoothFaceY(current: number, target: number, dt: number, rate = 14): number {
+  let delta = target - current;
+  while (delta > Math.PI) delta -= 2 * Math.PI;
+  while (delta < -Math.PI) delta += 2 * Math.PI;
+  return current + delta * Math.min(1, rate * dt);
+}
 import { getBackAccessoryModel } from "@/game/systems/ModelRegistry";
 import { loadAsset } from "@/game/systems/AssetLoader";
 import {
@@ -219,6 +231,13 @@ function PlayerModel({
   // animation mixer never has to blend incompatible rigs. The per-ability
   // cooldown is the revert window before the next toggle is allowed.
   const [worgeForm, setWorgeForm] = useState<"human" | "bear" | "wolf">("human");
+  const [horseMounted, setHorseMounted] = useState(false);
+  const mountedPet = usePets((s) => s.getMountedPet());
+  const activePet = usePets((s) => s.getActivePet());
+  const mountPet = usePets((s) => s.mountPet);
+  const dismountPet = usePets((s) => s.dismountPet);
+  const checkLevelGate = usePets((s) => s.checkLevelGate);
+  const level = useGame((s) => s.level);
   const [hitParticleActive, setHitParticleActive] = useState(false);
   const hitParticlePos = useRef<[number, number, number]>([0, 0, 0]);
   const [healParticleActive, setHealParticleActive] = useState(false);
@@ -364,12 +383,28 @@ function PlayerModel({
     selectedCharacter.worgeFormModelPath ??
     null;
   const wolfFormPath = selectedCharacter.worgeWolfFormModelPath ?? null;
+  const raceKey = selectedCharacter.race ?? "human";
+  const horseMountPath = getMountedVariantGlb(raceKey);
+  const dragonMountActive = !!(
+    mountedPet && DRAGON_STAGES[mountedPet.stage].mountable
+  );
+  const dragonMountPath = dragonMountActive
+    ? getDragonModelPath(mountedPet!.stage)
+    : null;
+  const dragonTargetHeight = dragonMountActive
+    ? DRAGON_STAGES[mountedPet!.stage].targetHeight
+    : charHeight;
+
   const formModelPath =
-    worgeForm === "bear" && bearFormPath
-      ? bearFormPath
-      : worgeForm === "wolf" && wolfFormPath
-        ? wolfFormPath
-        : selectedCharacter.modelPath;
+    mountedPet && dragonMountPath
+      ? dragonMountPath
+      : horseMounted && horseMountPath
+        ? horseMountPath
+        : worgeForm === "bear" && bearFormPath
+          ? bearFormPath
+          : worgeForm === "wolf" && wolfFormPath
+            ? wolfFormPath
+            : selectedCharacter.modelPath;
 
   // Migrated to the new controller pipeline: speed-driven locomotion blend
   // tree (idle ↔ walk ↔ run ↔ sprint) plus a bone-masked upper-body combat
@@ -377,7 +412,7 @@ function PlayerModel({
   // useCharacterModel so the rest of this component is unchanged.
   const controller = useCharacterController({
     modelPath: formModelPath,
-    targetHeight: charHeight,
+    targetHeight: dragonTargetHeight,
     materialColorOverrides: matOverrides,
     weaponType: activeWeaponType,
     // Always load the basic-gestures pack on the player so all 15 numpad
@@ -393,6 +428,18 @@ function PlayerModel({
     scene, playAnimation, update, setMovementSpeed, transitionLock, rightHand, leftHand, head,
     sendEvent: sendCharEvent, setGrounded: setCharGrounded, bounds: measuredBounds,
   } = controller;
+
+  const dragonTintKeyRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!dragonMountActive || !mountedPet || !scene) {
+      dragonTintKeyRef.current = null;
+      return;
+    }
+    const key = `${mountedPet.id}:${mountedPet.color}`;
+    if (dragonTintKeyRef.current === key) return;
+    applyDragonTint(scene, mountedPet.color);
+    dragonTintKeyRef.current = key;
+  }, [dragonMountActive, mountedPet, scene]);
 
   // Impact flinch controller — procedural bone-level recoil on damage.
   const playerFlinchRef = useRef<ImpactFlinchController | null>(null);
@@ -724,8 +771,8 @@ function PlayerModel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [scene, rightHand, leftHand, selectedCharacter.weaponRight, selectedCharacter.weaponLeft, selectedCharacter.weaponModelRight, selectedCharacter.weaponModelLeft]);
 
-  // Attach back-strap accessories (e.g. quiver / arrow bag) to the spine bone
-  // looked up via `SPINE2_ALIASES`. Same lifecycle pattern as the hand-weapon
+  // Attach back accessories: quivers → Quiver_container, others → back slot.
+  // Never Bone_bag / Bone_wood (utility carry bones).
   // effect above: clear any existing accessory child, asynchronously load the
   // GLB, then add it to the bone — bailing out if either the character's
   // `backAccessoryId` changes mid-load (cancelled) or the bone vanishes
@@ -733,7 +780,8 @@ function PlayerModel({
   useEffect(() => {
     if (!scene) return;
     const accId = selectedCharacter.backAccessoryId;
-    const backBone = findBoneByAlias(scene, SPINE2_ALIASES);
+    const isQuiver = !!accId && (accId.includes("arrow") || accId.includes("quiver"));
+    const backBone = resolveAttachmentBone(scene, isQuiver ? "quiver" : "backAccessory");
     if (!backBone) return;
 
     const ACCESSORY_NAME_PREFIX = "back_accessory_";
@@ -939,23 +987,26 @@ function PlayerModel({
   const cheatsNoClip = useCheats((s) => s.noClip);
   const flyActive = cheatsEnabled && cheatsFly;
   const noClipActive = cheatsEnabled && cheatsNoClip;
+  // Dragon mount (stage 4+) uses the same zero-gravity flight model as F8 fly.
+  const zeroGravityActive = flyActive || dragonMountActive;
 
-  // Gravity scale follows fly mode. We restore to 1 on release so the
-  // player resumes normal falling. Skips while no rb is mounted (re-key
-  // window) — the next mount sees the prop's default and the effect
-  // re-fires when rbRef populates because the `flyActive` dep is stable
-  // until the user toggles. We also re-zero the velocity on release so
-  // the player doesn't keep coasting at fly speed under gravity.
+  // Gravity scale follows fly cheat or dragon mount. Restored on release so
+  // the player resumes normal falling. Re-zero velocity on release so the
+  // body doesn't coast at fly speed under gravity.
   useEffect(() => {
     const rb = rbRef.current;
     if (!rb) return;
-    rb.setGravityScale(flyActive ? 0 : 1, true);
-    if (!flyActive) {
-      // Drop residual fly velocity so the player isn't launched.
+    rb.setGravityScale(zeroGravityActive ? 0 : 1, true);
+    if (!zeroGravityActive) {
       rb.setLinvel({ x: 0, y: 0, z: 0 }, true);
       lastVel.current[0] = 0; lastVel.current[1] = 0; lastVel.current[2] = 0;
     }
-  }, [flyActive]);
+  }, [zeroGravityActive]);
+
+  // Promote stage-3 juveniles → stage-4 mountable adults at character level 20.
+  useEffect(() => {
+    checkLevelGate(level);
+  }, [level, checkLevelGate]);
 
   // No-clip flips the capsule collider's collision groups so it neither
   // solves nor reports contacts. Restored on release using the original
@@ -1525,6 +1576,26 @@ function PlayerModel({
         }
       }
 
+      // KeyM → toggle mount: dragon (stage 4+, any race/class) takes priority.
+      if (e.code === "KeyM") {
+        if (mountedPet) {
+          dismountPet(mountedPet.id);
+          setHorseMounted(false);
+          return;
+        }
+        if (activePet && DRAGON_STAGES[activePet.stage].mountable) {
+          if (mountPet(activePet.id)) {
+            setHorseMounted(false);
+            setWorgeForm("human");
+            return;
+          }
+        }
+        if (horseMountPath) {
+          setHorseMounted((prev) => !prev);
+        }
+        return;
+      }
+
       // Class ability "R" → secondary class ability (cooldown classAbility2).
       if (e.code === "KeyR") {
         const cdReady = useGame.getState().skillCooldowns.classAbility2 <= 0;
@@ -1791,10 +1862,15 @@ function PlayerModel({
     // Animator/mixer ticked above so idle / T-pose still play.
     {
       const c = useCheats.getState();
-      if (c.enabled && c.flyMode) {
+      const cheatFly = c.enabled && c.flyMode;
+      const dragonFly = dragonMountActive && !cheatFly;
+      if (cheatFly || dragonFly) {
         const flyKeys = getKeys() as Record<string, boolean>;
-        const FLY_BASE = 9;
-        const FLY_SPRINT = 22;
+        const dragonSpeed = dragonFly && mountedPet
+          ? DRAGON_STAGES[mountedPet.stage].stats.speed
+          : 9;
+        const FLY_BASE = dragonFly ? dragonSpeed : 9;
+        const FLY_SPRINT = dragonFly ? dragonSpeed * 2.2 : 22;
         const speed = flyKeys.sprint ? FLY_SPRINT : FLY_BASE;
         let mvX = 0, mvZ = 0, mvY = 0;
         if (flyKeys.forward) mvZ -= 1;
@@ -1823,6 +1899,9 @@ function PlayerModel({
         if (modelRef.current) modelRef.current.position.set(px, py, pz);
         onPositionUpdate(playerPos.current);
         updateGrassPlayerPosition(px, py, pz);
+        if (dragonFly) {
+          setMovementSpeed(speed / FLY_BASE);
+        }
         useChargeHud.getState().clear();
         return;
       }
@@ -2293,14 +2372,16 @@ function PlayerModel({
       ["gesture14", "gesture_no_shake"],
       ["gesture15", "gesture_weight_shift"],
     ];
+    const gestureAllowed =
+      isGrounded.current &&
+      !inWater &&
+      hitAnimTimer.current <= 0 &&
+      transitionLock.current <= 0 &&
+      !fidgetInFlight.current &&
+      (preInputState === "idle" || preInputState === "blocking");
+
     for (const [keyName, anim] of gestureMap) {
-      if (keys[keyName] && !prevKeys.current[keyName]
-          && hitAnimTimer.current <= 0
-          && transitionLock.current <= 0
-          && isGrounded.current
-          && !inWater
-          && preInputState === "idle"
-          && !fidgetInFlight.current) {
+      if (keys[keyName] && !prevKeys.current[keyName] && gestureAllowed) {
         fidgetInFlight.current = true;
         controller.triggerOverride(anim);
         // Reset the ambient idle-fidget timer so a manual emote doesn't
@@ -2966,8 +3047,15 @@ function PlayerModel({
         }
         setLinvel(desiredVx, liftVy, desiredVz);
 
-        const angle = Math.atan2(moveDir.x, moveDir.z);
-        modelRef.current.rotation.y = angle;
+        const backpedal = keys.backward && !keys.forward;
+        const velAngle = Math.atan2(moveDir.x, moveDir.z);
+        // Sprint and backpedal keep camera-facing so S+Shift never snaps 180°.
+        const faceAngle = (canSprint || backpedal) ? getCameraYaw() : velAngle;
+        modelRef.current.rotation.y = smoothFaceY(
+          modelRef.current.rotation.y,
+          faceAngle,
+          delta,
+        );
       } else if (currentCombatState === "idle" || currentCombatState === "blocking") {
         // Lighter explicit decel — friction now does most of the work
         // through real Rapier contacts. We still nudge horizontal velocity
@@ -2980,15 +3068,18 @@ function PlayerModel({
       if (hitAnimTimer.current <= 0 && transitionLock.current <= 0) {
         if (currentCombatState === "idle" || currentCombatState === "falling") {
           if (isGrounded.current) {
+            const backpedal = keys.backward && !keys.forward;
             if (canSprint) {
-              if (lastAnimPlayed.current !== "sprint") {
-                playAnimation("sprint");
-                lastAnimPlayed.current = "sprint";
+              const sprintAnim: AnimationState = backpedal ? "run_backward" : "sprint";
+              if (lastAnimPlayed.current !== sprintAnim) {
+                playAnimation(sprintAnim);
+                lastAnimPlayed.current = sprintAnim;
               }
             } else if (moving) {
-              if (lastAnimPlayed.current !== "run") {
-                playAnimation("run");
-                lastAnimPlayed.current = "run";
+              const moveAnim: AnimationState = backpedal ? "run_backward" : "run";
+              if (lastAnimPlayed.current !== moveAnim) {
+                playAnimation(moveAnim);
+                lastAnimPlayed.current = moveAnim;
               }
             } else {
               if (lastAnimPlayed.current !== "idle") {

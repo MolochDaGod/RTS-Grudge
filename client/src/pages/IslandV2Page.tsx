@@ -1,5 +1,12 @@
+import { useState } from "react";
 import { useGame } from "@/lib/stores/useGame";
 import { useCampaign } from "@/lib/stores/useCampaign";
+import { useIslandWorld } from "@/lib/stores/useIslandWorld";
+import {
+  exportRtsIslandToHome,
+  WARLORDS_HOME_ISLAND_URL,
+} from "@/lib/island/homeIslandApi";
+import { hasValidToken, redirectToLogin } from "@/lib/auth/GrudgeSession";
 
 const FONTS = {
   title: "'MorkDungeon', 'Cinzel', serif",
@@ -20,6 +27,10 @@ export default function IslandV2Page() {
     selectedCharacter,
   } = useGame();
   const startCampaign = useCampaign(s => s.startCampaign);
+  const homeIsland = useIslandWorld(s => s.islands.get("island_0_0"));
+  const [exportStatus, setExportStatus] = useState<"idle" | "working" | "done" | "error">("idle");
+  const [exportMessage, setExportMessage] = useState<string | null>(null);
+  const [exportedUrl, setExportedUrl] = useState<string | null>(null);
 
   const handleQuickStart = () => {
     // Enter island directly with current character (skips intro)
@@ -31,6 +42,32 @@ export default function IslandV2Page() {
     startCampaign();
     useGame.setState({ inTutorialIsland: true });
     goToCharacterSelect();
+  };
+
+  const handleExportToWarlords = async () => {
+    if (!hasValidToken()) {
+      redirectToLogin(window.location.href, "Export your island to Grudge Warlords");
+      return;
+    }
+    if (!homeIsland) return;
+
+    setExportStatus("working");
+    setExportMessage(null);
+    setExportedUrl(null);
+
+    const result = await exportRtsIslandToHome(homeIsland);
+    if (result.ok) {
+      setExportStatus("done");
+      setExportMessage(
+        result.initialized
+          ? `Island exported (UUID ${result.homeIslandId?.slice(0, 8)}…). Open Warlords to play your home island.`
+          : `Island saved. Finish setup on Warlords home island.`,
+      );
+      setExportedUrl(result.warlordsUrl);
+    } else {
+      setExportStatus("error");
+      setExportMessage(result.error ?? "Export failed");
+    }
   };
 
   return (
@@ -97,6 +134,60 @@ export default function IslandV2Page() {
           <div style={{ fontSize: 10, color: "#6a9a7a", textTransform: "capitalize" }}>
             {selectedCharacter.combatClass} — {selectedCharacter.weaponRight}
           </div>
+        </div>
+
+        {/* Export to Warlords home island */}
+        <div style={{
+          padding: "14px 18px", borderRadius: 10, marginBottom: 20,
+          background: "rgba(246,201,69,.05)", border: "1px solid rgba(246,201,69,.2)",
+          width: "100%", maxWidth: 420, textAlign: "left",
+        }}>
+          <div style={{ fontSize: 8, color: "#f6c945", textTransform: "uppercase", letterSpacing: "2px", fontFamily: FONTS.header }}>
+            SYNC TO WARLORDS
+          </div>
+          <p style={{ fontSize: 11, color: "#8a8a7a", lineHeight: 1.5, margin: "8px 0 12px" }}>
+            Generate your procedural home island here, then export it to{" "}
+            <a href={WARLORDS_HOME_ISLAND_URL} target="_blank" rel="noreferrer" style={{ color: "#f6c945" }}>
+              grudgewarlords.com/home-island
+            </a>{" "}
+            with your account UUID, D1 state, and map storage.
+          </p>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button
+              onClick={handleExportToWarlords}
+              disabled={exportStatus === "working"}
+              style={{
+                padding: "8px 16px", fontSize: 10, fontWeight: 700, borderRadius: 6,
+                fontFamily: FONTS.header, letterSpacing: "1px", cursor: exportStatus === "working" ? "wait" : "pointer",
+                background: "rgba(246,201,69,.12)", border: "1px solid rgba(246,201,69,.35)", color: "#f6c945",
+                opacity: exportStatus === "working" ? 0.6 : 1,
+              }}
+            >
+              {exportStatus === "working" ? "EXPORTING…" : "EXPORT HOME ISLAND"}
+            </button>
+            {exportedUrl && (
+              <a
+                href={exportedUrl}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  padding: "8px 16px", fontSize: 10, fontWeight: 700, borderRadius: 6,
+                  fontFamily: FONTS.header, letterSpacing: "1px", textDecoration: "none",
+                  background: "rgba(107,220,139,.12)", border: "1px solid rgba(107,220,139,.35)", color: "#6bdc8b",
+                }}
+              >
+                OPEN WARLORDS →
+              </a>
+            )}
+          </div>
+          {exportMessage && (
+            <p style={{
+              fontSize: 10, marginTop: 10, lineHeight: 1.4,
+              color: exportStatus === "error" ? "#ff8a7a" : "#9aa3c7",
+            }}>
+              {exportMessage}
+            </p>
+          )}
         </div>
 
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>

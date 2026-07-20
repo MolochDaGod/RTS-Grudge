@@ -56,7 +56,51 @@ const KIND_COLOR: Record<PlacedEntity['kind'], string> = {
   creature: '#ffd24d',
   resource_node: '#7df2ff',
   dock: '#7a5429',
+  nav_waypoint: '#5f9fff',
+  dungeon_entrance: '#9b59b6',
 };
+
+function DungeonEntrance() {
+  const archMat = useMemo(() => new THREE.MeshStandardMaterial({
+    color: '#3a2f28', roughness: 0.88, metalness: 0.05,
+  }), []);
+  const glowMat = useMemo(() => new THREE.MeshStandardMaterial({
+    color: '#6a3dff', emissive: '#4a1fcc', emissiveIntensity: 0.9,
+    roughness: 0.3, metalness: 0.2,
+  }), []);
+  return (
+    <group>
+      <mesh position={[-1.1, 1.2, 0]} material={archMat} castShadow receiveShadow>
+        <boxGeometry args={[0.9, 2.4, 1.2]} />
+      </mesh>
+      <mesh position={[1.1, 1.2, 0]} material={archMat} castShadow receiveShadow>
+        <boxGeometry args={[0.9, 2.4, 1.2]} />
+      </mesh>
+      <mesh position={[0, 2.5, 0]} material={archMat} castShadow>
+        <boxGeometry args={[2.6, 0.7, 1.4]} />
+      </mesh>
+      <mesh position={[0, 1.1, 0.15]} material={glowMat}>
+        <planeGeometry args={[1.4, 2.0]} />
+      </mesh>
+      <pointLight color="#8b5cf6" intensity={1.2} distance={8} position={[0, 1.5, 0.5]} />
+    </group>
+  );
+}
+
+function SpellMarkerOrb() {
+  const mat = useMemo(() => new THREE.MeshStandardMaterial({
+    color: '#c34dff', emissive: '#9b2fff', emissiveIntensity: 0.85,
+    roughness: 0.2, metalness: 0.35, transparent: true, opacity: 0.92,
+  }), []);
+  return (
+    <group>
+      <mesh material={mat} castShadow>
+        <icosahedronGeometry args={[0.55, 1]} />
+      </mesh>
+      <pointLight color="#c34dff" intensity={0.6} distance={6} />
+    </group>
+  );
+}
 
 function EntityBody({ entity }: { entity: PlacedEntity }) {
   // Resolve the best available asset URL:
@@ -191,6 +235,20 @@ function EntityBody({ entity }: { entity: PlacedEntity }) {
         />
       );
     }
+
+    case 'dungeon_entrance':
+      return <DungeonEntrance />;
+
+    case 'spell_marker':
+      return <SpellMarkerOrb />;
+
+    case 'nav_waypoint':
+      return (
+        <mesh>
+          <sphereGeometry args={[0.35, 8, 8]} />
+          <meshBasicMaterial color="#5f9fff" transparent opacity={0.55} />
+        </mesh>
+      );
 
     // ─ Editor-only markers ──────────────────────────────────────
     default: return <FallbackBox kind={entity.kind} />;
@@ -332,8 +390,14 @@ export function EntityLayer() {
   // In Play mode the runtime layer (PlayModeCreatures) renders creatures
   // — hide the static spawn meshes so we don't double-up.
   const entities = playMode
-    ? allEntities.filter((e) => e.kind !== 'creature')
-    : allEntities;
+    ? allEntities.filter((e) =>
+        e.kind !== 'creature'
+        && e.kind !== 'nav_waypoint'
+        && !e.data.forestZone)
+    : allEntities.filter((e) =>
+        e.kind !== 'creature'
+        && e.kind !== 'nav_waypoint'
+        && !e.data.forestZone);
 
   // We re-read the entity list on each render; using entityRev as a key
   // hint avoids React reusing stale group children when arrays mutate.

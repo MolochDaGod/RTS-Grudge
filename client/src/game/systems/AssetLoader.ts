@@ -298,6 +298,49 @@ function isFbxPath(path: string): boolean {
  *    shader compilation failures with the R3F pipeline.
  * 4. Enable shadow casting on all meshes.
  */
+function bakeFbxCentimeterScale(fbxScene: THREE.Group): void {
+  const sx = fbxScene.scale.x;
+  const sy = fbxScene.scale.y;
+  const sz = fbxScene.scale.z;
+  if (
+    Math.abs(sx - 1) < 1e-4 &&
+    Math.abs(sy - 1) < 1e-4 &&
+    Math.abs(sz - 1) < 1e-4
+  ) {
+    return;
+  }
+
+  const scale = new THREE.Vector3(sx, sy, sz);
+  fbxScene.updateMatrixWorld(true);
+
+  fbxScene.traverse((child) => {
+    if (child === fbxScene) return;
+    child.position.multiply(scale);
+    child.scale.multiply(scale);
+    const mesh = child as THREE.Mesh;
+    if (mesh.isMesh && mesh.geometry) {
+      mesh.geometry = mesh.geometry.clone();
+      mesh.geometry.scale(scale.x, scale.y, scale.z);
+    }
+  });
+
+  const clips = fbxScene.animations ?? [];
+  for (const clip of clips) {
+    for (const track of clip.tracks) {
+      if (!track.name.endsWith(".position")) continue;
+      const values = track.values as Float32Array | number[];
+      for (let i = 0; i < values.length; i += 3) {
+        values[i] *= sx;
+        values[i + 1] *= sy;
+        values[i + 2] *= sz;
+      }
+    }
+  }
+
+  fbxScene.scale.set(1, 1, 1);
+  fbxScene.updateMatrixWorld(true);
+}
+
 function wrapFbxAsGltf(fbxScene: THREE.Group, path: string): GLTF {
   // Bake FBX unit scale into the scene matrix so children are in metres.
   // FBXLoader sets fbxScene.scale to 0.01 for centimetre-unit files.
@@ -305,6 +348,7 @@ function wrapFbxAsGltf(fbxScene: THREE.Group, path: string): GLTF {
   // bounding box and scales the mesh to 0.01, then the retargeter's
   // root-chain position tracks (which are in cm) launch the character
   // 100x off the ground.
+  bakeFbxCentimeterScale(fbxScene);
   fbxScene.updateMatrixWorld(true);
 
   fbxScene.traverse((child) => {

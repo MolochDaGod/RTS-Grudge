@@ -31,6 +31,13 @@ interface IslandWorldState {
   stopSailing: () => void;
   setBoatPosition: (pos: [number, number, number]) => void;
   discoverIsland: (id: string) => void;
+  /** Wire fleet home island (from RTS create → grudgewarlords host) into world grid. */
+  registerFleetHomeIsland: (data: {
+    id: string;
+    name: string;
+    seed: number;
+    biome: IslandBiome;
+  }) => void;
 }
 
 const BIOMES: IslandBiome[] = ["temperate", "tropical", "volcanic", "arctic", "pirate", "cursed"];
@@ -147,6 +154,28 @@ export const useIslandWorld = create<IslandWorldState>((set, get) => ({
     }
     return {};
   }),
+
+  registerFleetHomeIsland: ({ id, name, seed, biome }) => {
+    const fleetHome: IslandData = {
+      id,
+      name,
+      gridX: 0,
+      gridZ: 0,
+      seed,
+      biome,
+      discovered: true,
+      hasShop: true,
+      hasDungeon: true,
+      dungeonLevel: 1,
+      enemyTypes: BIOME_ENEMIES[biome],
+    };
+    set(s => {
+      const newMap = new Map(s.islands);
+      newMap.set(id, fleetHome);
+      newMap.set('island_0_0', fleetHome);
+      return { islands: newMap, currentIslandId: id };
+    });
+  },
 }));
 
 export const ISLAND_SIZE = 200;

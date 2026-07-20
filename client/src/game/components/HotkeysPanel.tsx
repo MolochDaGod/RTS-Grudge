@@ -35,6 +35,16 @@ const KEY_GROUPS: KeyGroup[] = [
     ],
   },
   {
+    title: "Drake Mount & Flight",
+    keys: [
+      { action: "Mount / Dismount Drake", key: "M", color: "#ff6622" },
+      { action: "Fly (mounted)", key: "W A S D", color: "#ff9944" },
+      { action: "Ascend", key: "SPACE", color: "#ff9944" },
+      { action: "Descend", key: "CTRL", color: "#ff9944" },
+      { action: "Sprint (mounted)", key: "SHIFT", color: "#ff9944" },
+    ],
+  },
+  {
     title: "Combat",
     keys: [
       { action: "Attack", key: "LMB", color: "#e74c3c" },

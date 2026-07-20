@@ -15,17 +15,21 @@ import DeathScreen from "./game/DeathScreen";
 import PauseMenu from "./game/PauseMenu";
 import AdminPanel from "./admin/AdminPanel";
 import { AutoSaveController } from "./lib/save/useAutoSave";
+import { loadHomeIslandSession } from "./lib/homeIslandSession";
+import { useIslandWorld } from "./lib/stores/useIslandWorld";
 import WeaponOffsetTuner from "./game/WeaponOffsetTuner";
 import CheatsHUD from "./game/cheats/CheatsHUD";
 import { TerrainDebugHUD } from "./game/cheats/TerrainDebugHUD";
 import { StreamedColliderStatsHUD } from "./game/cheats/StreamedColliderDebugOverlay";
 import "@fontsource/inter";
+import { fetchUiArt } from "./lib/data/uiArt";
 
-const ForgeEmbed = lazy(() => import("./game/editor/ForgeEmbed"));
 const ControllerPage = lazy(() => import("./game/controller/ControllerPage"));
 const HomePage = lazy(() => import("./pages/HomePage"));
 const Combat2DPage = lazy(() => import("./pages/Combat2DPage"));
 const IslandV2Page = lazy(() => import("./pages/IslandV2Page"));
+const HomeIslandCreatePage = lazy(() => import("./pages/HomeIslandCreatePage"));
+const HomeIslandHostRedirect = lazy(() => import("./pages/HomeIslandHostRedirect"));
 const WalletPage = lazy(() => import("./pages/WalletPage"));
 
 // ── URL ↔ Phase map ──────────────────────────────────────────────────────────
@@ -38,7 +42,6 @@ const PHASE_TO_PATH: Partial<Record<GamePhase, string>> = {
   characterSelect: "/character",
   playing:         "/play",
   admin:           "/admin",
-  forge:           "/forge",
   controller:      "/controller",
   combat2d:        "/combat",
   islandV2:        "/island-v2",
@@ -50,9 +53,25 @@ function App() {
   const {
     phase, togglePanel, closePanel, pause, resume,
     inDungeon, inHousing, inTutorialIsland, restart,
-    goToHome, goToController, goToCharacterSelect, goToAdmin, goToForge,
+    goToHome, goToController, goToCharacterSelect, goToAdmin,
     goToCombat2d, goToIslandV2, goToWallet,
   } = useGame();
+
+  useEffect(() => {
+    void fetchUiArt();
+  }, []);
+
+  useEffect(() => {
+    const session = loadHomeIslandSession();
+    if (session) {
+      useIslandWorld.getState().registerFleetHomeIsland({
+        id: session.id,
+        name: session.name,
+        seed: session.seed,
+        biome: 'temperate',
+      });
+    }
+  }, []);
 
   // ── URL → Phase (on first mount) ─────────────────────────────────────────
   // Handles direct visits, bookmarks, and auth-redirects (e.g. id.grudge-studio.com
@@ -63,12 +82,11 @@ function App() {
       "/home":       goToHome,
       "/character":  goToCharacterSelect,
       "/admin":      goToAdmin,
-      "/forge":      goToForge,
       "/controller": goToController,
       "/combat":     goToCombat2d,
       "/combat2d":   goToCombat2d,    // alias
-      "/island":     goToIslandV2,    // intuitive alias
       "/island-v2":  goToIslandV2,
+      "/survival":   goToIslandV2,
       "/wallet":     goToWallet,
       "/play":       () => restart(),  // direct /play → start game
     };
@@ -144,6 +162,22 @@ function App() {
   const fadeColor = useGameFlow((s) => s.fadeColor);
   const fadePhase = useGameFlow((s) => s.fadePhase);
 
+  if (location === "/island") {
+    return (
+      <div style={{ width: "100vw", height: "100vh", position: "relative", overflow: "hidden" }}>
+        <Suspense fallback={null}><HomeIslandCreatePage /></Suspense>
+      </div>
+    );
+  }
+
+  if (location === "/home-island") {
+    return (
+      <div style={{ width: "100vw", height: "100vh", position: "relative", overflow: "hidden" }}>
+        <Suspense fallback={null}><HomeIslandHostRedirect /></Suspense>
+      </div>
+    );
+  }
+
   return (
     <div style={{ width: "100vw", height: "100vh", position: "relative", overflow: "hidden" }}>
       <AutoSaveController />
@@ -180,19 +214,6 @@ function App() {
         <Suspense fallback={null}><IslandV2Page /></Suspense>
       )}
       {phase === "admin" && <AdminPanel onClose={restart} />}
-      {phase === "forge" && (
-        <Suspense fallback={
-          <div style={{
-            position: "fixed", inset: 0, background: "#0d1117",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            color: "#8b949e", fontSize: 14, fontFamily: "Inter, sans-serif",
-          }}>
-            Loading Grudge Studio Forge...
-          </div>
-        }>
-          <ForgeEmbed />
-        </Suspense>
-      )}
       {phase === "wallet" && (
         <Suspense fallback={null}><WalletPage /></Suspense>
       )}

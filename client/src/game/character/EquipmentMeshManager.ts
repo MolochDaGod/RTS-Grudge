@@ -25,6 +25,11 @@ import {
   type SlotDefinition,
   type BoneContainerKey,
 } from "./FactionCharacterRegistry";
+import { resolveAttachmentBone, ensureBackSlotBone } from "../systems/BoneAliases";
+import {
+  clearHelmetFaceClip,
+  syncBodyFaceClip,
+} from "./helmetFaceClip";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -71,6 +76,8 @@ export class EquipmentMeshManager {
   bones: Partial<Record<BoneContainerKey, THREE.Object3D>> = {};
   /** External weapon models attached to bone containers */
   private externalWeapons: Map<BoneContainerKey, THREE.Object3D> = new Map();
+  /** Body slot meshes — face clip targets when a helmet is equipped */
+  private bodyMeshes: THREE.Mesh[] = [];
 
   constructor(prefix: RacePrefix | string = "") {
     this.prefix = prefix;
@@ -92,10 +99,20 @@ export class EquipmentMeshManager {
     this.slots.clear();
     this.equipped.clear();
     this.allMeshes = [];
+    this.bodyMeshes = [];
 
-    // Discover bone containers
+    // Synthesize Back_slot_container on rigs that only ship utility bones.
+    ensureBackSlotBone(root);
+
+    // Discover bone containers (Bip001 + Mixamo-safe fallbacks)
     for (const [key, boneName] of Object.entries(BONE_CONTAINERS)) {
-      const bone = root.getObjectByName(boneName) ?? null;
+      let bone = root.getObjectByName(boneName) ?? null;
+      if (!bone) {
+        if (key === "backSlot") bone = resolveAttachmentBone(root, "backWeapon");
+        else if (key === "quiver") bone = resolveAttachmentBone(root, "quiver");
+        else if (key === "bag") bone = resolveAttachmentBone(root, "bag");
+        else if (key === "wood") bone = resolveAttachmentBone(root, "wood");
+      }
       if (bone) this.bones[key as BoneContainerKey] = bone;
     }
 
@@ -127,6 +144,9 @@ export class EquipmentMeshManager {
         child.userData.equipVariant = variant;
         child.userData.equipGroup = def.group;
         this.allMeshes.push({ mesh: child, slot: def.slot, variant, group: def.group });
+        if (def.slot === "body" && (child as THREE.Mesh).isMesh) {
+          this.bodyMeshes.push(child as THREE.Mesh);
+        }
 
         // Start hidden — autoEquipDefaults() will show the base set
         child.visible = false;
@@ -135,7 +155,22 @@ export class EquipmentMeshManager {
     });
 
     this.autoEquipDefaults();
+    this.syncFaceClip();
     return this.getSlotSummary();
+  }
+
+  /** BRB: strip misplaced body eyes; other races: hide face under helmet. */
+  syncFaceClip(): void {
+    syncBodyFaceClip(this.bodyMeshes, this.prefix, this.isHeadEquipped());
+  }
+
+  private isHeadEquipped(): boolean {
+    const variants = this.slots.get("head");
+    if (!variants) return false;
+    for (const mesh of variants.values()) {
+      if (mesh.visible) return true;
+    }
+    return false;
   }
 
   /**
@@ -212,6 +247,7 @@ export class EquipmentMeshManager {
       }
     }
     this.equipped.set(slot, variant);
+    if (slot === "head" || slot === "body") this.syncFaceClip();
     return true;
   }
 
@@ -223,6 +259,7 @@ export class EquipmentMeshManager {
       mesh.visible = false;
     }
     this.equipped.delete(slot);
+    if (slot === "head" || slot === "body") this.syncFaceClip();
   }
 
   /** Toggle a slot variant on/off */
@@ -415,6 +452,7 @@ export class EquipmentMeshManager {
     for (const entry of this.allMeshes) {
       entry.mesh.visible = true;
     }
+    this.syncFaceClip();
   }
 
   /** Hide all meshes */
@@ -422,6 +460,7 @@ export class EquipmentMeshManager {
     for (const entry of this.allMeshes) {
       entry.mesh.visible = false;
     }
+    this.syncFaceClip();
   }
 
   /** Restore default material on all meshes */
@@ -436,10 +475,14 @@ export class EquipmentMeshManager {
 
   /** Cleanup — remove all external weapons and clear state */
   dispose() {
+    for (const mesh of this.bodyMeshes) {
+      clearHelmetFaceClip(mesh);
+    }
     this.detachAllExternalWeapons();
     this.slots.clear();
     this.equipped.clear();
     this.allMeshes = [];
+    this.bodyMeshes = [];
     this.bones = {};
     this.root = null;
   }

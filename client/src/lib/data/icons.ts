@@ -1,4 +1,5 @@
 import type { FactionId } from "./factions";
+import { getRacePortrait as getHeroRacePortrait } from "./artAssets";
 
 export const ICON_BASE = "/icons/grudge";
 
@@ -41,19 +42,9 @@ export function getRaceFaction(race: IconRace): Exclude<FactionId, "pirate"> {
   return RACE_TO_FACTION[race];
 }
 
-// Race "portrait" defaults — pick the warrior of each race so the player
-// instantly reads the silhouette in tiles & badges.
-const RACE_PORTRAIT_FILE: Record<IconRace, string> = {
-  human: "Human Warrior.png",
-  barbarian: "barb warrior.png",
-  dwarf: "dwarf warrior.png",
-  elf: "elf warrior.png",
-  orc: "orc warrior.png",
-  undead: "undead warrior.png",
-};
-
+// Hero Forge / roster portraits — canonical hero art from class-selector.html.
 export function getRacePortrait(race: IconRace): string {
-  return enc(`${ICON_BASE}/entities/${RACE_PORTRAIT_FILE[race]}`);
+  return getHeroRacePortrait(race);
 }
 
 // Per (race, archetype) entity portraits. Archetype keys mirror the file

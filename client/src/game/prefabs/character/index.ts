@@ -32,6 +32,7 @@ export type {
 } from "./types";
 
 export { DEFAULT_STATS } from "./types";
+export { normalizeStatsAllocation, statsAllocationToPrimary, computePrefabDerivedStats } from "./statsBridge";
 
 // Constants
 export {

@@ -25,6 +25,7 @@ import {
   type PlayerCharacterSpec,
 } from '../library/PlayerCharacterRegistry';
 import type { LocomotionState } from '../editor/store';
+import { stripUnarmedEquipment } from '../lib/raceEquipment';
 
 interface Bundle {
   scene: THREE.Group;
@@ -34,7 +35,10 @@ interface Bundle {
 const bundleCache = new Map<string, Promise<Bundle>>();
 
 function getBundle(spec: PlayerCharacterSpec): Promise<Bundle> {
-  const key = spec.baseKey;
+  // Include clip map so adding swim/tread clips busts the cache correctly.
+  const key = spec.layout === 'split'
+    ? `${spec.baseKey}|${JSON.stringify(spec.splitClips ?? {})}`
+    : spec.baseKey;
   let p = bundleCache.get(key);
   if (p) return p;
 
@@ -83,10 +87,18 @@ function pickClip(
 
   // 2) Keyword fallback.
   const keywords =
-    state === 'idle'   ? ['idle', 'stand', 'loop'] :
-    state === 'walk'   ? ['walk', 'move', 'jog']    :
-    state === 'run'    ? ['run', 'sprint', 'walk', 'move'] :
-    state === 'attack' ? ['attack', 'swing', 'cast'] :
+    state === 'idle'         ? ['idle', 'stand', 'loop'] :
+    state === 'walk'         ? ['walk', 'move', 'jog']    :
+    state === 'run'          ? ['run', 'sprint', 'walk', 'move'] :
+    state === 'attack'       ? ['attack', 'swing', 'cast'] :
+    state === 'swim'         ? ['swim', 'swimming'] :
+    state === 'tread'        ? ['tread', 'treading', 'float', 'swim_idle', 'idle'] :
+    state === 'swim_to_edge' ? ['edge', 'swim_to', 'climb', 'exit', 'swim'] :
+    state === 'climb'        ? ['climb', 'climbing', 'ladder'] :
+    state === 'climb_idle'   ? ['climb_idle', 'hang', 'idle', 'climb'] :
+    state === 'climb_down'   ? ['climb_down', 'climb', 'climbing', 'ladder'] :
+    state === 'climb_shimmy' ? ['shimmy', 'climb', 'climbing'] :
+    state === 'climb_topout' ? ['topout', 'top_out', 'climb', 'pull'] :
     [state];
   for (const kw of keywords) {
     const i = lower.findIndex((n) => n.includes(kw));
@@ -129,7 +141,9 @@ export function PlayerCharacter({
 
   const cloned = useMemo(() => {
     if (!bundle || !spec) return null;
-    return SkeletonUtils.clone(bundle.scene);
+    const inst = SkeletonUtils.clone(bundle.scene);
+    if (spec.unarmed) stripUnarmedEquipment(inst);
+    return inst;
   }, [bundle, spec]);
 
   const mixer = useMemo(
@@ -144,8 +158,18 @@ export function PlayerCharacter({
     const clip = pickClip(bundle.animations, spec, state);
     if (!clip) return;
     const next = mixer.clipAction(clip, cloned);
-    next.timeScale = state === 'run' ? 1.2 : 1.0;
+    // Playback rate / direction per locomotion intent
+    next.timeScale =
+      state === 'run'        ? 1.2  :
+      state === 'climb_down' ? -1.0 : // reverse climb clip for descent
+      state === 'climb'      ? 1.05 :
+      state === 'climb_shimmy'? 0.85 :
+      state === 'climb_idle' ? 0.35 : // slow hang
+      1.0;
     next.reset();
+    // Reversed clips need to start at the end
+    if (next.timeScale < 0) next.time = clip.duration;
+    next.setLoop(THREE.LoopRepeat, Infinity);
     next.fadeIn(0.18);
     next.play();
     if (currentAction.current && currentAction.current !== next) {

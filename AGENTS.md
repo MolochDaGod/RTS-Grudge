@@ -51,7 +51,7 @@ server/             ← Express entry, REST routes (dev only)
 shared/             ← Drizzle schemas + zone protocols, imported by both sides
 workers/asset-api/  ← Cloudflare Worker + D1 schema for the asset registry
 scripts/            ← FBX→GLB converters, R2 upload, audits
-studio/             ← Separate Vite app (scene editor / forge embed)
+studio/             ← Grudge Studio Forge editor (R3F + Rapier + drei + mesh-bvh + TanStack Query ObjectStore browser) — `scripts/build.ts` → `dist/public/forge/`. Live: `forge.grudge-studio.com` (Vercel alias) + `rts-grudge.vercel.app/forge/`. Babylon retired fleet-wide.
 ```
 
 ## The "items + prefabs single source of truth" — work in progress

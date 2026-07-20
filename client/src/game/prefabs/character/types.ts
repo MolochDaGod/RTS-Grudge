@@ -28,19 +28,20 @@ export type RagdollPreset = "death" | "heavyHit" | "knockback" | "landImpact" | 
 // Stats allocation (8-attribute system from StatsEngine)
 // ---------------------------------------------------------------------------
 
+/** Canonical 8 attributes — STR VIT END INT WIS DEX AGI TAC (no LCK/CHA). */
 export interface StatsAllocation {
   STR: number;
   DEX: number;
   INT: number;
   VIT: number;
   WIS: number;
-  LCK: number;
-  CHA: number;
+  AGI: number;
+  TAC: number;
   END: number;
 }
 
 export const DEFAULT_STATS: StatsAllocation = {
-  STR: 20, DEX: 20, INT: 20, VIT: 20, WIS: 20, LCK: 20, CHA: 20, END: 20,
+  STR: 20, DEX: 20, INT: 20, VIT: 20, WIS: 20, AGI: 20, TAC: 20, END: 20,
 };
 
 // ---------------------------------------------------------------------------

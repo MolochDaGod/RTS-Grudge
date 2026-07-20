@@ -23,6 +23,7 @@
  * line to the CURATED array below.
  */
 import type { EntityKind } from '../types';
+import { getDynamicAssetById } from './dynamicAssets';
 
 /** Production CDN — same host as GrudgeBuilder / TI warlordsAssetCatalog */
 export const WARLORDS_CDN = 'https://assets.grudge-studio.com';
@@ -72,7 +73,8 @@ export type AssetCategory =
   | 'Ships & Docks'
   | 'Logs & Stumps'
   | 'Rocks & Gems'
-  | 'Ground Materials';
+  | 'Ground Materials'
+  | 'ObjectStore';
 
 export interface AssetSpec {
   /** Stable id used as the tile key and stored on placed entities */
@@ -561,6 +563,7 @@ export const ASSET_CATEGORIES: AssetCategory[] = [
   'Logs & Stumps',
   'Rocks & Gems',
   'Ground Materials',
+  'ObjectStore',
 ];
 
 /**
@@ -589,5 +592,6 @@ export function isPackAsset(spec: AssetSpec): boolean {
 }
 
 export function getAssetById(id: string): AssetSpec | undefined {
+  if (id.startsWith("os:")) return getDynamicAssetById(id);
   return ASSET_LIBRARY.find((a) => a.id === id);
 }

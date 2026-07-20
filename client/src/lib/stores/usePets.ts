@@ -8,7 +8,7 @@
  *   4. completeFurnaceHatch() / checkFurnaceHatch() resolves it to a hatchling.
  *   5. Pet levels through feeding and combat XP (stages 2–3).
  *   6. At player character level 20 → checkLevelGate() promotes stage-3 → stage-4 (Adult mount).
- *   7. Stage 4+ → mountPet() lets player ride the dragon (R key).
+ *   7. Stage 4+ → mountPet() lets any race/class ride the dragon (M key, flight).
  *
  * Persisted in localStorage under 'grudge_pets'.
  * Up to 5 pets per account. NFT-backed pets survive through release.
@@ -19,7 +19,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import {
   type DragonStage, type DragonColor,
   DRAGON_STAGES, getXpThreshold, canAdvanceStage,
-  getDragonModelPath,
+  getDragonModelPath, isDragonEggItem, getDragonColorFromEgg,
 } from "@/game/systems/DragonPetRegistry";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -28,8 +28,9 @@ import {
 
 export type PetType = "dragon";  // extensible for future pet types
 
-/** How long the egg cooks in the furnace before hatching (seconds) */
-export const FURNACE_COOK_SECONDS = 90;
+/** How long the egg cooks in the furnace before hatching (seconds).
+ *  uMMORPG AutoCraft "Dragon Bone" bakingTime = 600. */
+export const FURNACE_COOK_SECONDS = 600;
 
 /** Character level required to unlock stage-3 → stage-4 (Adult mount) promotion */
 export const DRAGON_ADULT_LEVEL = 20;
@@ -177,19 +178,21 @@ export const usePets = create<PetsState>()(
 
       // ── furnaceHatch ──────────────────────────────────────────────────────
       // Player places egg in furnace. Starts the cook timer.
-      furnaceHatch: (eggItemId, removeFromInventory, color = "red") => {
+      furnaceHatch: (eggItemId, removeFromInventory, color) => {
         const { pets, maxPets, furnacePending } = get();
-        // Can't hatch: already cooking, pet cap reached, or no egg
+        // Can't hatch: wrong item, already cooking, pet cap reached
+        if (!isDragonEggItem(eggItemId)) return false;
         if (furnacePending) return false;
         if (pets.length >= maxPets) return false;
 
         removeFromInventory(eggItemId, 1);
+        const hatchColor = color ?? getDragonColorFromEgg(eggItemId);
 
         const completesAt = new Date(
           Date.now() + FURNACE_COOK_SECONDS * 1000
         ).toISOString();
 
-        set({ furnacePending: { completesAt, color } });
+        set({ furnacePending: { completesAt, color: hatchColor } });
         return true;
       },
 
@@ -238,19 +241,20 @@ export const usePets = create<PetsState>()(
       },
 
       // ── hatchEgg (legacy) ─────────────────────────────────────────────────
-      hatchEgg: (eggItemId, removeFromInventory, color = "red") => {
+      hatchEgg: (eggItemId, removeFromInventory, color) => {
         const { pets, maxPets } = get();
+        if (!isDragonEggItem(eggItemId)) return null;
         if (pets.length >= maxPets) return null;
 
-        // Consume one dragon_egg from inventory
         removeFromInventory(eggItemId, 1);
+        const hatchColor = color ?? getDragonColorFromEgg(eggItemId);
 
         const newPet: PetEntry = {
           id: makePetId(),
           type: "dragon",
           name: randomDragonName(),
           stage: 2,
-          color,
+          color: hatchColor,
           xp: 0,
           feedCount: 0,
           hatchedAt: new Date().toISOString(),
@@ -332,6 +336,7 @@ export const usePets = create<PetsState>()(
       // ── mountPet ─────────────────────────────────────────────────────────
       mountPet: (petId) => {
         const pet = get().pets.find(p => p.id === petId);
+        // Canon: no race/class gate — stage 4+ mountable drakes only.
         if (!pet || !DRAGON_STAGES[pet.stage].mountable) return false;
 
         set(s => ({

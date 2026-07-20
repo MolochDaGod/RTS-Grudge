@@ -48,9 +48,14 @@ export const GRUDGE_ID_URL = trimTrailingSlash(
   viteEnv("VITE_GRUDGE_ID_URL") ?? "https://id.grudge-studio.com",
 );
 
-/** Game API — characters, saves, inventory, game-config, ObjectStore. */
+/** Identity / economy API on api.grudge-studio.com (grudge-backend VPS). */
 export const GAME_API_URL = trimTrailingSlash(
   viteEnv("VITE_GAME_API_URL") ?? "https://api.grudge-studio.com",
+);
+
+/** Warlords game-data SSOT — home islands, characters, wallet (Railway). */
+export const GAME_DATA_URL = trimTrailingSlash(
+  viteEnv("VITE_GAME_DATA_URL") ?? "https://grudge-builder-production.up.railway.app",
 );
 
 /** Account API — profiles, social, achievements. */
@@ -72,15 +77,25 @@ export const ASSETS_URL = trimTrailingSlash(
 export const ACCOUNT_URL = `${GRUDGE_ID_URL}/account`;
 
 /**
+ * Relative auth API prefix — Vercel rewrites `/api/auth/*` → api.grudge-studio.com.
+ * Use for session verify, refresh, and exchange (never hard-code id. host for these).
+ */
+export const AUTH_API = "/api/auth";
+
+/** Fleet-standard hosted sign-in page (popup + full redirect). */
+export const AUTH_PAGE_URL = `${GRUDGE_ID_URL}/api/auth/page`;
+
+/**
  * Bundle of every service URL, useful for diagnostics dumps and the
  * /admin debug panel.
  */
 export const GRUDGE_SERVICES = Object.freeze({
-  id:      GRUDGE_ID_URL,
-  api:     GAME_API_URL,
-  account: ACCOUNT_API_URL,
-  ws:      WS_URL,
-  assets:  ASSETS_URL,
+  id:       GRUDGE_ID_URL,
+  api:      GAME_API_URL,
+  gameData: GAME_DATA_URL,
+  account:  ACCOUNT_API_URL,
+  ws:       WS_URL,
+  assets:   ASSETS_URL,
 });
 
 // ---------------------------------------------------------------------------

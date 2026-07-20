@@ -49,6 +49,8 @@ export const BONE_CONTAINERS = {
   rightHand:  "R_hand_container",
   leftHand:   "L_hand_container",
   leftShield: "L_shield_container",
+  /** Sheathed weapons / generic back-slot items (NOT bag/wood/quiver). */
+  backSlot:   "Back_slot_container",
   bag:        "Bone_bag",
   wood:       "Bone_wood",
   quiver:     "Quiver_container",
@@ -71,11 +73,12 @@ export interface SlotDefinition {
 
 export const SLOT_DEFINITIONS: SlotDefinition[] = [
   // Armor slots — skinned meshes at root
-  { slot: "body",       re: /^Units_Body_([A-Z])$/i,           group: "armor" },
-  { slot: "arms",       re: /^Units_Arms_([A-Z])$/i,           group: "armor" },
-  { slot: "legs",       re: /^Units_Legs_([A-Z])$/i,           group: "armor" },
-  { slot: "head",       re: /^Units_head_([A-Z])$/i,           group: "armor" },
-  { slot: "shoulders",  re: /^Units_shoulderpads_([A-Z])$/i,   group: "armor" },
+  // Optional Units_ prefix: WK/ELF use Units_Body_A; BRB uses body_A; UD uses Units_body_A
+  { slot: "body",       re: /^(?:Units_)?[Bb]ody_([A-Z])$/i,           group: "armor" },
+  { slot: "arms",       re: /^(?:Units_)?[Aa]rms_([A-Z])$/i,           group: "armor" },
+  { slot: "legs",       re: /^(?:Units_)?[Ll]egs_([A-Z])$/i,           group: "armor" },
+  { slot: "head",       re: /^(?:Units_)?[Hh]ead_([A-Z])$/i,           group: "armor" },
+  { slot: "shoulders",  re: /^(?:Units_)?shoulderpads_([A-Z])$/i,   group: "armor" },
 
   // Right-hand weapons
   { slot: "axe",    re: /(?:Units_|weapon_)axe_([A-Z])$/i,     group: "weapon_r" },
@@ -155,6 +158,13 @@ export interface RaceConfig {
    */
   cavalryFbx?: string;
   /**
+   * Pre-baked mounted rider+mount GLB from the variant pipeline (`horse` preset).
+   * See RaceVariantRegistry.getMountedVariantGlb().
+   */
+  mountedVariantGlb?: string;
+  /** Full cavalry GLB (all equipment meshes + mount creature). */
+  cavalryGlb?: string;
+  /**
    * Optional standalone equipment FBX files (prefix-named child meshes,
    * compatible with SLOT_DEFINITIONS regex). Paths under
    * /models/grudge6/<race>/equipment/.
@@ -194,6 +204,8 @@ export const RACE_CONFIGS: Record<string, RaceConfig> = {
       feet: "legs",
     },
     cavalryFbx: `${GRUDGE6_BASE}/wk/WK_Cavalry.fbx`,
+    cavalryGlb: `${GRUDGE6_BASE}/wk/WK_Cavalry.glb`,
+    mountedVariantGlb: `${GRUDGE6_BASE}/variants/WK_horse.glb`,
     equipmentFbx: {
       weapons: [
         `${GRUDGE6_BASE}/wk/equipment/WK_weapon_staff_B.fbx`,
@@ -223,6 +235,8 @@ export const RACE_CONFIGS: Record<string, RaceConfig> = {
       feet: "legs",
     },
     cavalryFbx: `${GRUDGE6_BASE}/brb/BRB_Cavalry.fbx`,
+    cavalryGlb: `${GRUDGE6_BASE}/brb/BRB_Cavalry.glb`,
+    mountedVariantGlb: `${GRUDGE6_BASE}/variants/BRB_horse.glb`,
     equipmentFbx: {
       weapons: [
         `${GRUDGE6_BASE}/brb/equipment/BRB_weapon_hammer_B.fbx`,
@@ -254,6 +268,8 @@ export const RACE_CONFIGS: Record<string, RaceConfig> = {
       feet: "legs",
     },
     cavalryFbx: `${GRUDGE6_BASE}/elf/ELF_Cavalry.fbx`,
+    cavalryGlb: `${GRUDGE6_BASE}/elf/ELF_Cavalry.glb`,
+    mountedVariantGlb: `${GRUDGE6_BASE}/variants/ELF_horse.glb`,
     equipmentFbx: {
       weapons: [
         `${GRUDGE6_BASE}/elf/equipment/ELF_weapon_spear.fbx`,
@@ -284,6 +300,8 @@ export const RACE_CONFIGS: Record<string, RaceConfig> = {
       feet: "legs",
     },
     cavalryFbx: `${GRUDGE6_BASE}/dwf/DWF_Cavalry.fbx`,
+    cavalryGlb: `${GRUDGE6_BASE}/dwf/DWF_Cavalry.glb`,
+    mountedVariantGlb: `${GRUDGE6_BASE}/variants/DWF_horse.glb`,
   },
   orc: {
     name: "Orc (ORC)",
@@ -306,6 +324,8 @@ export const RACE_CONFIGS: Record<string, RaceConfig> = {
       feet: "legs",
     },
     cavalryFbx: `${GRUDGE6_BASE}/orc/ORC_Cavalry.fbx`,
+    cavalryGlb: `${GRUDGE6_BASE}/orc/ORC_Cavalry.glb`,
+    mountedVariantGlb: `${GRUDGE6_BASE}/variants/ORC_horse.glb`,
     equipmentFbx: {
       weapons: [
         `${GRUDGE6_BASE}/orc/equipment/ORC_weapon_Axe_A.fbx`,
@@ -370,6 +390,8 @@ export const RACE_CONFIGS: Record<string, RaceConfig> = {
       feet: "legs",
     },
     cavalryFbx: `${GRUDGE6_BASE}/ud/UD_Cavalry.fbx`,
+    cavalryGlb: `${GRUDGE6_BASE}/ud/UD_Cavalry.glb`,
+    mountedVariantGlb: `${GRUDGE6_BASE}/variants/UD_horse.glb`,
     equipmentFbx: {
       weapons: [
         `${GRUDGE6_BASE}/ud/equipment/UD_weapon_Spear.fbx`,
@@ -439,6 +461,16 @@ export function detectPrefix(meshName: string): RacePrefix | null {
 /** Cavalry mount FBX path for a race, or null if the race has no mount. */
 export function getCavalryFbx(raceKey: string): string | null {
   return RACE_CONFIGS[raceKey]?.cavalryFbx ?? null;
+}
+
+/** Pre-baked mounted variant GLB (rider + mount), or null. */
+export function getMountedVariantGlb(raceKey: string): string | null {
+  return RACE_CONFIGS[raceKey]?.mountedVariantGlb ?? null;
+}
+
+/** Full cavalry GLB source for a race. */
+export function getCavalryGlb(raceKey: string): string | null {
+  return RACE_CONFIGS[raceKey]?.cavalryGlb ?? null;
 }
 
 /** All equipment FBX paths for a race, flattened across weapons/shields/utility/projectiles. */

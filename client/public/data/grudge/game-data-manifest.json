@@ -1,0 +1,64 @@
+{
+  "version": "1.0.0",
+  "generated": "2026-06-25T04:41:14.901Z",
+  "canonical": true,
+  "description": "Grudge Studio unified game data — single source of truth",
+  "endpoints": {
+    "manifest": "https://molochdagod.github.io/ObjectStore/api/v1/game-data-manifest.json",
+    "items": "https://molochdagod.github.io/ObjectStore/api/v1/master-items.json",
+    "recipes": "https://molochdagod.github.io/ObjectStore/api/v1/master-recipes.json",
+    "materials": "https://molochdagod.github.io/ObjectStore/api/v1/master-materials.json",
+    "harvestNodes": "https://molochdagod.github.io/ObjectStore/api/v1/master-harvest-nodes.json",
+    "staffLooks": "https://molochdagod.github.io/ObjectStore/api/v1/staff-looks.json",
+    "weapons": "https://molochdagod.github.io/ObjectStore/api/v1/weapons.json",
+    "armor": "https://molochdagod.github.io/ObjectStore/api/v1/armor.json",
+    "consumables": "https://molochdagod.github.io/ObjectStore/api/v1/consumables.json",
+    "professions": "https://molochdagod.github.io/ObjectStore/api/v1/master-professions.json",
+    "professionTrees": "https://molochdagod.github.io/ObjectStore/api/v1/master-professionTrees.json",
+    "weaponSkills": "https://molochdagod.github.io/ObjectStore/api/v1/master-weaponSkills.json",
+    "classSkillTrees": "https://molochdagod.github.io/ObjectStore/api/v1/master-skillTrees.json",
+    "attributes": "https://molochdagod.github.io/ObjectStore/api/v1/master-attributes.json",
+    "classRelics": "https://molochdagod.github.io/ObjectStore/api/v1/master-classRelics.json",
+    "benchMeshes": "https://molochdagod.github.io/ObjectStore/api/v1/bench-mesh-catalog.json",
+    "resourceMeshes": "https://molochdagod.github.io/ObjectStore/api/v1/resource-mesh-catalog.json",
+    "weaponsMaster": "https://molochdagod.github.io/ObjectStore/api/v1/master-weapons.json",
+    "registry": "https://molochdagod.github.io/ObjectStore/api/v1/master-registry.json",
+    "iconResolver": "https://molochdagod.github.io/ObjectStore/utils/icon-resolver.js"
+  },
+  "assetCdn": "https://assets.grudge-studio.com",
+  "counts": {
+    "items": 2188,
+    "recipes": 1058,
+    "materials": 104,
+    "harvestNodes": 9,
+    "staffCategories": 6,
+    "itemsWithRecipes": 724,
+    "harvestDropsLinked": 30,
+    "staffWithRecipes": 29,
+    "attributes": 8,
+    "derivedStats": 37,
+    "classRelics": 4,
+    "benchMeshes": 42,
+    "resourceMeshes": 63624
+  },
+  "graph": {
+    "harvestToMaterial": "master-harvest-nodes.json → drops[].materialUuid",
+    "materialToRecipe": "master-recipes.json → materials[].uuid",
+    "recipeToItem": "master-recipes.json → resultItemId → master-items.json",
+    "itemToIcon": "master-items.json → iconUrl | staff-looks.json → iconUrl",
+    "staffToRecipe": "staff-looks.json → recipeUuid → master-recipes.json"
+  },
+  "recipeSources": {
+    "existing": 132,
+    "wcsCsv": 109,
+    "tieredGenerated": 872
+  },
+  "deprecated": {
+    "items-database.json": "Use master-items.json",
+    "grudge-game-data-hub": "Archived — do not use",
+    "attributes.json": "Use master-attributes.json — shim kept for backward compatibility",
+    "weaponSkills.json": "Use master-weaponSkills.json",
+    "skillTrees.json": "Use master-skillTrees.json",
+    "professions.json": "Use master-professions.json"
+  }
+}

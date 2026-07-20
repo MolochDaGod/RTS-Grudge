@@ -21,6 +21,7 @@ import { EntityLayer } from '../editor/EntityLayer';
 import { Water } from './Effects';
 import { sampleHeight } from '../editor/terrain-utils';
 import { Link } from 'wouter';
+import { ForgePhysics } from './ForgePhysics';
 
 // ── ORC player character ───────────────────────────────────────────────────
 
@@ -305,7 +306,9 @@ export function PlayCanvas() {
         gl={{ antialias: true, powerPreference: 'high-performance' }}
         dpr={[1, 2]}
       >
-        <PlayScene />
+        <ForgePhysics>
+          <PlayScene />
+        </ForgePhysics>
       </Canvas>
     </div>
   );

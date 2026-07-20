@@ -470,6 +470,26 @@ export const combatMachine = createMachine({
           target: "counterStrike",
           actions: assign({ actionTimer: 0.4 }),
         },
+        KEY_1: {
+          target: "skill1",
+          actions: assign({ actionTimer: 0.7 }),
+        },
+        KEY_2: {
+          target: "skill2",
+          actions: assign({ actionTimer: 0.6, isGrounded: false, isAirborne: true }),
+        },
+        KEY_3: {
+          target: "skill3",
+          actions: assign({ actionTimer: 0.8 }),
+        },
+        DASH: {
+          target: "dashing",
+          actions: assign({ dashTimer: 0.3 }),
+        },
+        ROLL: {
+          target: "rolling",
+          actions: assign({ actionTimer: 0.5 }),
+        },
         JUMP: {
           target: "jumping",
           actions: assign({ isGrounded: false, isAirborne: true, hasDoubleJumped: false }),

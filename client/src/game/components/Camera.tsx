@@ -317,6 +317,18 @@ export default function Camera({ playerPosition }: CameraProps) {
       if (useWeaponTuner.getState().dragging) return;
       if (e.code === "KeyV" && !e.repeat) {
         toggleCameraMode();
+        return;
+      }
+      // MMO zoom: numpad +/- (also bound to gesture emotes when grounded).
+      // Hold Alt to zoom without firing a gesture.
+      if (!e.repeat && e.altKey && (e.code === "NumpadAdd" || e.code === "NumpadSubtract")) {
+        const cfg = getConfig();
+        const delta = e.code === "NumpadAdd" ? -cfg.zoomStep : cfg.zoomStep;
+        const dist = useSettings.getState().gameplay.cameraDistance;
+        const minD = cfg.minDistance;
+        const maxD = Math.min(cfg.maxDistance, dist + 10);
+        targetDistRef.current = Math.max(minD, Math.min(maxD, targetDistRef.current + delta));
+        e.preventDefault();
       }
     };
 

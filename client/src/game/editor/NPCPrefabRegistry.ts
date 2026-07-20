@@ -64,7 +64,7 @@ const HOSTILE_NPCS: HostileNPCSeed[] = [
   { key: "orc",           label: "Orc",              modelPath: "/models/monsters/big/Orc.glb",                                targetHeight: 2.0, speed: 1.4, health: 120, attackDamage: 18, wanderRadius: 6 },
   { key: "demon",         label: "Demon",            modelPath: "/models/monsters/big/Demon.glb",                              targetHeight: 2.8, speed: 1.6, health: 200, attackDamage: 25, wanderRadius: 5 },
   { key: "blue_demon",    label: "Blue Demon",       modelPath: "/models/monsters/big/BlueDemon.glb",                          targetHeight: 2.4, speed: 1.7, health: 180, attackDamage: 22, wanderRadius: 5 },
-  { key: "dragon",        label: "Dragon",           modelPath: "/models/monsters/flying/Dragon_Evolved.glb",                  targetHeight: 3.5, speed: 2.0, health: 500, attackDamage: 50, wanderRadius: 8 },
+  { key: "dragon",        label: "Dragon",           modelPath: "/models/pets/drakes/dragon_anim.glb",                           targetHeight: 3.5, speed: 2.0, health: 500, attackDamage: 50, wanderRadius: 8 },
   { key: "mushroom_king", label: "Mushroom King",    modelPath: "/models/monsters/big/MushroomKing.glb",                       targetHeight: 3.0, speed: 0.8, health: 350, attackDamage: 30, wanderRadius: 4 },
   { key: "yeti",          label: "Yeti",             modelPath: "/models/monsters/blob/Yeti.glb",                              targetHeight: 2.8, speed: 1.5, health: 220, attackDamage: 24, wanderRadius: 6 },
   { key: "ghost",         label: "Ghost",            modelPath: "/models/monsters/flying/Ghost.glb",                           targetHeight: 1.8, speed: 2.0, health: 80,  attackDamage: 14, wanderRadius: 10 },
