@@ -337,13 +337,15 @@ function PlayerModel({
 
   const selectedCharacter = useGame((s) => s.selectedCharacter);
   const physicsConfig = useGameConfig((s) => s.config.physics);
-  const { camera, gl, scene } = useThree();
-  // Mount threejs-games Flame pool under the scene so imperative
+  // R3F root scene — not the character model scene (that is `scene` from
+  // useCharacterController below). Rename to avoid TDZ/redeclaration errors.
+  const { camera, gl, scene: threeScene } = useThree();
+  // Mount threejs-games Flame pool under the R3F scene so imperative
   // spawnFlameTrail / spawnFlameBeam / spawnFlameAoe are visible.
   useEffect(() => {
-    setFlameFxParent(scene);
+    setFlameFxParent(threeScene);
     return () => setFlameFxParent(null);
-  }, [scene]);
+  }, [threeScene]);
   // Worge form scale modifier — wolf reads smaller/faster, bear bulkier — is
   // applied on top of the base character scale so a single GLB can carry both
   // silhouettes without authoring separate models.
