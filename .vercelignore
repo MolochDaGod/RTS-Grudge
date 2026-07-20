@@ -1,0 +1,31 @@
+# Keep Vercel upload under size limits — 3D assets live on assets.grudge-studio.com CDN.
+# (client/public alone is multi‑GB; Vercel fails before/during build when the tree is too large.)
+
+Tactical-Infinity
+.history
+_extract
+_glocomotion_extract
+_dev_log.txt
+_dev_stderr.txt
+_dev_stdout.txt
+attached_assets
+node_modules
+dist
+tmp_*
+**/*.glb
+**/*.fbx
+**/*.FBX
+**/*.blend
+**/*.obj
+**/*.mtl
+**/*.wav
+**/*.mp3
+**/*.ogg
+client/public/models
+client/public/Models
+studio/public/library
+studio/node_modules
+studio/dist
+docs
+*.md
+!README.md
