@@ -9,8 +9,12 @@
 import type { CapsuleParams } from "./types";
 import { MATERIALS } from "./materials";
 
-/** Fallback capsule dimensions when skeleton auto-measure is unavailable. */
-export const PLAYER_CAPSULE_DEFAULT = { height: 1.8, radius: 0.3 } as const;
+/**
+ * Canonical humanoid / ORC height: 2.0 m (1 engine unit = 1 metre).
+ * Fallback capsule when skeleton auto-measure is unavailable.
+ */
+export const CHARACTER_HEIGHT_M = 2.0;
+export const PLAYER_CAPSULE_DEFAULT = { height: CHARACTER_HEIGHT_M, radius: 0.3 } as const;
 
 /** Clamp envelope used when auto-sizing a capsule from skeleton bounds. */
 export const CHARACTER_CAPSULE_LIMITS = {
@@ -46,7 +50,7 @@ export function sizeCharacterCapsule(
 }
 
 /**
- * Ready-made param set for the default kinematic character capsule (1.8 m / 0.3 m),
+ * Ready-made param set for the default kinematic character capsule (2.0 m / 0.3 m),
  * using MATERIALS.character. Named for the *kinematic capsule* role to avoid
  * confusion with the local player's dynamic convex-hull body, which is a
  * separate collider that uses the grippier MATERIALS.playerBody (see Player.tsx).

@@ -173,12 +173,14 @@ export function measureSceneHeight(scene: THREE.Object3D): number {
  *     metres exactly (clamped against absurd values).
  *  3. Drop the model so its bottom sits at y = 0 (feet on the ground).
  *
- * Per the project's scale blueprint: 1 engine unit = 1 metre, characters
- * are ~1.8 m tall.
+ * Per the project's scale blueprint: 1 engine unit = 1 metre.
+ * Canonical humanoid / ORC height is **2.0 m** (see CHARACTER_HEIGHT_M).
  */
+export const CHARACTER_HEIGHT_M = 2.0;
+
 export function normalizeCharacterHeight(
   scene: THREE.Object3D,
-  targetHeight: number,
+  targetHeight: number = CHARACTER_HEIGHT_M,
 ): void {
   const MIN_SCALE_FACTOR = 0.0001;
   const MAX_SCALE_FACTOR = 1000;

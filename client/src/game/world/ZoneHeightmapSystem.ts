@@ -4,7 +4,7 @@
  * ## Elevation Band System
  * Heights are in meters. Water surface is at y=0.
  *
- *   -20m to  0m  OCEAN       — seabed, deepest at zone edges
+ *   -30m to  0m  OCEAN       — seabed, deepest at zone edges
  *     0m to 1.5m BEACH       — sandy shoreline, ~8% of island
  *   1.5m to  4m  FLAT_LAND   — town areas, meadows, ~18% of island
  *     4m to 10m  FOREST      — rolling hills with trees, ~30% of island
@@ -23,8 +23,8 @@
  *   - Beach ring:    60-80% of perimeter is sandy beach
  *
  * ## Ocean
- *   Ocean floor slopes from 0m at shore to -20m at zone boundary.
- *   The 500m gap between zones is deep ocean (-20m).
+ *   Water surface stays at y=0 (coast). Floor slopes from shallow shelf near
+ *   shore (-5m) to -30m at zone boundary / inter-zone gaps (deepest ocean).
  *
  * Supports PNG heightmap import for artist-made terrain.
  */
@@ -345,14 +345,14 @@ function applyMesas(
 
 // ── Elevation band constants (meters) ─────────────────────────────────────
 
-/** Ocean floor at deepest point (-20m below water surface at y=0). */
-export const OCEAN_FLOOR = -20;
-/** Water surface is at y=0. */
+/** Ocean floor at deepest point (-30m below water surface at y=0). */
+export const OCEAN_FLOOR = -30;
+/** Water surface is at y=0 (coast / shoreline). */
 export const WATER_LEVEL = 0;
 
 export const ELEVATION_BANDS = {
-  /** -20m to -5m — deep ocean between zones, flat seabed */
-  DEEP_OCEAN:  { min: -20, max: -5 },
+  /** -30m to -5m — deep ocean between zones; deepest at zone edges */
+  DEEP_OCEAN:  { min: -30, max: -5 },
   /** -5m to 0m — solid earth under every island (visible if terrain is lowered/dug) */
   ISLAND_BASE: { min: -5,  max: 0 },
   /** 0m to 1.5m — sandy shoreline, ~8% of island area */
@@ -390,7 +390,8 @@ export function getElevationBand(height: number): keyof typeof ELEVATION_BANDS {
  * Apply ocean floor and island base.
  * - Under the island footprint: terrain can go down to -5m (ISLAND_BASE)
  *   so lowering/digging reveals solid dirt, not void.
- * - Outside the island footprint: seabed slopes from -5m to -20m (DEEP_OCEAN).
+ * - Outside the island footprint: seabed slopes from -5m near coast to
+ *   OCEAN_FLOOR (-30m) at zone edge (deepest ocean).
  */
 function applyOceanFloor(
   data: Float32Array, res: number, size: number,
@@ -409,12 +410,12 @@ function applyOceanFloor(
 
       if (data[idx] <= 0) {
         // Outside island: slope from ISLAND_GROUND_FLOOR near shore
-        // to OCEAN_FLOOR at zone edge
+        // to OCEAN_FLOOR (-30m) at zone edge
         if (distNorm < 0.6) {
-          // Near the island shore: shallow water, floor at -5m
+          // Near the island shore: shallow shelf under coast water
           data[idx] = ISLAND_GROUND_FLOOR;
         } else {
-          // Deep ocean: interpolate from -5m to -20m
+          // Deep ocean: interpolate from -5m shelf to -30m deepest
           const deepFactor = Math.min(1, (distNorm - 0.6) / 0.4);
           data[idx] = ISLAND_GROUND_FLOOR + (OCEAN_FLOOR - ISLAND_GROUND_FLOOR) * deepFactor;
         }
@@ -643,7 +644,7 @@ export function generateZoneTerrain(zone: ZoneDefinition): ZoneTerrainData | nul
     }
   }
 
-  // 4. Ocean floor: slope from 0m at shore to -20m at zone boundary
+  // 4. Ocean floor: coast shelf → -30m deepest at zone boundary
   //    Applied AFTER smoothing so coastline stays sharp.
   applyOceanFloor(heightData, res, size);
 

@@ -865,7 +865,9 @@ function CharacterPreview({
     // inline a local "use longest axis / use max(width,height,depth) / etc."
     // formula here — that produced two different sizes for the same hero
     // (tiny in the preview, giant in the world).
-    normalizeCharacterHeight(s, 1.8 * scale);
+    // Canonical ORC/humanoid = 2.0 m (same as useCharacterModel / world).
+    // `scale` is a relative forge multiplier around that baseline.
+    normalizeCharacterHeight(s, 2.0 * scale);
     rightHandRef.current = null;
     leftHandRef.current = null;
     headRef.current = null;
