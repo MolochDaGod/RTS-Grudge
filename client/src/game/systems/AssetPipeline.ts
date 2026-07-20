@@ -78,7 +78,8 @@ export interface ImportOptions {
   normalizeAxis?: "y" | "longest";
 }
 
-const DEFAULT_TARGET_HEIGHT = 1.8;
+/** Default prop/character normalize height (m). Humanoids use 2.0 ORC SSOT. */
+const DEFAULT_TARGET_HEIGHT = 2.0;
 const DARK_LUM_THRESHOLD = 0.08;
 const DARK_MATERIAL_FALLBACK = "#8B7355";
 

@@ -13,21 +13,20 @@
 2. [Tech Stack](#tech-stack)
 3. [Quick Start](#quick-start)
 4. [Architecture](#architecture)
-5. [Studio Map Editor](#studio-map--model-editor)
-6. [World & Zone System](#world--zone-system)
-7. [Hero & Faction System](#hero--faction-system)
-8. [Combat UI](#combat-ui)
-9. [Harvest Mode](#harvest-mode)
-10. [Build Mode](#build-mode)
-11. [Character Prefab System](#character-prefab-system)
-12. [Weapon Prefabs & Object Storage](#weapon-prefabs--object-storage)
-13. [Skill Icons & Hotbar](#skill-icons--hotbar)
-14. [API Reference](#api-reference)
-15. [Asset Registry (D1 + R2)](#asset-registry-d1--r2)
-16. [Routes](#routes)
-17. [Deployment](#deployment)
-18. [Environment Variables](#environment-variables)
-19. [Grudge Fleet](#grudge-fleet)
+5. [World & Zone System](#world--zone-system)
+6. [Hero & Faction System](#hero--faction-system)
+7. [Combat UI](#combat-ui)
+8. [Harvest Mode](#harvest-mode)
+9. [Build Mode](#build-mode)
+10. [Character Prefab System](#character-prefab-system)
+11. [Weapon Prefabs & Object Storage](#weapon-prefabs--object-storage)
+12. [Skill Icons & Hotbar](#skill-icons--hotbar)
+13. [API Reference](#api-reference)
+14. [Asset Registry (D1 + R2)](#asset-registry-d1--r2)
+15. [Routes](#routes)
+16. [Deployment](#deployment)
+17. [Environment Variables](#environment-variables)
+18. [Grudge Fleet](#grudge-fleet)
 
 ---
 
@@ -107,46 +106,11 @@ RTS-Grudge/
 │       ├── stores/          # Zustand state (useGame, useInventory, useMissions…)
 │       ├── data/            # ItemPrefabRegistry, ArmorPrefabDatabase, WeaponPrefabs
 │       └── auth/            # Puter + Grudge auth integration
-├── studio/                  # Map & model editor (Vite) — see studio/README.md
-│   ├── src/editor/          # Island generator, sculpt, play HUD
-│   ├── src/runtime/         # Player (land/swim/climb), AI, water, nav
-│   └── public/assets/animations/  # Local swim + climb FBX
 ├── server/
 │   ├── grudge.ts            # Express entry point
 │   ├── routes.ts            # REST API routes
 │   └── authMiddleware.ts    # JWT/session middleware
 └── docs/                    # Extended documentation
-```
-
----
-
-## Studio Map & Model Editor
-
-**Live editor:** [grudge-studio-editor.vercel.app/editor](https://grudge-studio-editor.vercel.app/editor)
-
-Full details: [`studio/README.md`](./studio/README.md).
-
-### Ocean heightmap (play + pathfinding)
-
-| Y | Role |
-|---|---|
-| **0** | Water surface (`SEA_LEVEL`) |
-| **≤ −1** | Coast always submerges before open sea |
-| **−5** | Seafloor shelf outside island circle |
-| **−50** | Deepest trenches |
-
-Continuous land → coast → seafloor mesh. Small fish **−1…−5**; big fish past circle **−2…−10**.
-
-### Play controls (third-person)
-
-- **WASD** move · **Shift** sprint  
-- **Space** swim/climb **up** · **Alt** dive / climb **down**  
-- **RMB** camera · climb mounts on steep terrain faces  
-
-Local clips: `studio/public/assets/animations/swim|climb/`.
-
-```bash
-cd studio && npm install && npm run dev
 ```
 
 ### Layer ordering (world scene)
@@ -867,7 +831,7 @@ for every path; the React app dispatches to the correct phase on mount.
 |---|---|---|---|
 | `/` | menu | MenuScreen | Main menu — play, shipwreck, editor, controller |
 | `/home` | home | HomePage | Game hub — all modes + fleet game links |
-| `/character` | characterSelect | CharacterSelectScreen | Hero Forge — edit existing GLB presets (race, class, weapons, body morph). **+ GCS** launches [character.grudge-studio.com](https://character.grudge-studio.com) for new account characters. |
+| `/character` | characterSelect | CharacterSelectScreen | Hero Forge — race, class, weapons, body morph |
 | `/play` | playing | GameScene | 3D open world — combat, harvest, build, sail |
 | `/combat` | combat2d | Combat2DPage | Gruda Wars 2D combat entry |
 | `/island-v2` | islandV2 | IslandV2Page | Shipwreck Island survival launcher |
@@ -880,17 +844,6 @@ for every path; the React app dispatches to the correct phase on mount.
 Elf, Human, Dwarf, Orc, Barbarian (battle_mage model), Undead.
 Worge is a **class** (not a race) — selectable via class presets.
 Goblin is an **enemy NPC** — removed from player selection.
-
-### Hero Forge vs GCS (character creation)
-
-| Surface | URL | Role |
-|---------|-----|------|
-| **GCS** | [character.grudge-studio.com](https://character.grudge-studio.com) | Canonical new-character creation — HYDRA VRM + grudge6, saves to Railway with `era=warlords` roster |
-| **Hero Forge** | `/character` on RTS-Grudge | In-game 3D GLB preset editor for existing heroes |
-
-**+ GCS** on Hero Forge calls `client/src/lib/gcsRedirect.ts` with `returnTo` pointing back to `/character`. After save, GCS redirects with `?from=gcs&characterId={uuid}`; `CharacterSelectScreen` consumes the handoff on mount.
-
-**2D picker art** (race portraits, class backgrounds, race tiles) is unified in `client/src/lib/data/artAssets.ts` — sourced from the Warlords `class-selector.html` imgur URLs. `icons.ts` delegates `getRacePortrait()` to `artAssets`.
 
 ---
 
@@ -1012,7 +965,7 @@ RTS-Grudge is one game in the **Grudge Warlords** fleet. All games share the sam
 |---|---|---|---|
 | **Grudge Warlords** (hub) | Grudge-Builder | grudgewarlords.com | React + Three.js + Phaser |
 | **RTS Grudge** (this repo) | RTS-Grudge | rts-grudge.vercel.app | React-Three-Fiber + Rapier |
-| **Dungeon Crawler Quest** | Dungeon-Crawler-Quest | dcq.grudge-studio.com | Three.js + Voxel + Rapier |
+| **Dungeon Crawler Quest** | Dungeon-Crawler-Quest | dcq.grudge-studio.com | BabylonJS + Havok |
 
 All games connect to the same backend services:
 - `api.grudge-studio.com` — Game API (characters, saves, inventory)

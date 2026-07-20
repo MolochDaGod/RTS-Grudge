@@ -7,6 +7,8 @@ import { getTerrainHeight, globalHeightData } from "../components/Terrain";
 import { KinematicCharacterBody } from "../components/KinematicCharacterBody";
 import { COLLISION_MASKS } from "../components/BuildingColliders";
 import { useAllies, type AllyData, type AllyBehavior } from "@/lib/stores/useAllies";
+import { useUnitProfessions, gatherTypeToProfession } from "@/lib/stores/useUnitProfessions";
+import type { GatherType } from "@/lib/stores/useProfessions";
 import { useEnemyManager } from "../systems/EnemyManager";
 import { useInventory } from "@/lib/stores/useInventory";
 import { useStorage } from "@/lib/stores/useStorage";
@@ -16,6 +18,7 @@ import {
   harvestNodeByIndex,
   type ResourceType,
 } from "../components/ResourceNode";
+import { tickDefenderBehavior, getClaim } from "@/lib/campSsot";
 
 const RESOURCE_ICONS: Record<string, string> = {
   wood: "🪵", stone: "🪨", fiber: "🌿", iron_ore: "⛏️",
@@ -139,6 +142,42 @@ function AllyModel({ data }: { data: AllyData }) {
       else if (effectiveCmd === "stay") behaviorState.current = "idle";
       else if (effectiveCmd === "attack_target" && effectiveTargetId) behaviorState.current = "combat";
       else if (effectiveCmd === "patrol") behaviorState.current = storeBehavior;
+    }
+
+    // Camp SSOT defense brain — workers flee / military engage threats
+    if (
+      searchCooldown.current <= 0 &&
+      effectiveCmd !== "follow" &&
+      effectiveCmd !== "stay" &&
+      data.personalCommand == null
+    ) {
+      const threats = enemies
+        .filter((e) => !e.isDying)
+        .map((e) => ({
+          id: e.id,
+          x: e.position.x,
+          z: e.position.z,
+          hpFrac: e.maxHealth > 0 ? e.health / e.maxHealth : 1,
+          isHostile: true,
+        }));
+      const next = tickDefenderBehavior(
+        {
+          id: data.id,
+          x: localPos.current.x,
+          z: localPos.current.z,
+          role: data.canHarvest ? "worker" : "military",
+          hpFrac: data.maxHealth > 0 ? data.health / data.maxHealth : 1,
+          behavior: behaviorState.current,
+          assignedBuildingId: data.assignedBuildingUid ?? undefined,
+        },
+        threats,
+        getClaim(),
+      );
+      if (next !== behaviorState.current) {
+        behaviorState.current = next;
+        alliesState.updateAllyBehavior(data.id, next);
+      }
+      searchCooldown.current = 0.45 + Math.random() * 0.2;
     }
 
     // Override: sleep cycle (only when not actively in combat & no personal command)
@@ -334,6 +373,7 @@ function AllyModel({ data }: { data: AllyData }) {
               // on death, not lost when building is destroyed), separate from the
               // player's actively-carried Inventory.
               const itemType = result.type === "berry" || result.type === "raw_meat" ? "food" : "material";
+              const gatherType: GatherType = data.weaponType === "bow" ? "logging" : "mining"; // rough tagging
               const stored = useStorage.getState().addToStorage({
                 id: result.type,
                 name: result.type.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()),
@@ -341,7 +381,7 @@ function AllyModel({ data }: { data: AllyData }) {
                 icon: RESOURCE_ICONS[result.type] || "📦",
                 quantity: result.qty,
                 source: "auto_harvest",
-                gatherType: data.weaponType === "bow" ? "logging" : "mining", // rough tagging
+                gatherType,
               });
 
               // Fallback: if storage is somehow full, write to inventory
@@ -357,7 +397,15 @@ function AllyModel({ data }: { data: AllyData }) {
               }
 
               // XP for honest day's work — scales lightly with quantity gathered
-              useAllies.getState().awardXp(data.id, 6 + Math.min(10, result.qty), "harvest");
+              const harvestXp = 6 + Math.min(10, result.qty);
+              useAllies.getState().awardXp(data.id, harvestXp, "harvest");
+              // Units earn the SAME profession XP as the player for the same work,
+              // so a gathering unit advances its trades toward the level-100 captain gate.
+              useUnitProfessions.getState().addUnitProfXP(
+                data.id,
+                gatherTypeToProfession(gatherType),
+                harvestXp,
+              );
             }
 
             harvestTimer.current = 0;

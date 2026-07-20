@@ -3,6 +3,13 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { useEquipment } from "@/lib/stores/useEquipment";
 import { useGame } from "@/lib/stores/useGame";
+import { useInventory } from "@/lib/stores/useInventory";
+import { attemptBuriedDig } from "@/game/systems/BuriedTreasureDig";
+import {
+  attachDigRockDebrisScene,
+  spawnDigRockDebris,
+  updateDigRockDebris,
+} from "@/game/systems/DigRockDebris";
 import {
   WORLD_SIZE,
   editTerrainBrush,
@@ -46,7 +53,12 @@ export default function TerrainEditor() {
   const mainHand = useEquipment(s => s.equipped.mainHand);
   const phase = useGame(s => s.phase);
   const interactionMode = useGame(s => s.interactionMode);
-  const { camera } = useThree();
+  const { camera, scene } = useThree();
+
+  // Small rock chunks from 70_stylized_rocks + stylised_rocks when digging earth
+  useEffect(() => {
+    attachDigRockDebrisScene(scene, (x, z) => getTerrainHeight(x, z));
+  }, [scene]);
 
   // The editor only runs when:
   //   • The player is in the "playing" phase (not in menus / cutscenes).
@@ -61,6 +73,8 @@ export default function TerrainEditor() {
     radius: DEFAULT_RADIUS,
     strength: DEFAULT_STRENGTH,
   });
+  /** Throttle dig rock debris bursts while holding shovel dig */
+  const digDebrisCooldown = useRef(0);
   const [, forceTick] = useState(0);
 
   // Input state. We track raw key/mouse rather than React state so the
@@ -155,7 +169,6 @@ export default function TerrainEditor() {
   const planeRef = useRef(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0));
   const cursorRef = useRef(new THREE.Vector3());
   const cursorValid = useRef(false);
-  const { scene } = useThree();
   const terrainMeshRef = useRef<THREE.Mesh | null>(null);
 
   useFrame(({ mouse }) => {
@@ -239,6 +252,50 @@ export default function TerrainEditor() {
         : settings.current.strength,
       targetY,
     });
+
+    // Shovel dig → small rock debris (70 pack + stylised) + buried treasure chance.
+    // Lowering (Shift+LMB) or flatten = digging earth.
+    if (mode === "lower" || mode === "flatten") {
+      // Throttle visual rock bursts (~4 Hz) while holding dig
+      const now = performance.now();
+      if (
+        !digDebrisCooldown.current ||
+        now - digDebrisCooldown.current > 250
+      ) {
+        digDebrisCooldown.current = now;
+        void spawnDigRockDebris(
+          cursorRef.current,
+          mode === "lower" ? "dig" : "dig",
+          true,
+        );
+      }
+      const digBonus = mode === "lower" ? 0.08 : 0.03;
+      const find = attemptBuriedDig(
+        cursorRef.current,
+        digBonus,
+        { preferCdn: true },
+      );
+      if (find) {
+        useInventory.getState().addItem({
+          id: find.itemId,
+          name: find.name,
+          type: "material",
+          quantity: find.qty,
+          icon: find.emoji,
+          description: `Buried treasure dig · ${find.meshName}`,
+        });
+        console.info(
+          `[treasure-dig] ${find.emoji} ${find.name} x${find.qty} @`,
+          find.position.x.toFixed(1),
+          find.position.z.toFixed(1),
+        );
+      }
+    }
+  });
+
+  // Integrate dig rock particles
+  useFrame((_, dt) => {
+    updateDigRockDebris(Math.min(0.05, dt));
   });
 
   // Brush ring decal — a thin disc above the terrain that pulses gently

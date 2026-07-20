@@ -11,7 +11,12 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:push": "drizzle-kit push",
-    "grok": "tsx scripts/grok-orchestrate.ts"
+    "grok": "tsx scripts/grok-orchestrate.ts",
+    "check:best-practices": "node ../GrudgeBuilder/scripts/best-practices/check-node-three-react.mjs --root .",
+    "probe:stack": "node scripts/probe-stack-local.mjs"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1051.0",

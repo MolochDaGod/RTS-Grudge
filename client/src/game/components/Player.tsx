@@ -97,7 +97,7 @@ import { computeMasteryBonuses, type WeaponTypeId as WSD_WeaponTypeId } from "@/
 import { triggerScreenShake, isCameraOrbiting, getCameraYaw } from "./Camera";
 import { useTargeting } from "@/lib/stores/useTargeting";
 import { updateGrassPlayerPosition } from "../world/GrassLayer";
-import { vfx, VFXPresets } from "../vfx";
+import { vfx, VFXPresets, setFlameFxParent } from "../vfx";
 import { ImpactFlinchController, damageToFlinchIntensity } from "../systems/ImpactFlinch";
 // ── New combat systems ──
 import {
@@ -337,7 +337,13 @@ function PlayerModel({
 
   const selectedCharacter = useGame((s) => s.selectedCharacter);
   const physicsConfig = useGameConfig((s) => s.config.physics);
-  const { camera, gl } = useThree();
+  const { camera, gl, scene } = useThree();
+  // Mount threejs-games Flame pool under the scene so imperative
+  // spawnFlameTrail / spawnFlameBeam / spawnFlameAoe are visible.
+  useEffect(() => {
+    setFlameFxParent(scene);
+    return () => setFlameFxParent(null);
+  }, [scene]);
   // Worge form scale modifier — wolf reads smaller/faster, bear bulkier — is
   // applied on top of the base character scale so a single GLB can carry both
   // silhouettes without authoring separate models.

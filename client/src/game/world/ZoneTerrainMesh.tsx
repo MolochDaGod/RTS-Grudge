@@ -173,3 +173,6 @@ export function ZoneWaterPlane({ zoneId }: { zoneId: ZoneId }) {
     </mesh>
   );
 }
+
+/** Ocean-floor coral + vents under zone water (whispering crown, sequoia vent, lazulight). */
+export { OceanFloorPropsLayer } from "./OceanFloorPropsLayer";

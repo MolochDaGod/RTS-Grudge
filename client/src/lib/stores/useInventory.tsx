@@ -89,6 +89,14 @@ export const INVENTORY_EQUIP_MAP: Record<string, {
   // TerrainEditor checks `equipped.mainHand.weaponType === "shovel"` to
   // turn on raise/lower/flatten brush input.
   shovel:         { slot: "mainHand", stats: { damage: 3 },  tier: 1, rarity: "common",  weaponType: "shovel" },
+  pirate_shovel:  { slot: "mainHand", stats: { damage: 4 },  tier: 1, rarity: "common",  weaponType: "shovel" },
+  // Pirate pack fishing poles — fishing_rod tool line v1 / v2
+  pirate_fishing_rod: {
+    slot: "mainHand", stats: { damage: 2 }, tier: 1, rarity: "common", weaponType: "fishing_rod",
+  },
+  pirate_fishing_rod_line: {
+    slot: "mainHand", stats: { damage: 2 }, tier: 2, rarity: "uncommon", weaponType: "fishing_rod",
+  },
 };
 
 export const CRAFT_RECIPES: CraftRecipe[] = [
@@ -107,6 +115,43 @@ export const CRAFT_RECIPES: CraftRecipe[] = [
     ingredients: [{ itemId: "iron_ore", count: 3 }, { itemId: "wood", count: 2 }],
     result: { id: "iron_axe", name: "Iron Axe", type: "tool", damage: 14, icon: "🪓", quantity: 1, description: "Superior tree chopping" },
   },
+  {
+    id: "pirate_fishing_rod", name: "Pirate Fishing Pole", category: "tools",
+    ingredients: [{ itemId: "wood", count: 4 }, { itemId: "fiber", count: 2 }],
+    result: {
+      id: "pirate_fishing_rod", name: "Pirate Fishing Pole", type: "tool", damage: 2, icon: "🎣", quantity: 1,
+      description: "Low-poly pirate pack rod (fishing tool v1)",
+    },
+  },
+  {
+    id: "pirate_fishing_rod_line", name: "Fishing Pole with Line", category: "tools",
+    ingredients: [
+      { itemId: "pirate_fishing_rod", count: 1 },
+      { itemId: "fiber", count: 3 },
+      { itemId: "wood", count: 1 },
+    ],
+    result: {
+      id: "pirate_fishing_rod_line", name: "Fishing Pole with Line", type: "tool", damage: 2, icon: "🎣", quantity: 1,
+      description: "Standing rod with line set (fishing tool v2 — better catch)",
+    },
+  },
+  {
+    id: "pirate_shovel", name: "Pirate Shovel", category: "tools",
+    ingredients: [{ itemId: "wood", count: 3 }, { itemId: "stone", count: 2 }],
+    result: {
+      id: "pirate_shovel", name: "Pirate Shovel", type: "tool", damage: 4, icon: "🪏", quantity: 1,
+      description: "Dig terrain + uncover bone chests / buried treasure",
+    },
+  },
+  {
+    id: "fishing_net", name: "Fishing Net", category: "tools",
+    ingredients: [{ itemId: "fiber", count: 6 }, { itemId: "wood", count: 1 }],
+    result: {
+      id: "fishing_net", name: "Fishing Net", type: "material", icon: "🕸️", quantity: 1,
+      description: "Used at Net Dock; boosts multi-catch special",
+    },
+  },
+
   {
     id: "iron_pickaxe", name: "Iron Pickaxe", category: "tools",
     ingredients: [{ itemId: "iron_ore", count: 4 }, { itemId: "wood", count: 2 }],

@@ -3,25 +3,49 @@
  * the editor or model converter, and shows a placeholder card for an
  * eventual published-game gallery.
  */
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'wouter';
 import { useEditor } from '../editor/store';
 import {
   listSavedProjects,
   loadProjectLocal,
   deleteProjectLocal,
+  projectFromJSON,
+  saveProjectLocal,
 } from '../editor/project';
 // Background image shipped in the artifact's public/ folder.
 const libraryBg = `${import.meta.env.BASE_URL}library/library-bg.png`;
 import { STARTER_MAPS, buildStarterProject, type StarterMap } from './starterMaps';
 import { MapThumbnail } from './MapThumbnail';
-import { FLEET_GAMES, FORGE_TOOLCHAIN } from '../lib/fleetTargets';
+import type { MapProject } from '../types';
+
+interface UnityMapCatalogEntry {
+  id: string;
+  name: string;
+  projectUrl: string;
+  glbUrl?: string | null;
+  markerCount?: number;
+  updatedAt?: string;
+}
 
 export function LibraryPage() {
   const [items, setItems] = useState(() => listSavedProjects());
+  const [unityMaps, setUnityMaps] = useState<UnityMapCatalogEntry[]>([]);
   const newProject = useEditor((s) => s.newProject);
   const loadProject = useEditor((s) => s.loadProject);
   const refresh = () => setItems(listSavedProjects());
+
+  useEffect(() => {
+    const url = `${import.meta.env.BASE_URL}library/unity-maps/catalog.json`;
+    fetch(url)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: { maps?: UnityMapCatalogEntry[] } | null) => {
+        if (data?.maps?.length) setUnityMaps(data.maps);
+      })
+      .catch(() => {
+        /* catalog optional until first export */
+      });
+  }, []);
 
   return (
     <div
@@ -35,38 +59,11 @@ export function LibraryPage() {
     >
     <div className="max-w-6xl mx-auto p-8">
       <header className="mb-8">
-        <h1 className="text-3xl font-semibold tracking-tight">Grudge Studio Forge</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">Grudge Studio</h1>
         <p className="text-muted-foreground mt-2">
-          Fleet map editor for Warlords, RTS, and DCQ — R3F, Rapier, ObjectStore, GLB export.
+          Map editor · model converter · ECS runtime · save your worlds.
         </p>
-        <dl className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono text-muted-foreground">
-          <div><dt className="inline text-primary">Render </dt><dd className="inline">{FORGE_TOOLCHAIN.render}</dd></div>
-          <div><dt className="inline text-primary">Physics </dt><dd className="inline">{FORGE_TOOLCHAIN.physics}</dd></div>
-          <div><dt className="inline text-primary">API </dt><dd className="inline">{FORGE_TOOLCHAIN.backend}</dd></div>
-          <div><dt className="inline text-primary">Assets </dt><dd className="inline">{FORGE_TOOLCHAIN.assets}</dd></div>
-        </dl>
       </header>
-
-      <section className="mb-8">
-        <h2 className="text-lg font-semibold mb-3">Deploy targets</h2>
-        <ul className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {FLEET_GAMES.map((g) => (
-            <li key={g.id} className="rounded-lg border border-border bg-card/80 p-4">
-              <div className="font-medium">{g.label}</div>
-              <div className="text-xs text-muted-foreground mt-1">{g.stack.render}</div>
-              <div className="text-xs text-muted-foreground">{g.stack.physics}</div>
-              <a
-                href={g.liveUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-primary hover:underline mt-2 inline-block"
-              >
-                {g.liveUrl.replace('https://', '')} ↗
-              </a>
-            </li>
-          ))}
-        </ul>
-      </section>
 
       <div className="grid grid-cols-2 gap-4 mb-8">
         <Tool to="/editor" icon="🌊" title="Map Editor"
@@ -92,6 +89,32 @@ export function LibraryPage() {
             <StarterCard key={m.id} preset={m} onOpened={refresh} />
           ))}
         </ul>
+      </section>
+
+      <section className="mb-10">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h2 className="text-lg font-semibold">Unity maps (FBX → Forge)</h2>
+            <p className="text-xs text-muted-foreground">
+              Exported from FRESH GRUDGE via <code className="text-amber-300/90">Grudge → Export Active Map for Forge (FBX)</code>,
+              then <code className="text-amber-300/90">node scripts/unity-map-to-forge.mjs</code>.
+              Full mesh + towns/harbors as entities.
+            </p>
+          </div>
+        </div>
+        {unityMaps.length === 0 ? (
+          <div className="border border-dashed border-border rounded-md p-6 text-sm text-muted-foreground">
+            No Unity exports yet. In Unity open <strong>Towns</strong>, <strong>The Island 1</strong>, or{' '}
+            <strong>Dojo</strong>, run the export menu, then convert with the RTS-Grudge script.
+            Converter path: Library → Model Converter also accepts the .fbx drop.
+          </div>
+        ) : (
+          <ul className="grid grid-cols-2 gap-4">
+            {unityMaps.map((m) => (
+              <UnityMapCard key={m.id} entry={m} onOpened={refresh} />
+            ))}
+          </ul>
+        )}
       </section>
 
       <section>
@@ -144,6 +167,81 @@ export function LibraryPage() {
 
     </div>
     </div>
+  );
+}
+
+function resolvePublicUrl(rel: string): string {
+  if (/^https?:\/\//i.test(rel)) return rel;
+  const base = import.meta.env.BASE_URL || '/';
+  const clean = rel.replace(/^\//, '');
+  return `${base}${clean}`;
+}
+
+function UnityMapCard({
+  entry,
+  onOpened,
+}: {
+  entry: UnityMapCatalogEntry;
+  onOpened: () => void;
+}) {
+  const loadProject = useEditor((s) => s.loadProject);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const open = async () => {
+    setBusy(true);
+    setErr(null);
+    try {
+      const url = resolvePublicUrl(entry.projectUrl);
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status} loading ${url}`);
+      const raw = await res.text();
+      const project = projectFromJSON(raw) as MapProject;
+      // Fresh id so Save doesn't stomp catalog copy
+      project.id = Math.random().toString(36).slice(2, 10);
+      project.name = entry.name;
+      // Rewrite relative GLB assets to absolute public URLs
+      project.entities = (project.entities || []).map((e) => {
+        if (e.asset && e.asset.startsWith('/')) {
+          return { ...e, asset: resolvePublicUrl(e.asset) };
+        }
+        return e;
+      });
+      project.updatedAt = new Date().toISOString();
+      saveProjectLocal(project);
+      loadProject(project);
+      onOpened();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <li className="border border-border rounded-md overflow-hidden bg-card hover:border-primary/60 transition-colors flex flex-col">
+      <div className="bg-black/40 h-[140px] flex items-center justify-center text-4xl">
+        🏰
+      </div>
+      <div className="p-4 flex-1 flex flex-col">
+        <h3 className="font-semibold text-base mb-1">{entry.name}</h3>
+        <p className="text-xs text-muted-foreground mb-2">
+          Unity export · {entry.markerCount ?? 0} markers
+          {entry.glbUrl ? ' · mesh GLB' : ' · markers only'}
+        </p>
+        {err && <p className="text-xs text-red-400 mb-2">{err}</p>}
+        <Link
+          href="/editor"
+          onClick={(e) => {
+            e.preventDefault();
+            void open();
+          }}
+          className={`mt-auto inline-block text-sm text-primary hover:underline ${busy ? 'opacity-50 pointer-events-none' : ''}`}
+        >
+          {busy ? 'Loading…' : 'Open in editor →'}
+        </Link>
+      </div>
+    </li>
   );
 }
 

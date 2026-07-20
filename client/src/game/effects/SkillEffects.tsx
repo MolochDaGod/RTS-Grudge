@@ -8,6 +8,12 @@ import {
   type ProjectileTeam,
 } from '../state/blockGuard';
 import { vfx, VFXPresets } from '../vfx';
+import {
+  createWeaponTrailFlame,
+  createBeamFlame,
+  createAoeFlame,
+  type FlameFxController,
+} from './FlameParticles';
 import { useGame } from '@/lib/stores/useGame';
 import { useSurvival } from '@/lib/stores/useSurvival';
 import { useCombatLog } from '@/lib/stores/useCombatLog';
@@ -101,6 +107,8 @@ export function HadoukenProjectile({
   casterId,
 }: HadoukenProjectileProps) {
   const groupRef = useRef<THREE.Group>(null);
+  const flameGroupRef = useRef<THREE.Group>(null);
+  const flameCtrl = useRef<FlameFxController | null>(null);
   const timeRef = useRef(0);
   const activeRef = useRef(false);
   const startPos = useRef<[number, number, number]>([0, 0, 0]);
@@ -115,6 +123,17 @@ export function HadoukenProjectile({
   const trailPositions = useMemo(() => new Float32Array(60 * 3), []);
   const trailColors = useMemo(() => new Float32Array(60 * 3), []);
   const trailLifetimes = useMemo(() => new Float32Array(60), []);
+
+  // threejs-games Flame trail mesh (https://threejs-games.github.io/examples/20-particles/flame/)
+  useEffect(() => {
+    const c = createWeaponTrailFlame();
+    flameCtrl.current = c;
+    flameGroupRef.current?.add(c.mesh);
+    return () => {
+      c.dispose();
+      flameCtrl.current = null;
+    };
+  }, []);
 
   useFrame((_, delta) => {
     if (!groupRef.current) return;
@@ -133,6 +152,7 @@ export function HadoukenProjectile({
 
     if (!activeRef.current) {
       groupRef.current.visible = false;
+      if (flameCtrl.current?.mode === "trail") flameCtrl.current.stop();
       return;
     }
 
@@ -153,10 +173,23 @@ export function HadoukenProjectile({
     // Skip while paused: the projectile freezes in place but useFrame
     // keeps ticking, and we don't want a growing pile of particles to
     // accumulate at one head position behind the menu.
+    // Also drive threejs-games Flame mesh for trailing fire.
     if (useGame.getState().phase === "playing") {
-      const hue: "arcane" | "shadow" =
+      const hue: "arcane" | "shadow" | "fire" =
         teamRef.current === "enemy" ? "shadow" : "arcane";
       vfx.emit(VFXPresets.wispTrail([px, py, pz], hue));
+      const flame = flameCtrl.current;
+      if (hue !== "shadow") {
+        vfx.emit(VFXPresets.flameTrail([px, py, pz]));
+        if (flame) {
+          // Local origin — mesh is parented under the moving projectile group
+          const local: [number, number, number] = [0, 0, 0];
+          if (flame.mode !== "trail") flame.playTrail(local, { color: 0x66aaff });
+          flame.update(delta, { pos: local });
+        }
+      } else if (flame?.mode === "trail") {
+        flame.stop();
+      }
     }
 
     if (
@@ -243,6 +276,7 @@ export function HadoukenProjectile({
 
     if (t > 1.2) {
       activeRef.current = false;
+      if (flameCtrl.current?.mode === "trail") flameCtrl.current.stop();
     }
   });
 
@@ -274,6 +308,8 @@ export function HadoukenProjectile({
         <spriteMaterial map={sparkTex} color="#4488ff" transparent opacity={0.4} blending={THREE.AdditiveBlending} depthWrite={false} />
       </sprite>
       <pointLight color="#4488ff" intensity={8} distance={6} />
+      {/* threejs-games Flame trail (world-space; positions set in useFrame) */}
+      <group ref={flameGroupRef} />
     </group>
   );
 }
@@ -284,6 +320,11 @@ export function ShoryukenFlame({ position, active }: SkillEffectProps) {
   const timeRef = useRef(0);
   const prevActive = useRef(false);
   const flameTex = useTexture(VFX_TEXTURES.flame);
+  // Rising dragon column = threejs-games Flame beam (vertical)
+  const flameGroupRef = useRef<THREE.Group>(null);
+  const beamCtrl = useRef<FlameFxController | null>(null);
+  const aoeCtrl = useRef<FlameFxController | null>(null);
+  const aoePlayed = useRef(false);
 
   const { positions, velocities, lifetimes, colors, sizes } = useMemo(() => {
     const positions = new Float32Array(COUNT * 3);
@@ -295,11 +336,27 @@ export function ShoryukenFlame({ position, active }: SkillEffectProps) {
     return { positions, velocities, lifetimes, colors, sizes };
   }, []);
 
+  useEffect(() => {
+    const beam = createBeamFlame();
+    const aoe = createAoeFlame();
+    beamCtrl.current = beam;
+    aoeCtrl.current = aoe;
+    flameGroupRef.current?.add(beam.mesh);
+    flameGroupRef.current?.add(aoe.mesh);
+    return () => {
+      beam.dispose();
+      aoe.dispose();
+      beamCtrl.current = null;
+      aoeCtrl.current = null;
+    };
+  }, []);
+
   useFrame((_, delta) => {
     if (!pointsRef.current) return;
 
     if (active && !prevActive.current) {
       timeRef.current = 0;
+      aoePlayed.current = false;
       for (let i = 0; i < COUNT; i++) {
         positions[i * 3] = position[0] + (Math.random() - 0.5) * 0.6;
         positions[i * 3 + 1] = position[1] + Math.random() * 0.5;
@@ -314,10 +371,41 @@ export function ShoryukenFlame({ position, active }: SkillEffectProps) {
         colors[i * 3 + 1] = 0.3 + t * 0.5;
         colors[i * 3 + 2] = t * 0.2;
       }
+      // Foot AOE burst on uppercut launch
+      const foot: [number, number, number] = [position[0], position[1] + 0.2, position[2]];
+      aoeCtrl.current?.playAoe(foot, { color: 0xff5500, intensity: 1.1 });
+      vfx.burst(VFXPresets.flameAoeBurst(foot, 1.1));
+      aoePlayed.current = true;
     }
     prevActive.current = active;
 
     timeRef.current += delta;
+
+    // Vertical flame beam (rising dragon column)
+    const beam = beamCtrl.current;
+    if (beam) {
+      if (active) {
+        const origin: [number, number, number] = [
+          position[0],
+          position[1] + 0.3,
+          position[2],
+        ];
+        const up: [number, number, number] = [0, 1, 0];
+        if (beam.mode !== "beam") beam.playBeam(origin, up, { color: 0xff6622 });
+        beam.update(delta, { pos: origin, direction: up });
+        if (Math.random() < 0.5) {
+          vfx.emit(
+            VFXPresets.flameBeamSpark(
+              [position[0], position[1] + 1.2, position[2]],
+              up,
+            ),
+          );
+        }
+      } else if (beam.mode === "beam") {
+        beam.stop();
+      }
+    }
+    if (aoeCtrl.current?.mode === "aoe") aoeCtrl.current.update(delta);
 
     let allDead = true;
     for (let i = 0; i < COUNT; i++) {
@@ -338,22 +426,26 @@ export function ShoryukenFlame({ position, active }: SkillEffectProps) {
   });
 
   return (
-    <points ref={pointsRef}>
-      <bufferGeometry>
-        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
-        <bufferAttribute attach="attributes-color" args={[colors, 3]} />
-      </bufferGeometry>
-      <pointsMaterial
-        map={flameTex}
-        size={0.4}
-        transparent
-        vertexColors
-        sizeAttenuation
-        depthWrite={false}
-        opacity={0}
-        blending={THREE.AdditiveBlending}
-      />
-    </points>
+    <group>
+      <points ref={pointsRef}>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+          <bufferAttribute attach="attributes-color" args={[colors, 3]} />
+        </bufferGeometry>
+        <pointsMaterial
+          map={flameTex}
+          size={0.4}
+          transparent
+          vertexColors
+          sizeAttenuation
+          depthWrite={false}
+          opacity={0}
+          blending={THREE.AdditiveBlending}
+        />
+      </points>
+      {/* threejs-games Flame beam (vertical) + AOE foot burst */}
+      <group ref={flameGroupRef} />
+    </group>
   );
 }
 
@@ -364,6 +456,9 @@ export function EarthquakeShockwave({ position, active }: SkillEffectProps) {
   const isActive = useRef(false);
   const dustTex = useTexture(VFX_TEXTURES.dust);
   const ringTex = useTexture(VFX_TEXTURES.ring);
+  // AOE damage flame burst (threejs-games Flame expand)
+  const flameGroupRef = useRef<THREE.Group>(null);
+  const aoeCtrl = useRef<FlameFxController | null>(null);
 
   const COUNT = 60;
   const debrisRef = useRef<THREE.Points>(null);
@@ -374,6 +469,16 @@ export function EarthquakeShockwave({ position, active }: SkillEffectProps) {
     const colors = new Float32Array(COUNT * 3);
     for (let i = 0; i < COUNT; i++) lifetimes[i] = -1;
     return { positions, velocities, lifetimes, colors };
+  }, []);
+
+  useEffect(() => {
+    const c = createAoeFlame();
+    aoeCtrl.current = c;
+    flameGroupRef.current?.add(c.mesh);
+    return () => {
+      c.dispose();
+      aoeCtrl.current = null;
+    };
   }, []);
 
   useFrame((_, delta) => {
@@ -395,8 +500,17 @@ export function EarthquakeShockwave({ position, active }: SkillEffectProps) {
         debrisCol[i * 3 + 1] = brown;
         debrisCol[i * 3 + 2] = brown * 0.5;
       }
+      // Ground AOE flame damage ring
+      const epicenter: [number, number, number] = [
+        position[0],
+        position[1] + 0.15,
+        position[2],
+      ];
+      aoeCtrl.current?.playAoe(epicenter, { color: 0xff6600, intensity: 1.4 });
+      vfx.burst(VFXPresets.flameAoeBurst(epicenter, 1.4));
     }
     prevActive.current = active;
+    if (aoeCtrl.current?.mode === "aoe") aoeCtrl.current.update(delta);
 
     if (!isActive.current) {
       if (ringRef.current) ringRef.current.visible = false;
@@ -462,6 +576,8 @@ export function EarthquakeShockwave({ position, active }: SkillEffectProps) {
           opacity={0.9}
         />
       </points>
+      {/* threejs-games Flame AOE damage expand */}
+      <group ref={flameGroupRef} />
     </>
   );
 }
@@ -553,12 +669,24 @@ export function TatsumakiWind({ position, active }: SkillEffectProps) {
 
 export function SwordBlasterBeam({ position, direction = [0, 0, -1], active }: SkillEffectProps) {
   const groupRef = useRef<THREE.Group>(null);
+  const flameGroupRef = useRef<THREE.Group>(null);
+  const beamCtrl = useRef<FlameFxController | null>(null);
   const timeRef = useRef(0);
   const prevActive = useRef(false);
   const isActive = useRef(false);
   const startPos = useRef<[number, number, number]>([0, 0, 0]);
   const beamTex = useTexture(VFX_TEXTURES.beam);
   const flareTex = useTexture(VFX_TEXTURES.flare);
+
+  useEffect(() => {
+    const c = createBeamFlame();
+    beamCtrl.current = c;
+    flameGroupRef.current?.add(c.mesh);
+    return () => {
+      c.dispose();
+      beamCtrl.current = null;
+    };
+  }, []);
 
   useFrame((_, delta) => {
     if (!groupRef.current) return;
@@ -572,6 +700,7 @@ export function SwordBlasterBeam({ position, direction = [0, 0, -1], active }: S
 
     if (!isActive.current) {
       groupRef.current.visible = false;
+      if (beamCtrl.current?.mode === "beam") beamCtrl.current.stop();
       return;
     }
 
@@ -580,11 +709,11 @@ export function SwordBlasterBeam({ position, direction = [0, 0, -1], active }: S
     const t = timeRef.current;
     const speed = 30;
 
-    groupRef.current.position.set(
-      startPos.current[0] + direction[0] * speed * t,
-      startPos.current[1] + 1.2,
-      startPos.current[2] + direction[2] * speed * t
-    );
+    const bx = startPos.current[0] + direction[0] * speed * t;
+    const by = startPos.current[1] + 1.2;
+    const bz = startPos.current[2] + direction[2] * speed * t;
+
+    groupRef.current.position.set(bx, by, bz);
 
     groupRef.current.rotation.y = Math.atan2(direction[0], direction[2]);
     const slashAngle = t * 15;
@@ -593,7 +722,20 @@ export function SwordBlasterBeam({ position, direction = [0, 0, -1], active }: S
     const fade = Math.max(0, 1 - t * 1.5);
     groupRef.current.scale.set(1 + t * 2, fade, 1);
 
-    if (t > 0.8) isActive.current = false;
+    // threejs-games Flame beam stream — local origin (parented under group)
+    const flame = beamCtrl.current;
+    if (flame) {
+      const origin: [number, number, number] = [0, 0, 0];
+      const dir: [number, number, number] = [direction[0], 0, direction[2]];
+      if (flame.mode !== "beam") flame.playBeam(origin, dir, { color: 0xffaa22 });
+      flame.update(delta, { pos: origin, direction: dir });
+      vfx.emit(VFXPresets.flameBeamSpark([bx, by, bz], dir));
+    }
+
+    if (t > 0.8) {
+      isActive.current = false;
+      if (beamCtrl.current?.mode === "beam") beamCtrl.current.stop();
+    }
   });
 
   return (
@@ -627,6 +769,8 @@ export function SwordBlasterBeam({ position, direction = [0, 0, -1], active }: S
         <spriteMaterial map={flareTex} color="#ffdd44" transparent opacity={0.6} blending={THREE.AdditiveBlending} depthWrite={false} />
       </sprite>
       <pointLight color="#ffaa00" intensity={6} distance={8} />
+      {/* threejs-games Flame beam particles */}
+      <group ref={flameGroupRef} />
     </group>
   );
 }
@@ -715,6 +859,19 @@ export function SpinSlashRing({ position, active }: SkillEffectProps) {
   const prevActive = useRef(false);
   const isActive = useRef(false);
   const ringTex = useTexture(VFX_TEXTURES.ring);
+  // AOE flame ring on spin slash impact
+  const flameGroupRef = useRef<THREE.Group>(null);
+  const aoeCtrl = useRef<FlameFxController | null>(null);
+
+  useEffect(() => {
+    const c = createAoeFlame();
+    aoeCtrl.current = c;
+    flameGroupRef.current?.add(c.mesh);
+    return () => {
+      c.dispose();
+      aoeCtrl.current = null;
+    };
+  }, []);
 
   useFrame((_, delta) => {
     if (!ringRef.current) return;
@@ -722,8 +879,16 @@ export function SpinSlashRing({ position, active }: SkillEffectProps) {
     if (active && !prevActive.current) {
       isActive.current = true;
       timeRef.current = 0;
+      const center: [number, number, number] = [
+        position[0],
+        position[1] + 0.4,
+        position[2],
+      ];
+      aoeCtrl.current?.playAoe(center, { color: 0x66aaff, intensity: 1.0 });
+      vfx.burst(VFXPresets.flameAoeBurst(center, 0.9));
     }
     prevActive.current = active;
+    if (aoeCtrl.current?.mode === "aoe") aoeCtrl.current.update(delta);
 
     if (!isActive.current) {
       ringRef.current.visible = false;
@@ -748,19 +913,22 @@ export function SpinSlashRing({ position, active }: SkillEffectProps) {
   });
 
   return (
-    <mesh ref={ringRef} visible={false}>
-      <ringGeometry args={[0.6, 0.8, 32]} />
-      <meshStandardMaterial
-        color="#66ddff"
-        emissive="#4488ff"
-        emissiveIntensity={3}
-        map={ringTex}
-        transparent
-        opacity={1}
-        side={THREE.DoubleSide}
-        depthWrite={false}
-      />
-    </mesh>
+    <group>
+      <mesh ref={ringRef} visible={false}>
+        <ringGeometry args={[0.6, 0.8, 32]} />
+        <meshStandardMaterial
+          color="#66ddff"
+          emissive="#4488ff"
+          emissiveIntensity={3}
+          map={ringTex}
+          transparent
+          opacity={1}
+          side={THREE.DoubleSide}
+          depthWrite={false}
+        />
+      </mesh>
+      <group ref={flameGroupRef} />
+    </group>
   );
 }
 

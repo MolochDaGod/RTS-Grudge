@@ -16,6 +16,12 @@ import { useSurvival } from "@/lib/stores/useSurvival";
 import { useEnemyManager } from "../systems/EnemyManager";
 import { useCombatLog } from "@/lib/stores/useCombatLog";
 import { useAudio } from "@/lib/stores/useAudio";
+import { vfx, VFXPresets } from "../vfx";
+import {
+  createWeaponTrailFlame,
+  createAoeFlame,
+  type FlameFxController,
+} from "./FlameParticles";
 
 /**
  * Default damage applied to an enemy when a successfully blocked projectile
@@ -148,6 +154,9 @@ export function FireballProjectile({
   casterId,
 }: SpellProjectileProps) {
   const groupRef = useRef<THREE.Group>(null);
+  const flameGroupRef = useRef<THREE.Group>(null);
+  const flameTrailCtrl = useRef<FlameFxController | null>(null);
+  const flameAoeCtrl = useRef<FlameFxController | null>(null);
   const timeRef = useRef(0);
   const prevActive = useRef(false);
   const isActive = useRef(false);
@@ -158,6 +167,23 @@ export function FireballProjectile({
   const reboundedRef = useRef<boolean>(rebounded);
   const { scene, entry } = useSpellModel("spell_fireball");
   const flameTex = useTexture(VFX_TEXTURES.flame);
+
+  // threejs-games Flame trail + AOE impact
+  // https://threejs-games.github.io/examples/20-particles/flame/
+  useEffect(() => {
+    const trail = createWeaponTrailFlame();
+    const aoe = createAoeFlame();
+    flameTrailCtrl.current = trail;
+    flameAoeCtrl.current = aoe;
+    flameGroupRef.current?.add(trail.mesh);
+    flameGroupRef.current?.add(aoe.mesh);
+    return () => {
+      trail.dispose();
+      aoe.dispose();
+      flameTrailCtrl.current = null;
+      flameAoeCtrl.current = null;
+    };
+  }, []);
 
   const clonedScene = useMemo(() => {
     const clone = scene.clone(true);
@@ -202,9 +228,20 @@ export function FireballProjectile({
     prevActive.current = active;
 
     if (!isActive.current) {
-      groupRef.current.visible = false;
+      // Keep group visible while AOE flame expand finishes after impact
+      const aoeLive = flameAoeCtrl.current?.mode === "aoe";
+      groupRef.current.visible = !!aoeLive;
+      // Hide mesh body while only AOE remains
+      if (aoeLive) {
+        clonedScene.visible = false;
+        flameAoeCtrl.current!.update(delta);
+      } else {
+        clonedScene.visible = true;
+      }
+      if (flameTrailCtrl.current?.mode === "trail") flameTrailCtrl.current.stop();
       return;
     }
+    clonedScene.visible = true;
 
     groupRef.current.visible = true;
     timeRef.current += delta;
@@ -240,16 +277,22 @@ export function FireballProjectile({
     );
     if (reboundHit) {
       onReboundHit?.(reboundHit);
+      // AOE flame damage on impact (local origin under projectile group)
+      flameAoeCtrl.current?.playAoe([0, 0, 0], { intensity: 1.25 });
+      vfx.burst(VFXPresets.flameAoeBurst([px, py, pz], 1.25));
+      flameTrailCtrl.current?.stop();
       isActive.current = false;
-      groupRef.current.visible = false;
+      // keep group visible briefly so AOE mesh can expand
       return;
     }
 
     // Enemy-cast fireballs damage the player on impact (player casts use
     // damage=0 and rely on a separate damage path).
     if (tryEnemyProjectileHitPlayer(teamRef, damage, px, pz, 1.0)) {
+      flameAoeCtrl.current?.playAoe([0, 0, 0], { intensity: 1.1 });
+      vfx.burst(VFXPresets.flameAoeBurst([px, py, pz], 1.1));
+      flameTrailCtrl.current?.stop();
       isActive.current = false;
-      groupRef.current.visible = false;
       return;
     }
 
@@ -260,6 +303,17 @@ export function FireballProjectile({
     const pulse = 1 + Math.sin(t * 15) * 0.2;
     const scale = entry?.defaultScale || 0.5;
     clonedScene.scale.setScalar(scale * pulse);
+
+    // threejs-games Flame trailing mesh (local origin; group already at tip)
+    // + pool sparkles in world space
+    const tip: [number, number, number] = [px, py, pz];
+    const trail = flameTrailCtrl.current;
+    if (trail) {
+      const local: [number, number, number] = [0, 0, 0];
+      if (trail.mode !== "trail") trail.playTrail(local, { color: 0xff6622 });
+      trail.update(delta, { pos: local });
+    }
+    vfx.emit(VFXPresets.flameTrail(tip));
 
     for (let i = trailData.COUNT - 1; i > 0; i--) {
       trailData.positions[i * 3] = trailData.positions[(i - 1) * 3];
@@ -277,7 +331,15 @@ export function FireballProjectile({
     trailData.colors[1] = 0.6;
     trailData.colors[2] = 0.1;
 
-    if (t > 1.5) isActive.current = false;
+    if (flameAoeCtrl.current?.mode === "aoe") flameAoeCtrl.current.update(delta);
+
+    if (t > 1.5) {
+      // Expire with AOE flame pop (local under group)
+      flameAoeCtrl.current?.playAoe([0, 0, 0], { intensity: 1.0 });
+      vfx.burst(VFXPresets.flameAoeBurst(tip, 1.0));
+      flameTrailCtrl.current?.stop();
+      isActive.current = false;
+    }
   });
 
   return (
@@ -306,6 +368,8 @@ export function FireballProjectile({
           opacity={0.8}
         />
       </points>
+      {/* threejs-games Flame trail mesh (world-space updates in useFrame) */}
+      <group ref={flameGroupRef} />
     </group>
   );
 }

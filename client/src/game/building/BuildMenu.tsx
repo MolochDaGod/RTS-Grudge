@@ -1,8 +1,14 @@
 import { useBuildSystem, BUILDING_REGISTRY, FACTION_BUILDING_ALIAS, type BuildingCategory } from "@/lib/stores/useBuildSystem";
 import { useGame } from "@/lib/stores/useGame";
-import { useState } from "react";
+import { useState, useMemo, useSyncExternalStore } from "react";
 import { getBuildingIcon } from "@/lib/data/icons";
 import { FACTIONS_BY_ID, type FactionId } from "@/lib/data/factions";
+import {
+  buildingPaletteRows,
+  getClaim,
+  subscribeClaim,
+  validateBuildAt,
+} from "@/lib/campSsot";
 
 /** Color + label shown on faction-specific military buildings. */
 const FACTION_BADGE: Record<string, { color: string; label: string }> = {
@@ -12,7 +18,8 @@ const FACTION_BADGE: Record<string, { color: string; label: string }> = {
   pirate:  { color: "#d4a437", label: "☠ Pirate" },
 };
 
-const CATEGORIES: { key: BuildingCategory; label: string; color: string }[] = [
+const CATEGORIES: { key: BuildingCategory | "camp"; label: string; color: string }[] = [
+  { key: "camp", label: "Camp SSOT", color: "#c9950a" },
   { key: "defense", label: "Defense", color: "#e74c3c" },
   { key: "military", label: "Military", color: "#e67e22" },
   { key: "economy", label: "Economy", color: "#2ecc71" },
@@ -26,13 +33,12 @@ export default function BuildMenu() {
   const selectedBuildingId = useBuildSystem(s => s.selectedBuildingId);
   const resources = useBuildSystem(s => s.resources);
   const unlockedBuildings = useBuildSystem(s => s.unlockedBuildings);
+  const ghostPosition = useBuildSystem(s => s.ghostPosition);
   const toggleBuildMode = useBuildSystem(s => s.toggleBuildMode);
   const selectBuilding = useBuildSystem(s => s.selectBuilding);
   const selectedCharacter = useGame(s => s.selectedCharacter);
-  const [activeCategory, setActiveCategory] = useState<BuildingCategory>("defense");
-
-  if (interactionMode !== "build") return null;
-  if (!buildMode) return null;
+  const [activeCategory, setActiveCategory] = useState<BuildingCategory | "camp">("camp");
+  const claim = useSyncExternalStore(subscribeClaim, getClaim, () => null);
 
   // Resolve the player's effective faction for building access.
   // Pirates share human-Crusade military buildings via the alias map.
@@ -40,14 +46,28 @@ export default function BuildMenu() {
   const effectiveFaction = (FACTION_BUILDING_ALIAS[rawFaction] ?? rawFaction) as string;
   const factionDef = FACTIONS_BY_ID[rawFaction as FactionId];
 
+  const ssotRows = useMemo(
+    () => buildingPaletteRows(effectiveFaction === "pirate" ? "crusade" : effectiveFaction),
+    [effectiveFaction],
+  );
+
+  if (interactionMode !== "build") return null;
+  if (!buildMode) return null;
+
   const available = BUILDING_REGISTRY.filter(b => {
     if (!unlockedBuildings.has(b.id)) return false;
+    if (activeCategory === "camp") return false;
     if (b.category !== activeCategory) return false;
     // Show neutral buildings to everyone; show faction buildings only to the
     // matching faction (or its alias).
     const bf = b.faction ?? "neutral";
     return bf === "neutral" || bf === rawFaction || bf === effectiveFaction;
   });
+
+  const ghostGate =
+    ghostPosition && selectedBuildingId
+      ? validateBuildAt(selectedBuildingId, ghostPosition[0], ghostPosition[2])
+      : null;
 
   return (
     <div style={{
@@ -111,8 +131,63 @@ export default function BuildMenu() {
           </button>
         </div>
       </div>
+      {/* Claim status */}
+      <div style={{ color: claim ? "#3ddc7b" : "#e67e22", fontSize: 11 }}>
+        {claim
+          ? `Claim active · r=${claim.radiusM}m · ${claim.placedBuildingIds.length} structures`
+          : "No claim — place Claim Flag (Camp SSOT / Special) first for gated buildings"}
+        {ghostGate && !ghostGate.ok && (
+          <span style={{ color: "#e74c3c", marginLeft: 12 }}>⚠ {ghostGate.reason}</span>
+        )}
+        {ghostGate?.ok && ghostGate.inClaim && (
+          <span style={{ color: "#3ddc7b", marginLeft: 12 }}>✓ In claim</span>
+        )}
+      </div>
+
       <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4 }}>
-        {available.map(def => {
+        {activeCategory === "camp"
+          ? ssotRows.map((row) => {
+              const cost = row.cost;
+              const canAfford =
+                resources.wood >= (cost.wood ?? 0) &&
+                resources.stone >= (cost.stone ?? 0) &&
+                resources.gold >= (cost.gold ?? 0);
+              const pickId = row.legacyId;
+              const isSelected = selectedBuildingId === pickId || selectedBuildingId === row.id;
+              // Map SSOT to registry id when possible
+              const regId =
+                BUILDING_REGISTRY.find(
+                  (b) => b.id === pickId || b.id === row.id || b.name === row.name,
+                )?.id ?? (pickId === "claim_flag" || row.id === "bld.claim_flag" ? "claim_flag" : pickId);
+              return (
+                <button
+                  key={row.id}
+                  onClick={() => selectBuilding(isSelected ? null : regId)}
+                  style={{
+                    minWidth: 140, padding: "8px 12px", borderRadius: 8, cursor: "pointer",
+                    background: isSelected ? "rgba(201,149,10,0.35)" : "rgba(255,255,255,0.08)",
+                    border: isSelected ? "2px solid #c9950a" : "1px solid rgba(255,255,255,0.2)",
+                    opacity: canAfford ? 1 : 0.5, display: "flex", flexDirection: "column", gap: 4,
+                    textAlign: "left",
+                  }}
+                  title={row.description}
+                >
+                  <span style={{ color: "#fff", fontWeight: "bold", fontSize: 13 }}>
+                    {row.emoji} {row.name}
+                  </span>
+                  <span style={{ color: "#aaa", fontSize: 11 }}>{row.description.slice(0, 60)}</span>
+                  <div style={{ display: "flex", gap: 8, fontSize: 11 }}>
+                    {(cost.wood ?? 0) > 0 && <span style={{ color: "#8B4513" }}>W:{cost.wood}</span>}
+                    {(cost.stone ?? 0) > 0 && <span style={{ color: "#888" }}>S:{cost.stone}</span>}
+                    {(cost.gold ?? 0) > 0 && <span style={{ color: "#ffd700" }}>G:{cost.gold}</span>}
+                  </div>
+                  {row.claimGated && (
+                    <span style={{ color: "#e67e22", fontSize: 10 }}>Claim gated</span>
+                  )}
+                </button>
+              );
+            })
+          : available.map(def => {
           const canAfford = resources.wood >= def.cost.wood && resources.stone >= def.cost.stone && resources.gold >= def.cost.gold;
           const isSelected = selectedBuildingId === def.id;
           return (
@@ -159,7 +234,7 @@ export default function BuildMenu() {
             </button>
           );
         })}
-        {available.length === 0 && (
+        {activeCategory !== "camp" && available.length === 0 && (
           <span style={{ color: "#888", padding: 8 }}>No buildings unlocked in this category yet.</span>
         )}
       </div>

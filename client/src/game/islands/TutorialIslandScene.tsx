@@ -40,6 +40,7 @@ import BreakApartChunks from "../effects/BreakApartChunks";
 import UnderwaterVolume from "../effects/UnderwaterShader";
 import { SeaSurface } from "../effects/SeaSurface";
 import { ShoreFoam } from "../effects/ShoreFoam";
+import { OceanFloorPropsLayer } from "../world/OceanFloorPropsLayer";
 import {
   WATER_SURFACE_Y,
   SEABED_VISUAL_Y,
@@ -2406,6 +2407,17 @@ export default function TutorialIslandScene() {
                   topY={WATER_SURFACE_Y}
                   bottomY={SEABED_VISUAL_Y}
                   size={600}
+                />
+
+                {/* Ocean-floor beds: whispering crown, sequoia vents, lazulight coral.
+                    Seeded scatter around the home island channel (all sectors use the
+                    same prop SSOT via shared/nature/oceanFloorProps.ts). */}
+                <OceanFloorPropsLayer
+                  surface="home_island"
+                  biome="tropical"
+                  seed="tutorial_home"
+                  radiusM={120}
+                  maxInstances={72}
                 />
 
                 {/* Render any structures the player has built. The building

@@ -136,7 +136,8 @@ export const WORLD_ZONES: Record<ZoneId, WorldZone> = {
     ambientColor: "#ff8844",
     fogColor: "#aa4422",
     fogDensity: 0.025,
-    primaryAssetPath: "/models/environment/lava/lava_surface.glb",
+    // free_lava_zone_environment GLB (staged under /models/environment/lava/)
+    primaryAssetPath: "/models/environment/lava/free_lava_zone_environment.glb",
     fallbackMode: "scene",
     description:
       "Molten rivers carve through black obsidian as fire demons and lava golems " +

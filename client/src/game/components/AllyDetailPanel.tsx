@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   useAllies,
   type AllyData,
@@ -6,7 +6,11 @@ import {
   ALLY_COMMAND_LABELS,
   ALLY_COMMAND_ICONS,
   MAX_ALLY_LEVEL,
+  MAX_CAPTAINS,
 } from "@/lib/stores/useAllies";
+import { useUnitProfessions } from "@/lib/stores/useUnitProfessions";
+import { PROFESSION_DEFS, type ProfessionId } from "@/lib/stores/useProfessions";
+import { useCharacterAPI } from "@/lib/characters/useCharacterAPI";
 import { useGame } from "@/lib/stores/useGame";
 import { useEnemyManager } from "../systems/EnemyManager";
 import { getProfessionIcon } from "@/lib/data/icons";
@@ -38,7 +42,7 @@ const BEHAVIOR_LABELS: Record<string, string> = {
   sleep: "Sleeping",
 };
 
-type AllyTab = "status" | "commands" | "equipment" | "tasks";
+type AllyTab = "status" | "professions" | "commands" | "equipment" | "tasks";
 
 function StatRow({ label, value, color, icon }: { label: string; value: string | number; color: string; icon: string }) {
   return (
@@ -130,6 +134,130 @@ function StatusTab({ ally }: { ally: AllyData }) {
           color={ally.isSleeping ? "#84b2ff" : "#9b7d52"}
           icon={ally.isSleeping ? "🌙" : "☀"}
         />
+      </div>
+    </div>
+  );
+}
+
+function ProfessionsTab({ ally }: { ally: AllyData }) {
+  const ensureUnit = useUnitProfessions(s => s.ensureUnit);
+  const profs = useUnitProfessions(s => s.units[ally.id]);
+  const canPromoteUnit = useAllies(s => s.canPromoteUnit);
+  const buildCaptainPayload = useAllies(s => s.buildCaptainPayload);
+  const finalizePromotion = useAllies(s => s.finalizePromotion);
+  const captainCount = useAllies(s => s.promotedCaptains.length);
+  const { create, update } = useCharacterAPI();
+
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  // Lazily materialize this unit's profession set the first time it's inspected
+  // (covers units that pre-date the profession system / were just rehydrated).
+  useEffect(() => { ensureUnit(ally.id); }, [ally.id, ensureUnit]);
+
+  const check = canPromoteUnit(ally.id);
+  const profIds = Object.keys(PROFESSION_DEFS) as ProfessionId[];
+
+  async function handlePromote() {
+    const c = canPromoteUnit(ally.id);
+    if (!c.ok) { setMsg(c.reason); return; }
+    const payload = buildCaptainPayload(ally.id);
+    if (!payload) { setMsg("Could not build a captain from this unit."); return; }
+    setBusy(true);
+    setMsg(null);
+    try {
+      const char = await create({
+        name: payload.name,
+        heroClass: payload.heroClass,
+        race: payload.race,
+        modelPath: payload.modelPath,
+        appearance: {
+          origin: "promoted-unit",
+          isCaptain: true,
+          sourceUnitId: payload.sourceUnitId,
+          professionLevels: payload.professionLevels,
+        },
+      });
+      // create() always starts a character at level 1 — apply the inherited level.
+      if (char?.character_id && payload.level > 1) {
+        await update(char.character_id, { level: payload.level });
+      }
+      // Retire the unit and record the captain. This clears the selection, so the
+      // panel closes; the captain now shows up in character select / Hero Forge.
+      finalizePromotion(ally.id, char?.character_id ?? null);
+    } catch (e: any) {
+      setMsg(`Promotion failed: ${e?.message ?? e}`);
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div>
+      <SectionTitle>Trades & Professions</SectionTitle>
+      <div style={{ fontSize: 10, color: "#8a7050", marginBottom: 8 }}>
+        Units train the same five professions as the player (level 1–{100}). Gathering and crafting earn trade XP.
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        {profIds.map(id => {
+          const def = PROFESSION_DEFS[id];
+          const st = profs?.[id];
+          const level = st?.level ?? 1;
+          const xp = st?.xp ?? 0;
+          const xpToNext = st?.xpToNext ?? 1;
+          const pct = level >= 100 ? 100 : Math.min(100, (xp / Math.max(1, xpToNext)) * 100);
+          return (
+            <div key={id} style={{
+              padding: "8px 10px",
+              background: "linear-gradient(135deg, #1e1510, #160e08)",
+              border: "1px solid #3a2a1a", borderRadius: 8,
+            }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+                <span style={{ fontSize: 12, color: "#f5e2c1", display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ color: def.color, fontSize: 14 }}>{def.icon}</span>{def.name}
+                </span>
+                <span style={{ fontFamily: f.mono, fontSize: 11, color: def.color }}>
+                  Lv.{level}{level >= 100 ? "" : ` · ${xp}/${xpToNext}`}
+                </span>
+              </div>
+              <div style={{ height: 6, background: "#1a0f08", border: "1px solid #3a2a1a", borderRadius: 3, overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${pct}%`, background: `linear-gradient(90deg, ${def.color}88, ${def.color})` }} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <SectionTitle>Promotion</SectionTitle>
+      <div style={{
+        padding: 10,
+        background: "linear-gradient(135deg, #1e1510, #160e08)",
+        border: `1px solid ${check.ok ? "#c9950a" : "#3a2a1a"}`, borderRadius: 8,
+      }}>
+        <div style={{ fontSize: 11, color: "#9b7d52", marginBottom: 8 }}>
+          At combat level {MAX_ALLY_LEVEL}, this unit can be promoted into a playable Captain that inherits its
+          level and trade progression. Captains: {captainCount}/{MAX_CAPTAINS}.
+        </div>
+        <button
+          onClick={handlePromote}
+          disabled={!check.ok || busy}
+          style={{
+            width: "100%", padding: 10, cursor: check.ok && !busy ? "pointer" : "not-allowed",
+            background: check.ok && !busy
+              ? "linear-gradient(135deg, #6a4a10, #3a2a08)"
+              : "linear-gradient(135deg, #241a10, #160e08)",
+            border: `1px solid ${check.ok && !busy ? "#ffd56a" : "#3a2a1a"}`,
+            borderRadius: 8, color: check.ok && !busy ? "#ffd56a" : "#6a5a40",
+            fontFamily: f.display, fontSize: 13, letterSpacing: 1,
+          }}
+        >
+          {busy ? "Promoting…" : "🎖️ Promote to Captain"}
+        </button>
+        {!check.ok && (
+          <div style={{ marginTop: 6, fontSize: 10, color: "#b07a4a", textAlign: "center" }}>{check.reason}</div>
+        )}
+        {msg && (
+          <div style={{ marginTop: 6, fontSize: 10, color: "#84b2ff", textAlign: "center" }}>{msg}</div>
+        )}
       </div>
     </div>
   );
@@ -320,6 +448,7 @@ export default function AllyDetailPanel() {
 
   const tabs: { id: AllyTab; label: string; icon: string }[] = [
     { id: "status", label: "Status", icon: "📜" },
+    { id: "professions", label: "Trades", icon: "⚒️" },
     { id: "commands", label: "Orders", icon: "📯" },
     { id: "equipment", label: "Equipment", icon: "🎒" },
     { id: "tasks", label: "Schedule", icon: "🗓" },
@@ -410,6 +539,7 @@ export default function AllyDetailPanel() {
 
         <main style={{ flex: 1, overflowY: "auto", padding: 14 }}>
           {tab === "status" && <StatusTab ally={ally} />}
+          {tab === "professions" && <ProfessionsTab ally={ally} />}
           {tab === "commands" && <CommandsTab ally={ally} />}
           {tab === "equipment" && <EquipmentTab ally={ally} />}
           {tab === "tasks" && <TasksTab ally={ally} />}

@@ -410,9 +410,15 @@ export const useHotbar = create<HotbarState>((set, get) => ({
     const equipped = useEquipment.getState().equipped.mainHand;
     const equippedType = equipped?.weaponType as WeaponTypeId | undefined;
     const fallback = defaultWeaponSkillIds(equippedType);
+    // Skills always track the *currently equipped* weapon type. Persisted
+    // slots from a previous weapon type are ignored so the HUD never shows
+    // sword Qs while holding a bow (etc.).
     return s.combat.weaponSkills.map((id, i) => {
-      const effective = id ?? fallback[i];
-      return effective ? resolveWeaponSkillId(effective) : null;
+      if (!equippedType) return null;
+      const resolved = id ? resolveWeaponSkillId(id) : null;
+      if (resolved && resolved.weapon === equippedType) return resolved;
+      const fb = fallback[i];
+      return fb ? resolveWeaponSkillId(fb) : null;
     });
   },
 
@@ -436,8 +442,11 @@ export const useHotbar = create<HotbarState>((set, get) => ({
     while (fallbackIds.length < 4) fallbackIds.push(null);
 
     return s.actionBar.heldItemSkills.map((id, i) => {
-      const effective = id ?? fallbackIds[i];
-      return effective ? resolveWeaponSkillId(effective) : null;
+      if (!equippedType) return null;
+      const resolved = id ? resolveWeaponSkillId(id) : null;
+      if (resolved && resolved.weapon === equippedType) return resolved;
+      const fb = fallbackIds[i];
+      return fb ? resolveWeaponSkillId(fb) : null;
     });
   },
 }));

@@ -12,30 +12,34 @@ export type CameraMode = "mmo" | "action" | "overhead";
 // used by WaveSpawner and the terrain system.
 const WORLD_BOUNDS = 90;
 
-const MMO_CONFIG = {
+/**
+ * Editable third-person presets (mutate at runtime for cheats / tuning).
+ * Aligned with three-player-controller: minDist, look height, over-shoulder,
+ * follow rates, polar clamps. See docs/THIRD_PERSON_CAMERA_AND_IK.md.
+ */
+export const MMO_CONFIG = {
   minDistance: 5,
   maxDistance: 35,
   defaultDistance: 16,
   minPitch: 0.1,
   maxPitch: 1.45,
-  // Lowered from 0.55 (~31°) to 0.42 (~24°). At 0.55 the camera was
-  // angled steeply enough that the sky was fully cropped at shore-side
-  // spawns and the water filled the frame; 0.42 reveals the horizon
-  // line and lets the surrounding sea / other islands open out, so
-  // the world reads as a place rather than a tight crop on the
-  // player. Mid-air orbit still goes from minPitch..maxPitch on
-  // RMB drag.
+  // ~24° default pitch reveals horizon (was 0.55 / sky-cropped).
   defaultPitch: 0.42,
   defaultYaw: Math.PI,
   lookHeight: 1.5,
+  /** Fraction of capsule height for look-at (0=feet, 1=top) — TPC style. */
+  lookAtHeightRatio: 0.82,
   followSmoothing: 8.0,
   orbitSmoothing: 12.0,
   zoomSmoothing: 10.0,
   zoomStep: 1.5,
   mouseSensitivity: 0.003,
+  /** Soft occlusion lerp 0..1 when ray hits (TPC collisionLerp). */
+  collisionLerp: 0.18,
+  occlusionMargin: 0.35,
 };
 
-const ACTION_CONFIG = {
+export const ACTION_CONFIG = {
   minDistance: 2.5,
   maxDistance: 12,
   defaultDistance: 5,
@@ -44,18 +48,19 @@ const ACTION_CONFIG = {
   defaultPitch: 0.35,
   defaultYaw: Math.PI,
   lookHeight: 1.6,
+  lookAtHeightRatio: 0.86,
   shoulderOffsetX: 0.8,
   followSmoothing: 12.0,
   orbitSmoothing: 14.0,
   zoomSmoothing: 12.0,
   zoomStep: 0.8,
   mouseSensitivity: 0.003,
+  collisionLerp: 0.22,
+  occlusionMargin: 0.28,
 };
 
-// Tactical/overhead view — camera sits high and looks nearly straight down,
-// reusing the same yaw/pitch/distance pipeline as MMO. Acts as the secondary
-// option to the default MMO camera (toggled with V).
-const OVERHEAD_CONFIG = {
+// Tactical/overhead view — high angle, same pipeline as MMO (toggle V).
+export const OVERHEAD_CONFIG = {
   minDistance: 15,
   maxDistance: 60,
   defaultDistance: 30,
@@ -64,12 +69,25 @@ const OVERHEAD_CONFIG = {
   defaultPitch: 1.35,
   defaultYaw: Math.PI,
   lookHeight: 0.6,
+  lookAtHeightRatio: 0.35,
   followSmoothing: 6.0,
   orbitSmoothing: 10.0,
   zoomSmoothing: 8.0,
   zoomStep: 3.0,
   mouseSensitivity: 0.003,
+  collisionLerp: 0.12,
+  occlusionMargin: 0.4,
 };
+
+/** Runtime patch helper for debug UI. */
+export function patchCameraModeConfig(
+  mode: CameraMode,
+  partial: Partial<typeof MMO_CONFIG & typeof ACTION_CONFIG>,
+) {
+  const cfg =
+    mode === "action" ? ACTION_CONFIG : mode === "overhead" ? OVERHEAD_CONFIG : MMO_CONFIG;
+  Object.assign(cfg, partial);
+}
 
 const MODE_LABELS: Record<CameraMode, string> = {
   mmo: "MMO",

@@ -1,6 +1,17 @@
 import { create } from "zustand";
 import { useAllies, type AllyType } from "./useAllies";
 import type { FactionId } from "@/lib/data/factions";
+// Camp/RTS SSOT (shared with Tactical Infinity) — use for palette + costs + claim
+export {
+  buildingPaletteRows,
+  campBuildingsAsRtsDefs,
+  getBuilding,
+  resolveBuilding,
+  canAfford as canAffordSsot,
+  validateBuildAt,
+  plantClaimFlag,
+  registerPlacedOnClaim,
+} from "@/lib/campSsot";
 
 let _onBuildingRemoved: ((uid: string) => void) | null = null;
 export function registerBuildingRemoveCallback(cb: (uid: string) => void) {
@@ -98,6 +109,12 @@ export const FACTION_BUILDING_ALIAS: Partial<Record<string, string>> = {
 };
 
 export const BUILDING_REGISTRY: BuildingDef[] = [
+  // ── Camp SSOT: Claim Flag (must place before claim-gated structures) ──
+  { id: "claim_flag", faction: "neutral", name: "Claim Flag", category: "special", age: "first", level: 1, maxLevel: 1, modelPath: "/models/rts_quaternius/Wonder_FirstAge_Level1.glb", cost: { wood: 10, stone: 5, gold: 0 }, size: [1, 1], description: "Plants camp rights. Required before claim-gated structures." },
+  // ── Pirate pack buildables (mesh isolation via meshName in SSOT) ──
+  { id: "net_dock", faction: "pirate", name: "Net Dock", category: "economy", age: "first", level: 1, maxLevel: 1, modelPath: "/models/pirate/low_poly_pirate_pack_1.glb", cost: { wood: 35, stone: 0, gold: 5 }, size: [2, 2], description: "Shore fishing stand with nets. Cook fish + craft poles/nets." },
+  { id: "cannon_base", faction: "neutral", name: "Cannon Base", category: "defense", age: "first", level: 1, maxLevel: 1, modelPath: "/models/pirate/low_poly_pirate_pack_1.glb", cost: { wood: 25, stone: 30, gold: 10 }, size: [2, 2], description: "Cannon carriage/stand. Place under Shore Cannon." },
+  { id: "shore_cannon", faction: "neutral", name: "Shore Cannon", category: "defense", age: "first", level: 1, maxLevel: 1, modelPath: "/models/pirate/low_poly_pirate_pack_1.glb", cost: { wood: 40, stone: 60, gold: 40 }, size: [2, 2], description: "Pirate pack coastal cannon. Mount on Cannon Base." },
   // ── NEUTRAL: Defense ─────────────────────────────────────────────────────
   // Walls, towers and gates are neutral — any faction can fortify their land.
   { id: "watchtower_1a_l1", faction: "neutral", name: "Watch Tower",     category: "defense", age: "first",  level: 1, maxLevel: 3, modelPath: "/models/rts_quaternius/WatchTower_FirstAge_Level1.glb",    cost: { wood: 50,  stone: 30, gold: 10 }, size: [3, 3], description: "Basic defensive tower. Archers attack nearby enemies." },
@@ -200,6 +217,10 @@ const STARTER_UNLOCKS = new Set([
   "camp", "lumber_camp", "herb_garden", "mining_outpost",
   // Enterable player structures (always available)
   "player_camp", "player_house",
+  // Camp SSOT claim flag (always available for ghost gate loop)
+  "claim_flag",
+  // Low-poly pirate pack buildables
+  "net_dock", "cannon_base", "shore_cannon",
 ]);
 
 export const useBuildSystem = create<BuildSystemState>((set, get) => ({
@@ -226,6 +247,22 @@ export const useBuildSystem = create<BuildSystemState>((set, get) => ({
     if (!def) return false;
     if (resources.wood < def.cost.wood || resources.stone < def.cost.stone || resources.gold < def.cost.gold) return false;
 
+    // Camp SSOT claim gate (claim-gated buildings need flag + radius)
+    const gate = validateBuildAt(selectedBuildingId, ghostPosition[0], ghostPosition[2]);
+    const ssot = getBuilding(selectedBuildingId);
+    if (ssot?.id === "bld.claim_flag" || selectedBuildingId.includes("claim")) {
+      plantClaimFlag({
+        ownerAccountId: "local",
+        islandId: "home",
+        x: ghostPosition[0],
+        y: ghostPosition[1],
+        z: ghostPosition[2],
+      });
+    } else if (!gate.ok) {
+      console.warn("[build] claim gate:", gate.reason);
+      return false;
+    }
+
     const uid = `building_${++buildingUidCounter}_${Date.now()}`;
     const placed: PlacedBuilding = {
       uid,
@@ -246,6 +283,7 @@ export const useBuildSystem = create<BuildSystemState>((set, get) => ({
       placedBuildings: [...s.placedBuildings, placed],
       ghostPosition: null,
     }));
+    registerPlacedOnClaim(uid);
     return true;
   },
 

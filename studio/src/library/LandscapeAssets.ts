@@ -1,7 +1,7 @@
 /**
  * Curated landscape asset library for the Grudge Studio editor.
  *
- * Source of truth for the visual Asset Palette. Two flavours of entry:
+ * Source of truth for the visual Asset Palette. Three flavours of entry:
  *
  *   1. GLB-backed entries — resolved at build time via Vite's eager glob
  *      against `attached_assets/*.glb`. We match by stem (filename prefix
@@ -12,12 +12,21 @@
  *      GLB. These are powered by FoliageTextures.ts and let us turn raw
  *      leaf/bark PNGs into placeable trees/flowers/grass.
  *
+ *   3. Warlords CDN entries — absolute R2 keys under assets.grudge-studio.com
+ *      (battle nature + CreatureManifest paths). Prefer these for fleet-aligned
+ *      home-island / biome work. Cross-repo SSOT:
+ *        biomeHarvestAssets · CreatureManifest · HOME_ISLAND_PIPELINE_CANONICAL
+ *        · TI warlordsAssetCatalog · THIS library
+ *
  * Adding a new GLB to attached_assets/ won't surface it here automatically
  * — by design (the user asked for a curated palette). To expose it, add a
  * line to the CURATED array below.
  */
 import type { EntityKind } from '../types';
 import { getDynamicAssetById } from './dynamicAssets';
+
+/** Production CDN — same host as GrudgeBuilder / TI warlordsAssetCatalog */
+export const WARLORDS_CDN = 'https://assets.grudge-studio.com';
 
 // Eager glob → fully-resolved URL strings keyed by absolute filename.
 // Vite emits each model as a static asset and gives us a stable URL.
@@ -96,6 +105,11 @@ interface RawSpec extends Omit<AssetSpec, 'assetUrl'> {
   glbStem?: string;
   /** Path under public/assets/models/ — always available on Vercel, no upload needed */
   publicModelPath?: string;
+  /**
+   * R2 key on assets.grudge-studio.com (no leading slash), e.g.
+   * `models/nature/CommonTree_1.glb`. Preferred for Warlords-era biome work.
+   */
+  cdnR2Key?: string;
 }
 
 const RAW: RawSpec[] = [
@@ -393,6 +407,77 @@ const RAW: RawSpec[] = [
     publicModelPath: 'nature/nature-pack.glb', defaultScale: 1.0,
     hint: 'Full Kenney CC0 nature pack — trees, grass, rocks in one GLB scene.' },
 
+  // ── Warlords CDN — Battle Kenney nature (fleet SSOT) ────────────────
+  // Live on assets.grudge-studio.com; matches GrudgeBuilder natureAssetCatalog
+  // + TI WARLORDS_BATTLE_NATURE. Prefer these for production island work.
+  { id: 'wl-common-tree-1', label: 'Common Tree 1 (CDN)', category: 'Trees', kind: 'tree',
+    cdnR2Key: 'models/nature/CommonTree_1.glb', defaultScale: 1.4,
+    hint: 'Warlords battle pack — CommonTree_1.glb on CDN.' },
+  { id: 'wl-common-tree-2', label: 'Common Tree 2 (CDN)', category: 'Trees', kind: 'tree',
+    cdnR2Key: 'models/nature/CommonTree_2.glb', defaultScale: 1.4,
+    hint: 'Warlords battle pack — CommonTree_2.glb on CDN.' },
+  { id: 'wl-common-tree-3', label: 'Common Tree 3 (CDN)', category: 'Trees', kind: 'tree',
+    cdnR2Key: 'models/nature/CommonTree_3.glb', defaultScale: 1.4,
+    hint: 'Warlords battle pack — CommonTree_3.glb on CDN.' },
+  { id: 'wl-pine-1', label: 'Pine 1 (CDN)', category: 'Winter Trees', kind: 'tree',
+    cdnR2Key: 'models/nature/Pine_1.glb', defaultScale: 1.5,
+    hint: 'Warlords battle pack pine — winter/forest biomes.' },
+  { id: 'wl-pine-2', label: 'Pine 2 (CDN)', category: 'Winter Trees', kind: 'tree',
+    cdnR2Key: 'models/nature/Pine_2.glb', defaultScale: 1.5,
+    hint: 'Warlords battle pack pine variant.' },
+  { id: 'wl-dead-tree-1', label: 'Dead Tree 1 (CDN)', category: 'Autumn Trees', kind: 'tree',
+    cdnR2Key: 'models/nature/DeadTree_1.glb', defaultScale: 1.3,
+    hint: 'Warlords dead tree — volcanic / storm biomes.' },
+  { id: 'wl-rock-med-1', label: 'Rock Medium 1 (CDN)', category: 'Rocks & Gems', kind: 'rock',
+    cdnR2Key: 'models/nature/Rock_Medium_1.glb', defaultScale: 1.0,
+    hint: 'Warlords battle pack medium rock.' },
+  { id: 'wl-rock-med-2', label: 'Rock Medium 2 (CDN)', category: 'Rocks & Gems', kind: 'rock',
+    cdnR2Key: 'models/nature/Rock_Medium_2.glb', defaultScale: 1.0,
+    hint: 'Warlords battle pack medium rock variant.' },
+  { id: 'wl-bush', label: 'Bush Common (CDN)', category: 'Foliage', kind: 'bush',
+    cdnR2Key: 'models/nature/Bush_Common.glb', defaultScale: 1.0,
+    hint: 'Warlords common bush.' },
+  { id: 'wl-grass-tall', label: 'Grass Tall (CDN)', category: 'Foliage', kind: 'bush',
+    cdnR2Key: 'models/nature/Grass_Common_Tall.glb', defaultScale: 1.2,
+    hint: 'Warlords tall grass cover.' },
+  { id: 'wl-mushroom', label: 'Mushroom (CDN)', category: 'Foliage', kind: 'flower',
+    cdnR2Key: 'models/nature/Mushroom_Common.glb', defaultScale: 0.8,
+    hint: 'Warlords common mushroom.' },
+
+  // ── Warlords CDN — CreatureManifest wildlife ───────────────────────
+  { id: 'wl-wolf', label: 'Wolf (CDN)', category: 'Wildlife', kind: 'creature',
+    cdnR2Key: 'models/creatures/land/wolf.glb', defaultScale: 1.0,
+    defaultData: { species: 'wolf', behavior: 'wander', speed: 2.4, visionRadius: 18, fleeSpeed: 6, homeRadius: 28 },
+    hint: 'CreatureManifest wolf — assets.grudge-studio.com.' },
+  { id: 'wl-deer', label: 'Deer COTW (CDN)', category: 'Wildlife', kind: 'creature',
+    cdnR2Key: 'models/creatures/land/cotw/deer.glb', defaultScale: 1.0,
+    defaultData: { species: 'deer', behavior: 'wander', speed: 1.6, visionRadius: 14, fleeSpeed: 5.2, homeRadius: 18 },
+    hint: 'COTW deer — biome ecosystem default prey.' },
+  { id: 'wl-buffalo', label: 'Buffalo (CDN)', category: 'Wildlife', kind: 'creature',
+    cdnR2Key: 'models/creatures/land/buffalo.glb', defaultScale: 1.2,
+    defaultData: { species: 'buffalo', behavior: 'wander', speed: 2.0, visionRadius: 14, fleeSpeed: 4.5, homeRadius: 25 },
+    hint: 'Plains buffalo — CreatureManifest.' },
+  { id: 'wl-boar', label: 'Boar COTW (CDN)', category: 'Wildlife', kind: 'creature',
+    cdnR2Key: 'models/creatures/land/cotw/boar.glb', defaultScale: 0.95,
+    defaultData: { species: 'boar', behavior: 'wander', speed: 1.8, visionRadius: 12, fleeSpeed: 5, homeRadius: 20 },
+    hint: 'COTW boar — alias boar → cotw_boar in CreatureManifest.' },
+  { id: 'wl-bear', label: 'Bear COTW (CDN)', category: 'Wildlife', kind: 'creature',
+    cdnR2Key: 'models/creatures/land/cotw/bear.glb', defaultScale: 1.1,
+    defaultData: { species: 'bear', behavior: 'wander', speed: 1.5, visionRadius: 16, fleeSpeed: 4, homeRadius: 24 },
+    hint: 'COTW bear — alias bear → cotw_bear.' },
+  { id: 'wl-rabbit', label: 'Hare / Rabbit (CDN)', category: 'Wildlife', kind: 'creature',
+    cdnR2Key: 'models/creatures/land/cotw/beaver.glb', defaultScale: 0.45,
+    defaultData: { species: 'rabbit', behavior: 'wander', speed: 2.2, visionRadius: 14, fleeSpeed: 7, homeRadius: 16 },
+    hint: 'Rabbit/hare pool key — beaver proxy until rabbit.glb ships.' },
+  { id: 'wl-fish-angler', label: 'Anglerfish (CDN)', category: 'Sea Life', kind: 'creature',
+    cdnR2Key: 'models/creatures/fish/anglerfish.glb', defaultScale: 0.8,
+    defaultData: { species: 'anglerfish' },
+    hint: 'Production pond fish — CreatureManifest GLB.' },
+  { id: 'wl-fish-lion', label: 'Lionfish (CDN)', category: 'Sea Life', kind: 'creature',
+    cdnR2Key: 'models/creatures/fish/lionfish.glb', defaultScale: 0.8,
+    defaultData: { species: 'lionfish' },
+    hint: 'Production pond fish GLB.' },
+
   // ── Foliage — ferns, flowers, mushrooms, ground cover ──────────
   { id: 'bush-leaves', label: 'Leaf Bush',     category: 'Foliage', kind: 'bush',
     defaultScale: 1.0, defaultData: { foliageStyle: 'textured', leaf: 'bush' },
@@ -439,21 +524,24 @@ const RAW: RawSpec[] = [
 ];
 
 export const ASSET_LIBRARY: AssetSpec[] = RAW.map((r) => {
-  // Priority: publicModelPath (always works on Vercel) > glbStem (needs upload) > procedural
+  // Priority: cdnR2Key (fleet CDN) > publicModelPath (local public/) > glbStem > procedural
   let url: string | undefined;
-  if (r.publicModelPath) {
+  if (r.cdnR2Key) {
+    const key = r.cdnR2Key.replace(/^\//, '');
+    url = `${WARLORDS_CDN}/${key.split('/').map(encodeURIComponent).join('/')}`;
+  } else if (r.publicModelPath) {
     url = `${import.meta.env.BASE_URL}assets/models/${r.publicModelPath}`;
   } else if (r.glbStem) {
     url = resolveGlb(r.glbStem);
   }
-  const { glbStem: _g, publicModelPath: _p, ...spec } = r;
-  void _g; void _p;
+  const { glbStem: _g, publicModelPath: _p, cdnR2Key: _c, ...spec } = r;
+  void _g; void _p; void _c;
   return { ...spec, assetUrl: url };
 }).filter((spec) => {
   const raw = RAW.find((r) => r.id === spec.id);
   // Drop attached_assets GLB entries that didn't resolve (file not uploaded yet).
-  // publicModelPath entries always resolve. Procedural entries always kept.
-  if (spec.assetUrl === undefined && raw?.glbStem && !raw?.publicModelPath) {
+  // cdnR2Key / publicModelPath entries always resolve. Procedural entries always kept.
+  if (spec.assetUrl === undefined && raw?.glbStem && !raw?.publicModelPath && !raw?.cdnR2Key) {
     // eslint-disable-next-line no-console
     console.warn('[LandscapeAssets] dropped unresolved entry', spec.id);
     return false;

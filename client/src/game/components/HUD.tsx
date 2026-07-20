@@ -9,6 +9,7 @@ import { useSettings } from "@/lib/stores/useSettings";
 import { useInventory, type InventoryItem } from "@/lib/stores/useInventory";
 import { useGame } from "@/lib/stores/useGame";
 import { useHotbar, loadoutKey } from "@/lib/stores/useHotbar";
+import { useEquipment } from "@/lib/stores/useEquipment";
 import { getPlayerId } from "@/lib/save/playerId";
 import { getFaction } from "@/lib/data/factions";
 import { getFactionForModelPath } from "@/game/systems/ModelRegistry";
@@ -1040,6 +1041,8 @@ export default function HUD() {
   const resolveWeaponSkills = useHotbar((s) => s.resolveWeaponSkills);
   const harvestPinnedTools = useHotbar((s) => s.harvest.pinnedToolIds);
   const combatBindings = useHotbar((s) => s.combat);
+  // Re-render skill bar when main-hand weapon type changes (skills follow equip).
+  const equippedWeaponType = useEquipment((s) => s.equipped.mainHand?.weaponType);
   const characterIdRaw = useGame((s) => s.selectedCharacter.characterId);
   const characterId = characterIdRaw && characterIdRaw.length >= 6 ? characterIdRaw : `char-${characterIdRaw || "default"}`;
   const [hoveredWeaponSkill, setHoveredWeaponSkill] = useState<number | null>(null);
@@ -1105,11 +1108,14 @@ export default function HUD() {
     return { icon: item.icon, name: item.name, qty: item.quantity };
   });
 
-  // Weapon skill slots — only meaningful in combat mode. In other modes
-  // we still compute (cheap, no allocations beyond the array) but skip
-  // the render. Cooldowns aren't yet wired for weapon skills, so they
-  // render as always-ready; class skills still drive off skillCooldowns.
-  const weaponSkillSlots = interactionMode === "combat" ? resolveWeaponSkills() : [];
+  // Weapon skill slots — combat mode only; always derived from equipped
+  // main-hand weapon type (see useHotbar.resolveWeaponSkills). equippedWeaponType
+  // is read so this re-renders when the player swaps weapons.
+  const weaponSkillSlots =
+    interactionMode === "combat"
+      ? resolveWeaponSkills()
+      : [];
+  void equippedWeaponType; // subscription dependency for equip-driven skill bar
 
   // Hydrate hotbar bindings from the server when the active
   // character changes. The character id from useGame is short-form

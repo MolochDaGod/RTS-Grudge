@@ -251,7 +251,9 @@ export const TOOL_ACTIONS: Record<HarvestToolType, HarvestAction[]> = {
     {
       id: "shovel_action", name: "Dig", kind: "action", icon: "🪏",
       animation: "attack", cooldown: 0, staminaCost: 3, harvestMult: 1.0,
-      description: "Dig into the ground to raise or lower terrain.",
+      description:
+        "Dig into the ground to raise or lower terrain. Small chance of buried loot.",
+      rareFindBonus: 0.05,
     },
     {
       id: "shovel_action2", name: "Flatten", kind: "action2", icon: "📐",
@@ -264,10 +266,11 @@ export const TOOL_ACTIONS: Record<HarvestToolType, HarvestAction[]> = {
       description: "Toggle automatic terrain shaping in a pattern.", isToggle: true,
     },
     {
-      id: "shovel_special", name: "Excavate", kind: "special", icon: "🕳️",
+      id: "shovel_special", name: "Treasure Dig", kind: "special", icon: "💀",
       animation: "combo3", cooldown: 15, staminaCost: 25, harvestMult: 1.0,
-      description: "Excavate a large area at once. Chance to uncover buried treasures.",
-      rareFindBonus: 0.3, aoeRadius: 4,
+      description:
+        "Deep excavate — high chance to uncover a bone chest (pirate pack Death_Chest) and buried treasure.",
+      rareFindBonus: 0.35, aoeRadius: 4,
     },
   ],
 };
@@ -316,9 +319,30 @@ export function detectToolType(itemId: string): HarvestToolType | null {
   if (itemId.includes("axe") && !itemId.includes("pick")) return "axe";
   if (itemId.includes("skinning") || itemId.includes("skin_knife")) return "skinning_knife";
   if (itemId.includes("sickle"))                        return "sickle";
-  if (itemId.includes("rod") || itemId.includes("fish")) return "fishing_rod";
+  if (
+    itemId.includes("rod") ||
+    itemId.includes("fish") ||
+    itemId.includes("pirate_fishing")
+  ) {
+    return "fishing_rod";
+  }
   if (itemId.includes("toolkit") || itemId.includes("wrench")) return "toolkit";
   if (itemId.includes("shovel"))                        return "shovel";
+  return null;
+}
+
+/**
+ * Map crafted / inventory item ids → TOOL_PREFABS id.
+ * Pirate pack fishing poles are the second visual line for fishing_rod.
+ */
+export function toolPrefabIdForItem(itemId: string): string | null {
+  const id = itemId.toLowerCase();
+  if (id === "pirate_fishing_rod_line" || id === "rod_pirate_v2") return "rod_pirate_v2";
+  if (id === "pirate_fishing_rod" || id === "rod_pirate_v1") return "rod_pirate_v1";
+  if (id === "pirate_shovel" || id === "shovel_pirate") return "shovel_pirate";
+  if (id.includes("fishing") && id.includes("line")) return "rod_pirate_v2";
+  if (id.includes("fishing") || id.includes("rod")) return "rod_t0";
+  if (id.includes("shovel")) return "shovel_t0";
   return null;
 }
 

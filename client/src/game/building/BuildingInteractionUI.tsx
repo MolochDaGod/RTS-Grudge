@@ -1,10 +1,11 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { useBuildingInteraction } from "@/lib/stores/useBuildingInteraction";
 import { useSurvivalBuilding, type PlacedSurvivalBuilding } from "@/lib/stores/useSurvivalBuilding";
 import { useAllies } from "@/lib/stores/useAllies";
 import { useInventory } from "@/lib/stores/useInventory";
 import { useGame } from "@/lib/stores/useGame";
 import * as THREE from "three";
+import TrainPanel from "./TrainPanel";
 
 const PANEL_BG = "/textures/ui/building-panel.png";
 
@@ -143,6 +144,7 @@ function WorkbenchPanel({ building }: { building: PlacedSurvivalBuilding }) {
 }
 
 function BarracksPanel({ building }: { building: PlacedSurvivalBuilding }) {
+  const [trainOpen, setTrainOpen] = useState(false);
   const allies = useAllies(s => s.allies);
   const assigned = allies.filter(a => a.spawnedBy === building.uid);
 
@@ -160,6 +162,16 @@ function BarracksPanel({ building }: { building: PlacedSurvivalBuilding }) {
         </div>
       )}
       <InfoRow label="Capacity" value={`${assigned.length}/5`} icon="👥" />
+      <div style={{ marginTop: 10 }}>
+        <ActionBtn label="Train units…" onClick={() => setTrainOpen(true)} />
+      </div>
+      {trainOpen && (
+        <TrainPanel
+          buildingUid={building.uid}
+          defId={building.recipeId}
+          onClose={() => setTrainOpen(false)}
+        />
+      )}
     </div>
   );
 }
