@@ -33,7 +33,9 @@ COPY shared/ shared/
 COPY scripts/ scripts/
 COPY vite.config.ts tsconfig.json tailwind.config.ts postcss.config.js ./
 
-# Build client (Vite → dist/public) + server (esbuild → dist/index.cjs)
+# Build client (Vite → dist/public) + server (esbuild → dist/index.cjs).
+# studio/ (Forge editor) is not copied into this image — skip nested forge build.
+ENV SKIP_FORGE_BUILD=1
 RUN npm run build
 
 # ── Stage 2: Production ────────────────────────────────────────────────────────────
