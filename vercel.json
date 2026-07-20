@@ -53,12 +53,20 @@
       "dest": "https://id.grudge-studio.com/auth/$1"
     },
     {
+      "src": "/api/auth/(.*)",
+      "dest": "https://id.grudge-studio.com/api/auth/$1"
+    },
+    {
+      "src": "/login",
+      "dest": "https://id.grudge-studio.com/login"
+    },
+    {
       "src": "/api/(.*)",
-      "dest": "https://api.grudge-studio.com/api/$1"
+      "dest": "https://grudge-api-production-0d46.up.railway.app/api/$1"
     },
     {
       "src": "/socket.io/(.*)",
-      "dest": "https://ws.grudge-studio.com/socket.io/$1"
+      "dest": "https://grudge-api-production-0d46.up.railway.app/socket.io/$1"
     },
     {
       "src": "/Models/(.*)",
