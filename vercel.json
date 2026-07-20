@@ -50,11 +50,11 @@
     },
     {
       "src": "/api/auth/(.*)",
-      "dest": "https://id.grudge-studio.com/auth/$1"
+      "dest": "https://id.grudge-studio.com/api/auth/$1"
     },
     {
-      "src": "/api/auth/(.*)",
-      "dest": "https://id.grudge-studio.com/api/auth/$1"
+      "src": "/auth/(.*)",
+      "dest": "https://id.grudge-studio.com/auth/$1"
     },
     {
       "src": "/login",
