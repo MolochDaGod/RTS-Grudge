@@ -9,88 +9,79 @@
       "source": "/:path((?!forge|api|socket\\.io|Models|assets).*)",
       "destination": "/forge/:path*",
       "has": [{ "type": "host", "value": "forge.grudge-studio.com" }]
+    },
+    {
+      "source": "/api/island/:path*",
+      "destination": "https://grudge-api-production-0d46.up.railway.app/api/island/:path*"
+    },
+    {
+      "source": "/api/island",
+      "destination": "https://grudge-api-production-0d46.up.railway.app/api/island"
+    },
+    {
+      "source": "/api/islands/:path*",
+      "destination": "https://grudge-api-production-0d46.up.railway.app/api/islands/:path*"
+    },
+    {
+      "source": "/api/account/:path*",
+      "destination": "https://grudge-api-production-0d46.up.railway.app/api/account/:path*"
+    },
+    {
+      "source": "/api/account",
+      "destination": "https://grudge-api-production-0d46.up.railway.app/api/account"
+    },
+    {
+      "source": "/api/characters/:path*",
+      "destination": "https://grudge-api-production-0d46.up.railway.app/api/characters/:path*"
+    },
+    {
+      "source": "/api/characters",
+      "destination": "https://grudge-api-production-0d46.up.railway.app/api/characters"
+    },
+    {
+      "source": "/api/island-nfts/:path*",
+      "destination": "https://grudge-api-production-0d46.up.railway.app/api/island-nfts/:path*"
+    },
+    {
+      "source": "/api/island-nfts",
+      "destination": "https://grudge-api-production-0d46.up.railway.app/api/island-nfts"
+    },
+    {
+      "source": "/api/auth/:path*",
+      "destination": "https://id.grudge-studio.com/api/auth/:path*"
+    },
+    {
+      "source": "/auth/:path*",
+      "destination": "https://id.grudge-studio.com/auth/:path*"
+    },
+    {
+      "source": "/login",
+      "destination": "https://id.grudge-studio.com/login"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://grudge-api-production-0d46.up.railway.app/api/:path*"
+    },
+    {
+      "source": "/socket.io/:path*",
+      "destination": "https://grudge-api-production-0d46.up.railway.app/socket.io/:path*"
+    },
+    {
+      "source": "/Models/:path*",
+      "destination": "https://assets.grudge-studio.com/models/:path*"
+    },
+    {
+      "source": "/forge",
+      "destination": "/forge/"
+    },
+    {
+      "source": "/forge/:path*",
+      "destination": "/forge/index.html"
+    },
+    {
+      "source": "/((?!api|socket\\.io|Models|assets|forge).*)",
+      "destination": "/index.html"
     }
-  ],
-  "routes": [
-    {
-      "src": "/api/island/(.*)",
-      "dest": "https://grudge-builder-production.up.railway.app/api/island/$1"
-    },
-    {
-      "src": "/api/island",
-      "dest": "https://grudge-builder-production.up.railway.app/api/island"
-    },
-    {
-      "src": "/api/islands/(.*)",
-      "dest": "https://grudge-builder-production.up.railway.app/api/islands/$1"
-    },
-    {
-      "src": "/api/account/(.*)",
-      "dest": "https://grudge-builder-production.up.railway.app/api/account/$1"
-    },
-    {
-      "src": "/api/account",
-      "dest": "https://grudge-builder-production.up.railway.app/api/account"
-    },
-    {
-      "src": "/api/characters/(.*)",
-      "dest": "https://grudge-builder-production.up.railway.app/api/characters/$1"
-    },
-    {
-      "src": "/api/characters",
-      "dest": "https://grudge-builder-production.up.railway.app/api/characters"
-    },
-    {
-      "src": "/api/island-nfts/(.*)",
-      "dest": "https://grudge-builder-production.up.railway.app/api/island-nfts/$1"
-    },
-    {
-      "src": "/api/island-nfts",
-      "dest": "https://grudge-builder-production.up.railway.app/api/island-nfts"
-    },
-    {
-      "src": "/api/auth/(.*)",
-      "dest": "https://id.grudge-studio.com/api/auth/$1"
-    },
-    {
-      "src": "/auth/(.*)",
-      "dest": "https://id.grudge-studio.com/auth/$1"
-    },
-    {
-      "src": "/login",
-      "dest": "https://id.grudge-studio.com/login"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "https://grudge-api-production-0d46.up.railway.app/api/$1"
-    },
-    {
-      "src": "/socket.io/(.*)",
-      "dest": "https://grudge-api-production-0d46.up.railway.app/socket.io/$1"
-    },
-    {
-      "src": "/Models/(.*)",
-      "dest": "https://assets.grudge-studio.com/models/$1"
-    },
-    {
-      "src": "/assets/(.*)",
-      "headers": { "Cache-Control": "public, max-age=31536000, immutable" },
-      "continue": true
-    },
-    {
-      "src": "/(.*)\\.(?:glb|gltf|png|jpg|webp|mp3|wav|ogg|wasm)$",
-      "headers": { "Cache-Control": "public, max-age=86400" },
-      "continue": true
-    },
-    { "src": "/forge", "status": 308, "headers": { "Location": "/forge/" } },
-    { "handle": "filesystem" },
-    {
-      "src": "/forge/assets/(.*)",
-      "headers": { "Cache-Control": "public, max-age=31536000, immutable" },
-      "continue": true
-    },
-    { "src": "/forge/(.*)", "dest": "/forge/index.html" },
-    { "src": "/(.*)", "dest": "/index.html" }
   ],
   "headers": [
     {
@@ -101,6 +92,12 @@
           "key": "Content-Security-Policy",
           "value": "frame-ancestors 'self' https://id.grudge-studio.com https://*.grudge-studio.com https://ws.grudge-studio.com"
         }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     },
     {
