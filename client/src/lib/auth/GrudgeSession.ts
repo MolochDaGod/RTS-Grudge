@@ -21,6 +21,7 @@
  */
 
 import { getPuterUuidSync, puterReady, getPuterUser, type PuterUser } from "./puter";
+import { buildLoginUrl } from "./authRedirect";
 import {
   GRUDGE_ID_URL,
   AUTH_API,
@@ -291,10 +292,8 @@ export async function signOut(): Promise<void> {
  * @param reason     Optional human-readable reason shown on the login page
  */
 export function redirectToLogin(returnUrl?: string, reason?: string): void {
-  const ret = returnUrl ?? (typeof window !== "undefined" ? window.location.href : "");
-  const params = new URLSearchParams({ redirect: ret });
-  if (reason) params.set("reason", reason);
-  window.location.href = `${AUTH_PAGE_URL}?${params.toString()}`;
+  // Dual-write + brand return via shared builder (do not use bare redirect= only)
+  window.location.href = buildLoginUrl(returnUrl, reason);
 }
 
 /**

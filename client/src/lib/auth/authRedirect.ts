@@ -23,10 +23,44 @@ export const PLAYER_ID_KEY = _PLAYER_ID_KEY;
 // URL builders
 // ---------------------------------------------------------------------------
 
+/** Brand Warlords client — prefer over *.vercel.app preview origins. */
+export const WARLORDS_BRAND = "https://grudgewarlords.com";
+
+function isLocalDevHost(hostname: string): boolean {
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
+}
+
 /**
- * Build the login URL, preserving the current page as the post-auth redirect.
+ * Production return URL. Maps vercel/preview → grudgewarlords.com; keeps path.
+ */
+export function warlordsReturnUrl(hrefOrPath?: string): string {
+  if (typeof window === "undefined") {
+    return hrefOrPath?.startsWith("http")
+      ? hrefOrPath
+      : `${WARLORDS_BRAND}${hrefOrPath?.startsWith("/") ? hrefOrPath : hrefOrPath ? `/${hrefOrPath}` : "/"}`;
+  }
+  const h = window.location.hostname || "";
+  if (isLocalDevHost(h) || h === "grudgewarlords.com" || h === "www.grudgewarlords.com" || h === "client.grudge-studio.com") {
+    return hrefOrPath || window.location.href;
+  }
+  // Preview host → brand, preserve path+search when possible
+  try {
+    if (hrefOrPath?.startsWith("http")) {
+      const u = new URL(hrefOrPath);
+      return `${WARLORDS_BRAND}${u.pathname}${u.search}`;
+    }
+    const path = hrefOrPath || `${window.location.pathname}${window.location.search || ""}`;
+    return `${WARLORDS_BRAND}${path.startsWith("/") ? path : `/${path}`}`;
+  } catch {
+    return `${WARLORDS_BRAND}/`;
+  }
+}
+
+/**
+ * Build the login URL with dual-write return aliases (gateway requires redirect_uri).
+ * Prefer id…/login over legacy /api/auth/page alone.
  *
- * @param returnUrl  Where to send the player after login (default: current href)
+ * @param returnUrl  Where to send the player after login (default: brand-mapped current page)
  * @param reason     Short message shown on the id. login page ("wallet access" etc.)
  * @param provider   Pre-select a provider tab: "puter" | "discord" | "google" | "solana"
  */
@@ -35,11 +69,21 @@ export function buildLoginUrl(
   reason?: string,
   provider?: "puter" | "discord" | "google" | "solana",
 ): string {
-  const ret = returnUrl ?? (typeof window !== "undefined" ? window.location.href : "");
-  const p = new URLSearchParams({ redirect: ret });
-  if (reason)   p.set("reason",   reason);
+  const ret = warlordsReturnUrl(returnUrl);
+  const p = new URLSearchParams({
+    redirect_uri: ret,
+    redirect: ret,
+    return: ret,
+    returnTo: ret,
+    return_to: ret,
+    origin: WARLORDS_BRAND,
+    app: "warlords",
+  });
+  if (reason) p.set("reason", reason);
   if (provider) p.set("provider", provider);
-  return `${AUTH_PAGE_URL}?${p.toString()}`;
+  // Prefer /login (gateway). AUTH_PAGE_URL still works if rewrites point at page.
+  const loginBase = `${GRUDGE_ID_URL}/login`;
+  return `${loginBase}?${p.toString()}`;
 }
 
 /** Build the logout URL with optional post-logout destination. */

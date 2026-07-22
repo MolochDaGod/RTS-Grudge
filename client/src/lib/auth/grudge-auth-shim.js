@@ -154,9 +154,31 @@
     var puterUuid = getPuterUuid();
     if (token || puterUuid) return false; // authenticated
     // Not authenticated, redirect to Grudge ID
-    var ret = encodeURIComponent(window.location.href);
-    window.location.href = AUTH_PAGE + "?redirect=" + ret + "&reason=protected_route";
+    window.location.href = buildShimLoginUrl(window.location.href, "protected_route");
     return true;
+  }
+
+  /** Dual-write login URL; map vercel previews → grudgewarlords.com */
+  function buildShimLoginUrl(returnUrl, reason) {
+    var brand = "https://grudgewarlords.com";
+    var ret = returnUrl || (typeof window !== "undefined" ? window.location.href : brand + "/");
+    try {
+      var h = typeof window !== "undefined" ? window.location.hostname || "" : "";
+      if (h && h !== "localhost" && h !== "127.0.0.1" && h !== "grudgewarlords.com" && h !== "www.grudgewarlords.com" && h !== "client.grudge-studio.com") {
+        var u = new URL(ret, brand);
+        ret = brand + u.pathname + (u.search || "");
+      }
+    } catch (e) { /* keep ret */ }
+    var q =
+      "redirect_uri=" + encodeURIComponent(ret) +
+      "&redirect=" + encodeURIComponent(ret) +
+      "&return=" + encodeURIComponent(ret) +
+      "&returnTo=" + encodeURIComponent(ret) +
+      "&return_to=" + encodeURIComponent(ret) +
+      "&origin=" + encodeURIComponent(brand) +
+      "&app=warlords";
+    if (reason) q += "&reason=" + encodeURIComponent(reason);
+    return "https://id.grudge-studio.com/login?" + q;
   }
 
   // ── Public API ────────────────────────────────────────────────────────────────
@@ -177,10 +199,7 @@
     isAuthenticated: function() { return !!(getToken() || getPuterUuid()); },
     /** Redirect to id.grudge-studio.com login */
     redirectToLogin: function(returnUrl, reason) {
-      var ret = returnUrl || window.location.href;
-      var url = AUTH_PAGE + "?redirect=" + encodeURIComponent(ret);
-      if (reason) url += "&reason=" + encodeURIComponent(reason);
-      window.location.href = url;
+      window.location.href = buildShimLoginUrl(returnUrl, reason);
     },
     /** Guard the current route */
     guardRoute: guardRoute,
