@@ -96,11 +96,14 @@ function generateScatterInstances(
     const x = Math.cos(angle) * radius;
     const z = Math.sin(angle) * radius;
     if (Math.abs(x) < avoidCenter && Math.abs(z) < avoidCenter) continue;
+    // Snap to terrain height field (same SSOT as character foot placement).
+    // Skip underwater / cliff outliers so trees/rocks don't float or bury.
     const y = getTerrainHeight(x, z, globalHeightData);
-    if (y < -1 || y > 10) continue;
+    if (!Number.isFinite(y) || y < 0.05 || y > 18) continue;
     const scale = minScale + rng() * (maxScale - minScale);
     const rotation = rng() * Math.PI * 2;
-    instances.push({ position: [x, y, z], rotation, scale });
+    // Slight Y bias so roots sit in the ground mesh (not hover above).
+    instances.push({ position: [x, y - 0.05 * scale, z], rotation, scale });
   }
   return instances;
 }
@@ -112,13 +115,45 @@ interface MeshData {
 
 const modelMeshCache = new Map<string, { meshes: MeshData[]; baseScale: number }>();
 
+function hardenNatureMaterial(mat: THREE.Material): THREE.Material {
+  // Clone so instancing / wind hooks don't mutate shared GLTF materials.
+  const m = mat.clone();
+  if (
+    m instanceof THREE.MeshStandardMaterial ||
+    m instanceof THREE.MeshPhysicalMaterial ||
+    m instanceof THREE.MeshBasicMaterial
+  ) {
+    if (m.map) {
+      m.map = m.map.clone();
+      m.map.colorSpace = THREE.SRGBColorSpace;
+      m.map.needsUpdate = true;
+    }
+    // Alpha-tested foliage (leaves) — keep cutout sharp on terrain
+    if (m.transparent || (m as THREE.MeshStandardMaterial).alphaTest > 0) {
+      m.side = THREE.DoubleSide;
+      (m as THREE.MeshStandardMaterial).alphaTest = Math.max(
+        (m as THREE.MeshStandardMaterial).alphaTest || 0,
+        0.4,
+      );
+      m.transparent = false;
+      m.depthWrite = true;
+    }
+    m.needsUpdate = true;
+  }
+  return m;
+}
+
 function extractMeshes(scene: THREE.Object3D): MeshData[] {
   const meshes: MeshData[] = [];
   scene.traverse((child) => {
     if (child instanceof THREE.Mesh && child.geometry) {
+      const raw = child.material;
+      const material = Array.isArray(raw)
+        ? raw.map(hardenNatureMaterial)
+        : hardenNatureMaterial(raw);
       meshes.push({
         geometry: child.geometry,
-        material: child.material,
+        material,
       });
     }
   });
@@ -154,9 +189,16 @@ function InstancedNatureGroup({ path, instances, windEnabled = false }: {
         if (child instanceof THREE.Mesh && child.geometry) {
           const geom = child.geometry.clone();
           geom.applyMatrix4(child.matrixWorld);
+          // Recompute bounds so instanced foliage frustum-culls against terrain correctly
+          geom.computeBoundingBox();
+          geom.computeBoundingSphere();
+          const raw = child.material;
+          const material = Array.isArray(raw)
+            ? raw.map(hardenNatureMaterial)
+            : hardenNatureMaterial(raw);
           extractedMeshes.push({
             geometry: geom,
-            material: child.material,
+            material,
           });
         }
       });
@@ -178,8 +220,9 @@ function InstancedNatureGroup({ path, instances, windEnabled = false }: {
       // chained onBeforeCompile hooks.
       if (windEnabled && mat) attachWindToMaterial(mat);
       const im = new THREE.InstancedMesh(meshData.geometry, mat, instances.length);
-      im.castShadow = false;
-      im.receiveShadow = false;
+      // Soft shadows for nature — consistent with island ground lighting
+      im.castShadow = true;
+      im.receiveShadow = true;
 
       for (let i = 0; i < instances.length; i++) {
         const inst = instances[i];

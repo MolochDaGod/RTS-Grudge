@@ -152,16 +152,19 @@ export function BoatBoardPrompt({ dockPositions, playerPosition }: {
 }
 
 export function OceanPlane() {
-  // Top-of-water surface — Seascape (TDM 2014) shader. CPU sine-wave vertex
-  // animation removed; all wave detail now lives in the fragment shader so
-  // the plane stays geometrically flat (clean physics) but reads as choppy.
+  // Tactical Infinity SeascapeOcean — vertex-displaced waves + TI color model.
+  // Swim colliders stay on WaterVolume Y; visual mesh waves only.
   return (
     <SeaSurface
       size={ISLAND_SIZE * 3}
       y={-0.3}
-      opacity={0.9}
-      seaBase="#0e2840"
-      seaWaterColor="#a8c4d0"
+      segments={160}
+      opacity={1.0}
+      seaBase="#1a3038"
+      seaWaterColor="#ccd692"
+      skyTint="#8cb2f2"
+      choppy={4.0}
+      height={0.6}
     />
   );
 }

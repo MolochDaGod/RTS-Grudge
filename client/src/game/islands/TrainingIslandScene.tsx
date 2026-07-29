@@ -455,13 +455,17 @@ export default function TrainingIslandScene({ playerPosition }: TrainingIslandSc
       <directionalLight position={[30, 50, 20]} intensity={1.2} castShadow color="#ffeedd" />
       <fog attach="fog" args={[island.fogColor, 20, 150]} />
 
-      {/* Top-of-water surface — Seascape (TDM 2014) shader. */}
+      {/* Tactical Infinity SeascapeOcean (vertex-displaced). */}
       <SeaSurface
         size={500}
         y={-0.5}
-        opacity={0.9}
-        seaBase="#0f3848"
-        seaWaterColor="#a4c4b0"
+        segments={128}
+        opacity={1.0}
+        seaBase="#1a3038"
+        seaWaterColor="#ccd692"
+        skyTint="#8cb2f2"
+        choppy={4.0}
+        height={0.6}
       />
     </>
   );

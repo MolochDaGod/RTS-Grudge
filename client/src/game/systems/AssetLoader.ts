@@ -228,6 +228,40 @@ function processQueue(): void {
   }
 }
 
+/**
+ * Canonical texture color spaces + filter defaults so every GLB/FBX path
+ * (useAsset, NatureScatter, weapons, islands) looks consistent.
+ * Color maps → sRGB; data maps (normal/rough/metal/ao) → linear / no color space.
+ */
+function processTexture(tex: THREE.Texture, kind: "color" | "data"): void {
+  if (textureCache.has(tex.uuid)) return;
+  textureCache.set(tex.uuid, tex);
+
+  // three r152+ ColorManagement
+  if (kind === "color") {
+    tex.colorSpace = THREE.SRGBColorSpace;
+  } else {
+    tex.colorSpace = THREE.NoColorSpace;
+  }
+
+  if (tex.image && loadersGlImages) {
+    tex.anisotropy = rendererRef
+      ? Math.min(8, rendererRef.capabilities.getMaxAnisotropy())
+      : 4;
+    stats.texturesProcessed++;
+  }
+
+  const _img: any = tex.image;
+  const w = _img?.width ?? 0;
+  const h = _img?.height ?? 0;
+  tex.generateMipmaps = w > 64 || h > 64;
+  if (w > 0) {
+    tex.minFilter = THREE.LinearMipmapLinearFilter;
+    tex.magFilter = THREE.LinearFilter;
+  }
+  tex.needsUpdate = true;
+}
+
 function postProcessGltf(gltf: GLTF): void {
   gltf.scene.traverse((child) => {
     if (child instanceof THREE.Mesh) {
@@ -238,31 +272,36 @@ function postProcessGltf(gltf: GLTF): void {
         }
       }
 
+      // Terrain props (trees/rocks) cast/receive so they sit in the light correctly
+      if (child.userData?.castShadow !== false) child.castShadow = true;
+      if (child.userData?.receiveShadow !== false) child.receiveShadow = true;
+
       if (child.material) {
         const materials = Array.isArray(child.material) ? child.material : [child.material];
         for (const mat of materials) {
-          if (mat instanceof THREE.MeshStandardMaterial || mat instanceof THREE.MeshPhysicalMaterial) {
-            const maps = [mat.map, mat.normalMap, mat.roughnessMap, mat.metalnessMap, mat.aoMap, mat.emissiveMap];
-            for (const tex of maps) {
-              if (tex && !textureCache.has(tex.uuid)) {
-                textureCache.set(tex.uuid, tex);
-
-                if (tex.image && loadersGlImages) {
-                  tex.anisotropy = rendererRef
-                    ? Math.min(4, rendererRef.capabilities.getMaxAnisotropy())
-                    : 4;
-                  stats.texturesProcessed++;
-                }
-
-                const _img: any = tex.image;
-                tex.generateMipmaps = (_img?.width ?? 0) > 256 || (_img?.height ?? 0) > 256;
-
-                if ((_img?.width ?? 0) > 2048 || (_img?.height ?? 0) > 2048) {
-                  tex.minFilter = THREE.LinearMipmapLinearFilter;
-                  tex.magFilter = THREE.LinearFilter;
-                }
-              }
+          if (
+            mat instanceof THREE.MeshStandardMaterial ||
+            mat instanceof THREE.MeshPhysicalMaterial ||
+            mat instanceof THREE.MeshBasicMaterial ||
+            mat instanceof THREE.MeshPhongMaterial
+          ) {
+            if (mat.map) processTexture(mat.map, "color");
+            if ("emissiveMap" in mat && (mat as THREE.MeshStandardMaterial).emissiveMap) {
+              processTexture((mat as THREE.MeshStandardMaterial).emissiveMap!, "color");
             }
+            if ("normalMap" in mat && (mat as THREE.MeshStandardMaterial).normalMap) {
+              processTexture((mat as THREE.MeshStandardMaterial).normalMap!, "data");
+            }
+            if ("roughnessMap" in mat && (mat as THREE.MeshStandardMaterial).roughnessMap) {
+              processTexture((mat as THREE.MeshStandardMaterial).roughnessMap!, "data");
+            }
+            if ("metalnessMap" in mat && (mat as THREE.MeshStandardMaterial).metalnessMap) {
+              processTexture((mat as THREE.MeshStandardMaterial).metalnessMap!, "data");
+            }
+            if ("aoMap" in mat && (mat as THREE.MeshStandardMaterial).aoMap) {
+              processTexture((mat as THREE.MeshStandardMaterial).aoMap!, "data");
+            }
+            mat.needsUpdate = true;
           }
         }
       }

@@ -1688,26 +1688,37 @@ function WaterSheets({
   surfaceY: number;
   extent: number;
 }) {
+  // Tactical Infinity SeascapeOcean (vertex-displaced) — not flat R3F water.
+  // One full-extent TI sheet for open ocean; optional shallow shelf with lower
+  // amplitude near the island so the beach reads cleanly.
   return (
     <>
       <SeaSurface
         size={extent}
         y={surfaceY}
-        opacity={0.8}
-        seaBase="#1a4258"
-        seaWaterColor="#b8d4dd"
-        choppy={2.8}
-        height={0.4}
+        segments={160}
+        opacity={1.0}
+        seaBase="#1a3038"
+        seaWaterColor="#ccd692"
+        skyTint="#8cb2f2"
+        choppy={4.0}
+        height={0.55}
+        freq={0.16}
+        speed={0.8}
         renderOrder={1}
       />
       <SeaSurface
-        size={180}
-        y={surfaceY + 0.02}
-        opacity={0.45}
-        seaBase="#3d8a9c"
-        seaWaterColor="#c8e7ec"
-        choppy={1.6}
-        height={0.18}
+        size={Math.min(220, extent * 0.35)}
+        y={surfaceY + 0.01}
+        segments={64}
+        opacity={0.92}
+        seaBase="#1e4a55"
+        seaWaterColor="#b8d8a8"
+        skyTint="#9ec0f0"
+        choppy={2.4}
+        height={0.28}
+        freq={0.22}
+        speed={0.7}
         renderOrder={2}
       />
     </>
