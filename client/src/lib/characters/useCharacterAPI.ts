@@ -133,7 +133,7 @@ export interface UseCharacterAPIResult {
 
   /** Fetch all characters from server */
   refresh: () => Promise<void>;
-  /** Create a new character (auto-activates it) */
+  /** Create a new character (auto-activates it; production default level 20) */
   create: (data: {
     name?: string;
     heroClass?: string;
@@ -141,6 +141,7 @@ export interface UseCharacterAPIResult {
     modelPath?: string;
     appearance?: CharacterAppearance;
     equipment?: CharacterEquipment;
+    level?: number;
   }) => Promise<ServerCharacter>;
   /** Update an existing character */
   update: (characterId: string, data: {
@@ -205,8 +206,12 @@ export function useCharacterAPI(playerIdOverride?: string): UseCharacterAPIResul
     modelPath?: string;
     appearance?: CharacterAppearance;
     equipment?: CharacterEquipment;
+    level?: number;
   }): Promise<ServerCharacter> => {
-    const data = await apiPost(playerId, input);
+    const data = await apiPost(playerId, {
+      ...input,
+      level: input.level ?? 20,
+    });
     const char = data.character as ServerCharacter;
     // Refresh full list (new char is active, others deactivated)
     await refresh();

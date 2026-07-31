@@ -45,6 +45,8 @@ export interface CreateCharacterInput {
   modelPath?: string;
   appearance?: Record<string, unknown>;
   equipment?: Record<string, unknown>;
+  /** Production default 20 when omitted. */
+  level?: number;
 }
 
 export async function createCharacter(
@@ -58,6 +60,11 @@ export async function createCharacter(
     .set({ isActive: false })
     .where(eq(playerCharacters.playerId, playerId));
 
+  const startLevel =
+    typeof input.level === "number" && Number.isFinite(input.level) && input.level > 0
+      ? Math.min(100, Math.floor(input.level))
+      : 20;
+
   await db.insert(playerCharacters).values({
     playerId,
     characterId,
@@ -67,7 +74,8 @@ export async function createCharacter(
     modelPath: input.modelPath ?? null,
     appearance: (input.appearance ?? {}) as any,
     equipment: (input.equipment ?? {}) as any,
-    level: 1,
+    /** Production rule: heroes start at level 20 (full class tier unlock). */
+    level: startLevel,
     isActive: true,
     version: 1,
   });

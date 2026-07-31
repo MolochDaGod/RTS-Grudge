@@ -1937,8 +1937,8 @@ export default function CharacterSelectScreen() {
             <div style={{ display: "flex", gap: 4 }}>
               <button
                 type="button"
-                onClick={() => navigateToGcsCreate("/character")}
-                title="Create a new hero in Grudge Character Studio (account roster)"
+                onClick={() => navigateToGcsCreate("/play")}
+                title="Create a new hero in Grudge Character Studio, then return to /play (level 20)"
                 style={{
                   padding: "3px 8px", fontSize: 8, borderRadius: 6, cursor: "pointer",
                   background: "rgba(246,201,69,.12)", border: "1px solid rgba(246,201,69,.45)",
