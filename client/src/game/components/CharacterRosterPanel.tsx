@@ -142,9 +142,18 @@ export function CharacterRosterPanel({
             <div style={hintStyle}>Loading characters…</div>
           )}
 
+          {!loading && !isError && characters.length === 0 && (
+            <div style={hintStyle}>
+              No Warlords heroes yet.
+              <div style={{ fontSize: 9, opacity: 0.75, marginTop: 4, lineHeight: 1.35 }}>
+                Sign in with Grudge ID, then use <strong>+ Create</strong> (Foundry, era=warlords).
+              </div>
+            </div>
+          )}
+
           {isError && (
             <div style={{ ...hintStyle, color: "#ff8a8a" }}>
-              Couldn’t load roster.
+              Couldn’t load Warlords roster.
               {error ? <div style={{ fontSize: 9, opacity: 0.7, marginTop: 2 }}>{error}</div> : null}
               <button type="button" onClick={onRefresh} style={{ ...textBtnStyle, marginTop: 6 }}>
                 Retry

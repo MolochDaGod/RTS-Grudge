@@ -1,19 +1,21 @@
 /**
  * useCharacterAPI — Client interface to the cross-game character registry.
  *
- * Any Grudge Studio game can use this to:
- *   - Fetch the player's characters (or just the active one)
- *   - Create a new character from Hero Forge
- *   - Update appearance, equipment, or level
- *   - Activate a character for the current session
+ * Warlords era (production):
+ *   1. Fleet Railway heroes via Bearer SSO (`?era=warlords`) — preferred
+ *   2. Legacy native /api/characters/:playerId (Express/MySQL when present)
  *
- * All data flows through /api/characters → server/characterRoutes.ts → MySQL.
- * No localStorage dependency — server is the sole source of truth.
+ * Create in production goes to Character Studio (Foundry), not local POST.
  */
 
 import { useCallback, useEffect, useState } from "react";
 import { getPlayerId } from "@/lib/save/playerId";
-import { fetchFleetCharactersAsServer } from "@/lib/characters/fleetCharacterBridge";
+import {
+  fetchFleetCharactersAsServer,
+  getFleetAuthToken,
+  grudge6RaceModelPath,
+} from "@/lib/characters/fleetCharacterBridge";
+import { navigateToGcsCreate } from "@/lib/gcsRedirect";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -66,8 +68,24 @@ export type CharacterAPIStatus = "idle" | "loading" | "ready" | "error";
 
 const API_BASE = "/api/characters";
 
+function authJsonHeaders(): HeadersInit {
+  const h: Record<string, string> = {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  };
+  const token = getFleetAuthToken();
+  if (token) {
+    h.Authorization = `Bearer ${token}`;
+    h["X-Session-Token"] = token;
+  }
+  return h;
+}
+
 async function apiGet(playerId: string, path = ""): Promise<any> {
-  const res = await fetch(`${API_BASE}/${encodeURIComponent(playerId)}${path}`);
+  const res = await fetch(
+    `${API_BASE}/${encodeURIComponent(playerId)}${path}`,
+    { headers: authJsonHeaders(), credentials: "include" },
+  );
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
     throw new Error(`GET ${res.status}: ${txt.slice(0, 200)}`);
@@ -78,7 +96,8 @@ async function apiGet(playerId: string, path = ""): Promise<any> {
 async function apiPost(playerId: string, body: Record<string, unknown>): Promise<any> {
   const res = await fetch(`${API_BASE}/${encodeURIComponent(playerId)}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authJsonHeaders(),
+    credentials: "include",
     body: JSON.stringify(body),
   });
   if (!res.ok) {
@@ -98,7 +117,8 @@ async function apiPut(
     `${API_BASE}/${encodeURIComponent(playerId)}/${encodeURIComponent(characterId)}${suffix}`,
     {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: authJsonHeaders(),
+      credentials: "include",
       body: JSON.stringify(body),
     },
   );
@@ -112,13 +132,28 @@ async function apiPut(
 async function apiDelete(playerId: string, characterId: string): Promise<any> {
   const res = await fetch(
     `${API_BASE}/${encodeURIComponent(playerId)}/${encodeURIComponent(characterId)}`,
-    { method: "DELETE" },
+    { method: "DELETE", headers: authJsonHeaders(), credentials: "include" },
   );
   if (!res.ok) {
     const txt = await res.text().catch(() => "");
     throw new Error(`DELETE ${res.status}: ${txt.slice(0, 200)}`);
   }
   return res.json();
+}
+
+function ensureGrudge6Paths(chars: ServerCharacter[]): ServerCharacter[] {
+  return chars.map((c) => {
+    const race = (c.race || "human").toLowerCase();
+    const path = c.model_path || "";
+    const brokenLocal =
+      !path ||
+      path.startsWith("/models/characters/") ||
+      (path.startsWith("/models/") && !path.includes("grudge6") && !path.startsWith("http"));
+    if (brokenLocal || path.endsWith(".fbx")) {
+      return { ...c, model_path: grudge6RaceModelPath(race) };
+    }
+    return c;
+  });
 }
 
 // ── Hook ─────────────────────────────────────────────────────────────────────
@@ -169,35 +204,66 @@ export function useCharacterAPI(playerIdOverride?: string): UseCharacterAPIResul
   const refresh = useCallback(async () => {
     setStatus("loading");
     setError(null);
-    try {
-      const data = await apiGet(playerId);
-      const native = data.characters ?? [];
-      if (native.length > 0) {
-        setCharacters(native);
-        setStatus("ready");
-        return;
-      }
-    } catch {
-      /* native RTS registry unavailable on Vercel — try fleet bridge */
-    }
 
+    // 1) Warlords fleet SSOT (Railway via rewrite or direct) — preferred
     try {
       const fleet = await fetchFleetCharactersAsServer(playerId);
       if (fleet.length > 0) {
-        setCharacters(fleet);
+        setCharacters(ensureGrudge6Paths(fleet));
+        setStatus("ready");
+        return;
+      }
+    } catch (e: any) {
+      console.warn("[useCharacterAPI] fleet bridge", e?.message || e);
+    }
+
+    // 2) Legacy native RTS player-scoped registry
+    try {
+      const data = await apiGet(playerId);
+      const native = ensureGrudge6Paths(data.characters ?? []);
+      if (native.length > 0) {
+        setCharacters(native);
         setStatus("ready");
         return;
       }
       setCharacters([]);
       setStatus("ready");
     } catch (e: any) {
-      setError(e.message);
-      setStatus("error");
+      // No heroes yet is not an error — empty roster is valid
+      if (getFleetAuthToken()) {
+        setCharacters([]);
+        setStatus("ready");
+        setError(null);
+      } else {
+        setError(
+          e?.message
+            ? `${e.message} — sign in with Grudge ID to load Warlords heroes.`
+            : "Sign in with Grudge ID to load Warlords heroes.",
+        );
+        setStatus("error");
+      }
     }
   }, [playerId]);
 
-  // Auto-fetch on mount
-  useEffect(() => { refresh(); }, [refresh]);
+  // Auto-fetch on mount + when SSO token lands (post-redirect)
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  useEffect(() => {
+    const onStorage = (ev: StorageEvent) => {
+      if (
+        ev.key === "grudge_auth_token" ||
+        ev.key === "grudge_session_token" ||
+        ev.key === "sso_token" ||
+        ev.key === "grudge_id"
+      ) {
+        void refresh();
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, [refresh]);
 
   const create = useCallback(async (input: {
     name?: string;
@@ -208,12 +274,18 @@ export function useCharacterAPI(playerIdOverride?: string): UseCharacterAPIResul
     equipment?: CharacterEquipment;
     level?: number;
   }): Promise<ServerCharacter> => {
+    // Production Warlords: create in Foundry (GCS), not legacy MySQL forge
+    if (typeof window !== "undefined" && !/localhost|127\.0\.0\.1/.test(window.location.hostname)) {
+      navigateToGcsCreate("/character");
+      // Unreachable after navigation; satisfy type
+      throw new Error("Redirecting to Character Studio (warlords era create)");
+    }
     const data = await apiPost(playerId, {
       ...input,
       level: input.level ?? 20,
+      modelPath: input.modelPath || grudge6RaceModelPath(input.race),
     });
     const char = data.character as ServerCharacter;
-    // Refresh full list (new char is active, others deactivated)
     await refresh();
     return char;
   }, [playerId, refresh]);

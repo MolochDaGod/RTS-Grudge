@@ -61,7 +61,8 @@ import { loadAsset } from "./systems/AssetLoader";
 import { COMBAT_CLASS_BACKGROUNDS, RACE_PICKER_TILES } from "@/lib/data/artAssets";
 import { CHARACTER_VIEWER_TOKENS } from "@/lib/data/uiArt";
 import { CharacterViewerShell } from "./components/CharacterViewerShell";
-import { navigateToGcsCreate } from "@/lib/gcsRedirect";
+import { navigateToGcsCreate, navigateToGrudgeIdLogin } from "@/lib/gcsRedirect";
+import { grudge6RaceModelPath, getFleetAuthToken } from "@/lib/characters/fleetCharacterBridge";
 
 interface CharacterDef {
   id: string;
@@ -118,73 +119,83 @@ interface StylePreset {
   modelPath?: string;
 }
 
+/**
+ * Warlords-era presets only — CDN grudge6 modular race kits (Bip001).
+ * Local /models/characters/* shells 404→SPA on Vercel and must not be used.
+ */
 const STYLE_PRESETS: StylePreset[] = [
-  { id: "elf_m", name: "Elf (M)", icon: "\uD83C\uDFF9", category: "ranged", combatClass: "ranger",
-    weaponRight: "bow", weaponLeft: null, description: "Woodland archer. Swift longbow shots.",
-    modelPath: "/models/characters/elf-male.glb",
-    matColors: { clothing: "#33aa44", pants: "#2d5a27", hair: "#e6c35c" } },
-  { id: "elf_f", name: "Elf (F)", icon: "\uD83C\uDFF9", category: "ranged", combatClass: "ranger",
-    weaponRight: "bow", weaponLeft: null, description: "Woodland archer. Swift longbow shots.",
-    modelPath: "/models/characters/elf-female.glb",
-    matColors: { clothing: "#33aa44", pants: "#2d5a27", hair: "#e6c35c" } },
-  { id: "assassin_m", name: "Human (M)", icon: "\uD83E\uDD77", category: "ranged", combatClass: "melee",
-    weaponRight: "dagger", weaponLeft: "dagger", description: "Hooded human duelist. Twin daggers.",
-    modelPath: "/models/characters/assassin-male.glb",
-    matColors: { clothing: "#222222", pants: "#1a1a1a", hat: "#222222" }, bodyMorph: { muscle: 0.85 } },
-  { id: "assassin_f", name: "Human (F)", icon: "\uD83E\uDD77", category: "ranged", combatClass: "melee",
-    weaponRight: "dagger", weaponLeft: "dagger", description: "Hooded human duelist. Twin daggers.",
-    modelPath: "/models/characters/assassin-female.glb",
-    matColors: { clothing: "#222222", pants: "#1a1a1a", hat: "#222222" }, bodyMorph: { muscle: 0.85 } },
-  { id: "orc_scout_m", name: "Orc (M)", icon: "\uD83E\uDDCC", category: "warrior", combatClass: "melee",
-    weaponRight: "axe", weaponLeft: null, description: "Greenskin raider. Brutal axe strikes.",
-    modelPath: "/models/characters/orc_scout-male.glb",
-    matColors: { skin: "#5a8a4a", clothing: "#5c3317", pants: "#3b2210" },
-    bodyMorph: { muscle: 1.4, shoulderWidth: 1.3 } },
-  { id: "orc_scout_f", name: "Orc (F)", icon: "\uD83E\uDDCC", category: "warrior", combatClass: "melee",
-    weaponRight: "axe", weaponLeft: null, description: "Greenskin raider. Brutal axe strikes.",
-    modelPath: "/models/characters/orc_scout-female.glb",
-    matColors: { skin: "#5a8a4a", clothing: "#5c3317", pants: "#3b2210" },
-    bodyMorph: { muscle: 1.3, shoulderWidth: 1.2 } },
-  { id: "vampire_aristocrat_m", name: "Undead (M)", icon: "\uD83E\uDDDB", category: "magic", combatClass: "caster",
-    weaponRight: "wand", weaponLeft: null, description: "Vampire aristocrat. Pale-blooded sorcerer.",
-    modelPath: "/models/characters/vampire_aristocrat-male.glb",
-    matColors: { clothing: "#2a1a2a", pants: "#1a1a1a", detail: "#cc3333", hair: "#1a1a1a", skin: "#e8d8d8" } },
-  { id: "vampire_aristocrat_f", name: "Undead (F)", icon: "\uD83E\uDDDB", category: "magic", combatClass: "caster",
-    weaponRight: "wand", weaponLeft: null, description: "Vampire aristocrat. Pale-blooded sorceress.",
-    modelPath: "/models/characters/vampire_aristocrat-female.glb",
-    matColors: { clothing: "#2a1a2a", pants: "#1a1a1a", detail: "#cc3333", hair: "#1a1a1a", skin: "#e8d8d8" } },
-  { id: "dwarf_m", name: "Dwarf (M)", icon: "\u26CF\uFE0F", category: "warrior", combatClass: "melee",
-    weaponRight: "hammer", weaponLeft: "shield", description: "Mountain warrior. Hammer & shield.",
-    modelPath: "/models/characters/dwarf-male.glb",
-    matColors: { clothing: "#8B4513", armor: "#888899", hair: "#aa3322" },
-    bodyMorph: { muscle: 1.5, shoulderWidth: 1.3, legLength: 0.85 } },
-  { id: "dwarf_f", name: "Dwarf (F)", icon: "\u26CF\uFE0F", category: "warrior", combatClass: "melee",
-    weaponRight: "hammer", weaponLeft: "shield", description: "Mountain warrior. Hammer & shield.",
-    modelPath: "/models/characters/dwarf-female.glb",
-    matColors: { clothing: "#8B4513", armor: "#888899", hair: "#aa3322" },
-    bodyMorph: { muscle: 1.3, shoulderWidth: 1.2, legLength: 0.85 } },
-  // Goblin is an enemy NPC — not a playable race. Removed from presets.
-  { id: "battle_mage_m", name: "Barbarian (M)", icon: "\uD83E\uDE93", category: "warrior", combatClass: "melee",
-    weaponRight: "axe", weaponLeft: null, description: "Savage berserker. Raw fury and heavy strikes.",
-    modelPath: "/models/characters/human_battle_mage-male.glb",
-    matColors: { clothing: "#5c3317", armor: "#888899", detail: "#ccaa33" } },
-  { id: "battle_mage_f", name: "Barbarian (F)", icon: "\uD83E\uDE93", category: "warrior", combatClass: "melee",
-    weaponRight: "axe", weaponLeft: null, description: "Savage berserker. Raw fury and heavy strikes.",
-    modelPath: "/models/characters/human_battle_mage-female.glb",
-    matColors: { clothing: "#5c3317", armor: "#888899", detail: "#ccaa33" } },
-  // Worge class — night_stalker humanoid with bear-form transform on CLASS_ABILITY_3
-  { id: "worge_m", name: "Worge (M)", icon: "\uD83D\uDC3A", category: "warrior", combatClass: "melee",
-    weaponRight: "fists", weaponLeft: null,
-    description: "Shapeshifting brawler. Transforms into a nightmarish werewolf bear form.",
-    modelPath: "/models/characters/night_stalker-male.glb",
-    matColors: { clothing: "#3a2510", skin: "#8a5a30", armor: "#444444" },
-    bodyMorph: { muscle: 1.4, shoulderWidth: 1.3 } },
-  { id: "worge_f", name: "Worge (F)", icon: "\uD83D\uDC3A", category: "warrior", combatClass: "melee",
-    weaponRight: "fists", weaponLeft: null,
-    description: "Shapeshifting huntress. Transforms into a nightmarish werewolf bear form.",
-    modelPath: "/models/characters/night_stalker-female.glb",
-    matColors: { clothing: "#3a2510", skin: "#8a5a30", armor: "#444444" },
-    bodyMorph: { muscle: 1.2, shoulderWidth: 1.15 } },
+  {
+    id: "wk_human",
+    name: "Human (WK)",
+    icon: "\uD83D\uDEE1\uFE0F",
+    category: "warrior",
+    combatClass: "melee",
+    weaponRight: "sword",
+    weaponLeft: "shield",
+    description: "Western Kingdoms modular kit — adaptable crusade warriors.",
+    modelPath: grudge6RaceModelPath("human"),
+    matColors: {},
+  },
+  {
+    id: "brb_barbarian",
+    name: "Barbarian (BRB)",
+    icon: "\uD83E\uDE93",
+    category: "warrior",
+    combatClass: "melee",
+    weaponRight: "axe",
+    weaponLeft: null,
+    description: "Barbarian modular kit — primal fury under Odin's banner.",
+    modelPath: grudge6RaceModelPath("barbarian"),
+    matColors: {},
+  },
+  {
+    id: "elf_high",
+    name: "Elf (ELF)",
+    icon: "\uD83C\uDFF9",
+    category: "ranged",
+    combatClass: "ranger",
+    weaponRight: "bow",
+    weaponLeft: null,
+    description: "High Elf modular kit — longbow and fabled grace.",
+    modelPath: grudge6RaceModelPath("elf"),
+    matColors: {},
+  },
+  {
+    id: "dwf_dwarf",
+    name: "Dwarf (DWF)",
+    icon: "\u26CF\uFE0F",
+    category: "warrior",
+    combatClass: "melee",
+    weaponRight: "hammer",
+    weaponLeft: "shield",
+    description: "Dwarf modular kit — mountain hammer and shield.",
+    modelPath: grudge6RaceModelPath("dwarf"),
+    matColors: {},
+  },
+  {
+    id: "orc_legion",
+    name: "Orc (ORC)",
+    icon: "\uD83E\uDDCC",
+    category: "warrior",
+    combatClass: "melee",
+    weaponRight: "axe",
+    weaponLeft: null,
+    description: "Orc modular kit — Madra's Legion raiders.",
+    modelPath: grudge6RaceModelPath("orc"),
+    matColors: {},
+  },
+  {
+    id: "ud_undead",
+    name: "Undead (UD)",
+    icon: "\uD83E\uDDDB",
+    category: "magic",
+    combatClass: "caster",
+    weaponRight: "staff",
+    weaponLeft: null,
+    description: "Undead modular kit — death magic and persistence.",
+    modelPath: grudge6RaceModelPath("undead"),
+    matColors: {},
+  },
 ];
 
 // Used by save loader to migrate stale saved characters whose previous model
@@ -1635,9 +1646,16 @@ export default function CharacterSelectScreen() {
     setWeaponModelLeft(eq.weaponModelLeft ?? getDefaultWeaponModelId(eq.weaponLeft));
     setArrowModelId(eq.arrowModelId ?? null);
     setBackAccessoryId(eq.backAccessoryId ?? null);
-    if (sc.model_path && !REMOVED_HERO_FORGE_MODELS.has(sc.model_path)) {
-      setCurrentModelPath(sc.model_path);
-    }
+    // Always prefer CDN grudge6 kit for warlords races (roster from Railway)
+    const racePath = grudge6RaceModelPath(sc.race);
+    const path = sc.model_path && !REMOVED_HERO_FORGE_MODELS.has(sc.model_path)
+      ? sc.model_path
+      : racePath;
+    const usePath =
+      path.startsWith("http") || path.includes("grudge6")
+        ? path
+        : racePath;
+    setCurrentModelPath(usePath);
   }, []);
 
   const selectServerCharacter = useCallback((sc: ServerCharacter) => {
@@ -1935,16 +1953,28 @@ export default function CharacterSelectScreen() {
               <div style={{ fontSize: 8, color: "#9aa3c7", letterSpacing: "2px", fontFamily: "'Cinzel',serif", marginTop: 1 }}>CHARACTER CREATOR</div>
             </div>
             <div style={{ display: "flex", gap: 4 }}>
+              {!getFleetAuthToken() && (
+                <button
+                  type="button"
+                  onClick={() => navigateToGrudgeIdLogin("/character")}
+                  title="Sign in with Grudge ID to load Warlords heroes"
+                  style={{
+                    padding: "3px 8px", fontSize: 8, borderRadius: 6, cursor: "pointer",
+                    background: "rgba(56,189,248,.12)", border: "1px solid rgba(56,189,248,.45)",
+                    color: "#7dd3fc", textTransform: "uppercase", letterSpacing: 1,
+                  }}
+                >Sign in</button>
+              )}
               <button
                 type="button"
-                onClick={() => navigateToGcsCreate("/play")}
-                title="Create a new hero in Grudge Character Studio, then return to /play (level 20)"
+                onClick={() => navigateToGcsCreate("/character")}
+                title="Create a Warlords-era hero in Character Studio (Foundry), then return here"
                 style={{
                   padding: "3px 8px", fontSize: 8, borderRadius: 6, cursor: "pointer",
                   background: "rgba(246,201,69,.12)", border: "1px solid rgba(246,201,69,.45)",
                   color: "#f6c945", textTransform: "uppercase", letterSpacing: 1,
                 }}
-              >+ GCS</button>
+              >+ Create</button>
               <button onClick={() => useGame.getState().goToGGE()}
                 style={{
                   padding: "3px 8px", fontSize: 8, borderRadius: 6, cursor: "pointer",
