@@ -120,80 +120,153 @@ interface StylePreset {
 }
 
 /**
- * Warlords-era presets only — CDN grudge6 modular race kits (Bip001).
- * Local /models/characters/* shells 404→SPA on Vercel and must not be used.
+ * Nexus-era character presets — clean BIP humanoid models with GTA-like locomotion.
+ * All models use Mixamo skeleton with glocomotion animation pack (idle, walk, run, casual stance).
+ * Assets served from assets.grudge-studio.com CDN.
  */
 const STYLE_PRESETS: StylePreset[] = [
   {
-    id: "wk_human",
-    name: "Human (WK)",
-    icon: "\uD83D\uDEE1\uFE0F",
+    id: "human_male_duelist",
+    name: "Street Duelist",
+    icon: "\uD83D\uDDE1\uFE0F",
     category: "warrior",
     combatClass: "melee",
-    weaponRight: "sword",
-    weaponLeft: "shield",
-    description: "Western Kingdoms modular kit — adaptable crusade warriors.",
-    modelPath: grudge6RaceModelPath("human"),
+    weaponRight: "dagger",
+    weaponLeft: "dagger",
+    description: "Agile duelist from the Nexus streets. Twin blades, quick reflexes, urban survivor.",
+    modelPath: "/models/characters/assassin-male.glb",
     matColors: {},
   },
   {
-    id: "brb_barbarian",
-    name: "Barbarian (BRB)",
-    icon: "\uD83E\uDE93",
+    id: "human_female_duelist",
+    name: "Shadow Blade",
+    icon: "\uD83D\uDD2A",
+    category: "ranger",
+    combatClass: "melee",
+    weaponRight: "dagger",
+    weaponLeft: "dagger",
+    description: "Silent operative from the Nexus underground. Precision strikes, no wasted movement.",
+    modelPath: "/models/characters/assassin-female.glb",
+    matColors: {},
+  },
+  {
+    id: "human_male_battlemage",
+    name: "Urban Mage",
+    icon: "\u2728",
+    category: "magic",
+    combatClass: "caster",
+    weaponRight: "staff",
+    weaponLeft: null,
+    description: "Street mage blending arcane theory with practical combat. Nexus-trained spellcaster.",
+    modelPath: "/models/characters/human_battle_mage-male.glb",
+    matColors: {},
+  },
+  {
+    id: "human_female_battlemage",
+    name: "Nexus Spellblade",
+    icon: "\uD83D\uDD25",
+    category: "magic",
+    combatClass: "caster",
+    weaponRight: "staff",
+    weaponLeft: null,
+    description: "Tactical spellcaster from the central hub. Magic meets modern combat doctrine.",
+    modelPath: "/models/characters/human_battle_mage-female.glb",
+    matColors: {},
+  },
+  {
+    id: "orc_male_scout",
+    name: "Nexus Enforcer",
+    icon: "\uD83D\uDC4A",
     category: "warrior",
     combatClass: "melee",
     weaponRight: "axe",
     weaponLeft: null,
-    description: "Barbarian modular kit — primal fury under Odin's banner.",
-    modelPath: grudge6RaceModelPath("barbarian"),
+    description: "Heavy hitter working Nexus security. Brutal efficiency, no questions asked.",
+    modelPath: "/models/characters/orc_scout-male.glb",
     matColors: {},
   },
   {
-    id: "elf_high",
-    name: "Elf (ELF)",
+    id: "orc_female_scout",
+    name: "Street Brawler",
+    icon: "\uD83E\uDD4A",
+    category: "warrior",
+    combatClass: "melee",
+    weaponRight: "axe",
+    weaponLeft: null,
+    description: "Nexus-born fighter. Agile, savage, earned respect through sheer determination.",
+    modelPath: "/models/characters/orc_scout-female.glb",
+    matColors: {},
+  },
+  {
+    id: "elf_male_ranger",
+    name: "Urban Archer",
     icon: "\uD83C\uDFF9",
     category: "ranged",
     combatClass: "ranger",
     weaponRight: "bow",
     weaponLeft: null,
-    description: "High Elf modular kit — longbow and fabled grace.",
-    modelPath: grudge6RaceModelPath("elf"),
+    description: "Nexus rooftop ranger. Longbow specialist adapted to vertical urban combat.",
+    modelPath: "/models/characters/elf-male.glb",
     matColors: {},
   },
   {
-    id: "dwf_dwarf",
-    name: "Dwarf (DWF)",
-    icon: "\u26CF\uFE0F",
-    category: "warrior",
+    id: "elf_female_ranger",
+    name: "Skyline Huntress",
+    icon: "\uD83C\uDFAF",
+    category: "ranged",
+    combatClass: "ranger",
+    weaponRight: "bow",
+    weaponLeft: null,
+    description: "Swift archer patrolling the Nexus skyline. Graceful, precise, deadly from distance.",
+    modelPath: "/models/characters/elf-female.glb",
+    matColors: {},
+  },
+  {
+    id: "dwarf_male_guardian",
+    name: "Vault Guardian",
+    icon: "\u26D3\uFE0F",
+    category: "tank",
     combatClass: "melee",
     weaponRight: "hammer",
     weaponLeft: "shield",
-    description: "Dwarf modular kit — mountain hammer and shield.",
-    modelPath: grudge6RaceModelPath("dwarf"),
+    description: "Nexus bank security. Heavy armor, immovable defense, treasure vault specialist.",
+    modelPath: "/models/characters/dwarf-male.glb",
     matColors: {},
   },
   {
-    id: "orc_legion",
-    name: "Orc (ORC)",
-    icon: "\uD83E\uDDCC",
-    category: "warrior",
+    id: "dwarf_female_guardian",
+    name: "District Protector",
+    icon: "\uD83D\uDEE1\uFE0F",
+    category: "tank",
     combatClass: "melee",
-    weaponRight: "axe",
-    weaponLeft: null,
-    description: "Orc modular kit — Madra's Legion raiders.",
-    modelPath: grudge6RaceModelPath("orc"),
+    weaponRight: "hammer",
+    weaponLeft: "shield",
+    description: "Nexus district defender. Hammer and shield, mountain-forged resolve.",
+    modelPath: "/models/characters/dwarf-female.glb",
     matColors: {},
   },
   {
-    id: "ud_undead",
-    name: "Undead (UD)",
-    icon: "\uD83E\uDDDB",
+    id: "undead_male_sorcerer",
+    name: "Pale Scholar",
+    icon: "\uD83D\uDC80",
     category: "magic",
     combatClass: "caster",
     weaponRight: "staff",
     weaponLeft: null,
-    description: "Undead modular kit — death magic and persistence.",
-    modelPath: grudge6RaceModelPath("undead"),
+    description: "Nexus academic turned eternal. Dark magic, centuries of accumulated knowledge.",
+    modelPath: "/models/characters/vampire_aristocrat-male.glb",
+    matColors: {},
+  },
+  {
+    id: "undead_female_sorcerer",
+    name: "Night Arcanist",
+    icon: "\uD83C\uDF19",
+    category: "magic",
+    combatClass: "caster",
+    weaponRight: "staff",
+    weaponLeft: null,
+    description: "Undead sorceress practicing in Nexus shadows. Forbidden arts, timeless power.",
+    modelPath: "/models/characters/vampire_aristocrat-female.glb",
     matColors: {},
   },
 ];
@@ -1646,11 +1719,10 @@ export default function CharacterSelectScreen() {
     setWeaponModelLeft(eq.weaponModelLeft ?? getDefaultWeaponModelId(eq.weaponLeft));
     setArrowModelId(eq.arrowModelId ?? null);
     setBackAccessoryId(eq.backAccessoryId ?? null);
-    // Always prefer CDN grudge6 kit for warlords races (roster from Railway)
-    const racePath = grudge6RaceModelPath(sc.race);
+    // Use saved character model path, falling back to a default Nexus humanoid
     const path = sc.model_path && !REMOVED_HERO_FORGE_MODELS.has(sc.model_path)
       ? sc.model_path
-      : racePath;
+      : "/models/characters/assassin-male.glb";
     const usePath =
       path.startsWith("http") || path.includes("grudge6")
         ? path
@@ -1949,15 +2021,15 @@ export default function CharacterSelectScreen() {
                 WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
                 filter: "drop-shadow(0 0 12px rgba(246,201,69,.2))",
-              }}>HERO FORGE</div>
-              <div style={{ fontSize: 8, color: "#9aa3c7", letterSpacing: "2px", fontFamily: "'Cinzel',serif", marginTop: 1 }}>CHARACTER CREATOR</div>
+              }}>NEXUS SELECT</div>
+              <div style={{ fontSize: 8, color: "#9aa3c7", letterSpacing: "2px", fontFamily: "'Cinzel',serif", marginTop: 1 }}>CHARACTER SELECTION</div>
             </div>
             <div style={{ display: "flex", gap: 4 }}>
               {!getFleetAuthToken() && (
                 <button
                   type="button"
                   onClick={() => navigateToGrudgeIdLogin("/character")}
-                  title="Sign in with Grudge ID to load Warlords heroes"
+                  title="Sign in with Grudge ID to load saved characters"
                   style={{
                     padding: "3px 8px", fontSize: 8, borderRadius: 6, cursor: "pointer",
                     background: "rgba(56,189,248,.12)", border: "1px solid rgba(56,189,248,.45)",
@@ -1968,7 +2040,7 @@ export default function CharacterSelectScreen() {
               <button
                 type="button"
                 onClick={() => navigateToGcsCreate("/character")}
-                title="Create a Warlords-era hero in Character Studio (Foundry), then return here"
+                title="Create a new hero in Character Studio, then return here"
                 style={{
                   padding: "3px 8px", fontSize: 8, borderRadius: 6, cursor: "pointer",
                   background: "rgba(246,201,69,.12)", border: "1px solid rgba(246,201,69,.45)",
