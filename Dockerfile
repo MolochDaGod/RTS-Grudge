@@ -10,7 +10,8 @@
 #   dist/public/    — Vite-built client (HTML, JS, CSS, models, icons)
 #
 # Static assets (models/, icons/, fonts/) are baked into dist/public/
-# by Vite's build step. No separate Models/ copy needed.
+# by Vite's build step. Models/ is also copied separately below so the
+# server can serve them from /Models via express.static.
 # ──────────────────────────────────────────────────────────────────────────────
 
 # ── Stage 1: Build ────────────────────────────────────────────────────────────────
@@ -28,6 +29,7 @@ RUN npm install -g npm@11 && npm ci
 # client/public/ contains models, icons, fonts, sounds — Vite copies
 # them into dist/public/ at build time.
 COPY client/ client/
+COPY client/public/models/ Models/
 COPY server/ server/
 COPY shared/ shared/
 COPY scripts/ scripts/

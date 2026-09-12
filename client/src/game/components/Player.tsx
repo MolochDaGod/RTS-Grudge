@@ -97,7 +97,7 @@ import { computeMasteryBonuses, type WeaponTypeId as WSD_WeaponTypeId } from "@/
 import { triggerScreenShake, isCameraOrbiting, getCameraYaw } from "./Camera";
 import { useTargeting } from "@/lib/stores/useTargeting";
 import { updateGrassPlayerPosition } from "../world/GrassLayer";
-import { vfx, VFXPresets, setFlameFxParent } from "../vfx";
+import { vfx, VFXPresets } from "../vfx";
 import { ImpactFlinchController, damageToFlinchIntensity } from "../systems/ImpactFlinch";
 // ── New combat systems ──
 import {
@@ -340,12 +340,6 @@ function PlayerModel({
   // R3F root scene — not the character model scene (that is `scene` from
   // useCharacterController below). Rename to avoid TDZ/redeclaration errors.
   const { camera, gl, scene: threeScene } = useThree();
-  // Mount threejs-games Flame pool under the R3F scene so imperative
-  // spawnFlameTrail / spawnFlameBeam / spawnFlameAoe are visible.
-  useEffect(() => {
-    setFlameFxParent(threeScene);
-    return () => setFlameFxParent(null);
-  }, [threeScene]);
   // Worge form scale modifier — wolf reads smaller/faster, bear bulkier — is
   // applied on top of the base character scale so a single GLB can carry both
   // silhouettes without authoring separate models.
