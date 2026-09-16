@@ -103,6 +103,15 @@ function classifySkip(lower, k) {
   if (lower.includes("meshy") && /hero|character|play/.test(lower)) {
     return { purpose: "skip", layer: "hero", note: "Meshy not play body" };
   }
+  if (
+    lower.startsWith("models/fauna/") ||
+    lower.startsWith("icons/fauna/")
+  ) {
+    return { purpose: "skip", layer: "creature", note: "CDN 404 — no local GLB/FBX on disk; do not invent" };
+  }
+  if (lower.includes("voxel-knights-horse.glb")) {
+    return { purpose: "skip", layer: "creature", note: "CDN 404 — pack not on R2" };
+  }
   return null;
 }
 
