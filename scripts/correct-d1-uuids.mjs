@@ -22,7 +22,11 @@ import { classifyAsset } from "./lib/assetPurpose.mjs";
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..");
 const DRY = process.argv.includes("--dry-run");
-const VERIFY_PLAY = process.argv.includes("--verify-play") || !DRY;
+const VERIFY_PLAY = process.argv.includes("--verify-play");
+const CATALOG_SIZE =
+  process.argv.includes("--catalog-size") ||
+  (!DRY && !process.argv.includes("--skip-catalog-size"));
+const SKIP_UUID = process.argv.includes("--catalog-size") || process.argv.includes("--skip-uuid");
 const DB = process.env.D1_DATABASE_NAME || "grudge-assets-db";
 const CDN = (process.env.ASSET_CDN_BASE || "https://assets.grudge-studio.com").replace(/\/$/, "");
 const BATCH = 80;
@@ -139,21 +143,23 @@ async function headCdn(key) {
 async function main() {
   console.log(`D1 ${DB} dry=${DRY} verifyPlay=${VERIFY_PLAY}`);
 
-  for (const col of [
-    ["game_era", "TEXT"],
-    ["texture_format", "TEXT"],
-  ]) {
-    const sql = `ALTER TABLE asset_registry ADD COLUMN ${col[0]} ${col[1]};`;
-    if (DRY) {
-      console.log(`  [dry] ALTER ${col[0]}`);
-      continue;
-    }
-    try {
-      wranglerRun(sql, `ALTER ${col[0]}`);
-    } catch (e) {
-      const msg = String(e?.stderr || e?.message || e);
-      if (/duplicate column/i.test(msg)) console.log(`  skip ALTER ${col[0]} (exists)`);
-      else throw e;
+  if (!SKIP_UUID) {
+    for (const col of [
+      ["game_era", "TEXT"],
+      ["texture_format", "TEXT"],
+    ]) {
+      const sql = `ALTER TABLE asset_registry ADD COLUMN ${col[0]} ${col[1]};`;
+      if (DRY) {
+        console.log(`  [dry] ALTER ${col[0]}`);
+        continue;
+      }
+      try {
+        wranglerRun(sql, `ALTER ${col[0]}`);
+      } catch (e) {
+        const msg = String(e?.stderr || e?.stdout || e?.message || e);
+        if (/duplicate column/i.test(msg)) console.log(`  skip ALTER ${col[0]} (exists)`);
+        else throw e;
+      }
     }
   }
   if (!DRY) {
@@ -206,17 +212,21 @@ async function main() {
   console.log(`uuid mismatches/empty ${uuidFix} / ${rows.length}`);
   console.log(`play kit ${play.length}`);
 
-  const stmts = [];
-  for (let i = 0; i < updates.length; i += BATCH) {
-    const chunk = updates.slice(i, i + BATCH);
-    const parts = chunk.map(
-      (u) =>
-        `UPDATE asset_registry SET grudge_uuid=${escape(u.uuid)}, game_era=${escape(u.era)}, texture_format=${escape(u.tex)}, updated_at=(unixepoch()*1000) WHERE id=${escape(u.id)};`,
-    );
-    stmts.push(parts.join("\n"));
-  }
-  for (let i = 0; i < stmts.length; i++) {
-    wranglerRun(stmts[i], `UUID/era batch ${i + 1}/${stmts.length}`);
+  if (!SKIP_UUID) {
+    const stmts = [];
+    for (let i = 0; i < updates.length; i += BATCH) {
+      const chunk = updates.slice(i, i + BATCH);
+      const parts = chunk.map(
+        (u) =>
+          `UPDATE asset_registry SET grudge_uuid=${escape(u.uuid)}, game_era=${escape(u.era)}, texture_format=${escape(u.tex)}, updated_at=(unixepoch()*1000) WHERE id=${escape(u.id)};`,
+      );
+      stmts.push(parts.join("\n"));
+    }
+    for (let i = 0; i < stmts.length; i++) {
+      wranglerRun(stmts[i], `UUID/era batch ${i + 1}/${stmts.length}`);
+    }
+  } else {
+    console.log("skip uuid/era restamp");
   }
 
   if (VERIFY_PLAY) {
@@ -232,6 +242,32 @@ async function main() {
     }
     for (let i = 0; i < playStmts.length; i += BATCH) {
       wranglerRun(playStmts.slice(i, i + BATCH).join("\n"), `play HEAD batch ${i / BATCH + 1}`);
+    }
+  }
+
+  if (CATALOG_SIZE) {
+    const empty = rows.filter((r) => !r.file_size || Number(r.file_size) === 0);
+    console.log(`HEAD catalog empty-size rows ${empty.length}…`);
+    const catStmts = [];
+    const conc = 16;
+    let cursor = 0;
+    async function worker() {
+      while (cursor < empty.length) {
+        const idx = cursor++;
+        const r = empty[idx];
+        const h = await headCdn(r.r2_key);
+        if (idx < 40 || h.status !== "real") {
+          console.log(`  ${h.status.padEnd(10)} ${String(h.size).padStart(10)}  ${r.r2_key}`);
+        }
+        const sizeSql = h.size > 0 ? `file_size=${h.size}, ` : "";
+        catStmts.push(
+          `UPDATE asset_registry SET ${sizeSql}body_status=${escape(h.status)}, updated_at=(unixepoch()*1000) WHERE id=${escape(r.id)};`,
+        );
+      }
+    }
+    await Promise.all(Array.from({ length: conc }, worker));
+    for (let i = 0; i < catStmts.length; i += BATCH) {
+      wranglerRun(catStmts.slice(i, i + BATCH).join("\n"), `catalog HEAD batch ${i / BATCH + 1}`);
     }
   }
 
