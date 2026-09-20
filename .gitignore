@@ -8,6 +8,12 @@ vite.config.ts.*
 .env
 .env.local
 .env.production
+.env.*
+!.env.example
+
+# Editor local history — Cursor/VSCode snapshots (never commit; leaked production .env here)
+.history/
+.cursor/
 
 # Replit artifacts
 .replit
